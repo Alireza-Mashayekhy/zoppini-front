@@ -1,8 +1,14 @@
-export interface ApiResponse<T> {
+export interface ApiListResponse<T> {
   status: number;
   message: string;
-  data: T | T[];
-  pagination?: PaginationMeta;
+  data: T[];
+  pagination: PaginationMeta;
+}
+
+export interface ApiSingleResponse<T> {
+  status: number;
+  message: string;
+  data: T;
 }
 
 export interface PaginationMeta {

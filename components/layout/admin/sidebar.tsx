@@ -3,6 +3,7 @@
 import { User } from 'lucide-react';
 import Link from 'next/link';
 
+import { Separator } from '@/components/ui/separator';
 import {
   Sidebar,
   SidebarContent,
@@ -13,17 +14,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 const items = [
   {
-    link: '/admin',
+    link: '/admin/users',
     icon: User,
     name: 'کاربران',
   },
 ];
 
 export default function AdminSidebar() {
+  const { state } = useSidebar();
   return (
     <Sidebar
       collapsible="icon"
@@ -32,8 +35,10 @@ export default function AdminSidebar() {
       bgClassName="bg-white border-l border-sidebar-border"
     >
       <SidebarHeader className="flex flex-row items-center justify-end">
+        {state !== 'collapsed' && <span className="ml-auto">Zoppini</span>}
         <SidebarTrigger />
       </SidebarHeader>
+      <Separator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
