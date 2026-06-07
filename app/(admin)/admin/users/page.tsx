@@ -9,7 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -40,7 +39,7 @@ export default function Users() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <Button>افزودن</Button>
+        <Button size="lg">افزودن</Button>
         <Input
           placeholder="جستجو"
           value={search}
@@ -51,11 +50,11 @@ export default function Users() {
           className="bg-white w-96"
         />
       </div>
-      <div className="bg-white rounded-sm">
+      <div className="bg-white rounded-sm overflow-hidden">
         <Table dir="rtl">
           <TableHeader>
             <TableRow>
-              <TableHead>آیدی</TableHead>
+              <TableHead className="w-10">آیدی</TableHead>
               <TableHead>نام و نام خانوادگی</TableHead>
               <TableHead>شماره تلفن</TableHead>
               <TableHead>تاریخ تولد</TableHead>
@@ -66,7 +65,7 @@ export default function Users() {
           <TableBody>
             {data?.data.map((user: UserResponse) => (
               <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
+                <TableCell className="text-center">{user.id}</TableCell>
                 <TableCell>{user.fullName}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>{user.birthDate}</TableCell>
@@ -80,11 +79,9 @@ export default function Users() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>ویرایش</DropdownMenuItem>
                       <DropdownMenuItem variant="destructive">
-                        Delete
+                        حذف
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -1,7 +1,8 @@
 'use client';
 
-import { User } from 'lucide-react';
+import { Boxes, User } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { Separator } from '@/components/ui/separator';
 import {
@@ -16,6 +17,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const items = [
   {
@@ -23,10 +25,17 @@ const items = [
     icon: User,
     name: 'کاربران',
   },
+  {
+    link: '/admin/products',
+    icon: Boxes,
+    name: 'محصولات',
+  },
 ];
 
 export default function AdminSidebar() {
   const { state } = useSidebar();
+  const pathname = usePathname();
+
   return (
     <Sidebar
       collapsible="icon"
@@ -38,23 +47,38 @@ export default function AdminSidebar() {
         {state !== 'collapsed' && <span className="ml-auto">Zoppini</span>}
         <SidebarTrigger />
       </SidebarHeader>
+
       <Separator />
+
       <SidebarContent>
         <SidebarGroup>
-          <SidebarMenu>
-            {items.map(item => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.link}>
-                    <item.icon />
-                    <span>{item.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+          <SidebarMenu className="gap-2">
+            {items.map(item => {
+              const isActive = pathname.startsWith(item.link);
+
+              return (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href={item.link}
+                      className={cn(
+                        'flex items-center gap-2 border rounded-sm px-2 py-1 transition',
+                        isActive
+                          ? 'bg-primary/10 border-primary text-primary hover:bg-primary/10! hover:border-primary! hover:text-primary!'
+                          : 'hover:bg-muted',
+                      )}
+                    >
+                      <item.icon />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter />
     </Sidebar>
   );
