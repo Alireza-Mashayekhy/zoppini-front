@@ -8,4 +8,8 @@ export const endpoints = {
     list: '/users',
     detail: (id: number) => `/users/${id}`,
   },
+
+  categories: {
+    list: '/categories',
+  },
 };
