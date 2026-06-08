@@ -2,6 +2,7 @@
 
 import 'keen-slider/keen-slider.min.css';
 
+import CategoriesSection from '@/components/pages/home/category-section';
 import HeroSection from '@/components/pages/home/hero-section';
 
 // gsap.registerPlugin(Observer);
@@ -158,7 +159,10 @@ export default function StackedPanels() {
 
   return (
     <div>
-      <HeroSection />
+      <div className="h-screen">
+        <HeroSection />
+      </div>
+      <CategoriesSection />
       {/* <SectionContainer isFirstChild>
         <Image
           alt="hero section"

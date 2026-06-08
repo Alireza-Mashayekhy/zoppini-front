@@ -132,3 +132,43 @@
     @apply font-sans;
   }
 }
+
+@utility container {
+  margin-inline: auto;
+}
+
+@layer utilities {
+  .custom-container {
+    @apply px-3.5 md:px-5 xl:container;
+  }
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background 0.2s;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}
+
+body {
+  overflow-x: hidden;
+}
