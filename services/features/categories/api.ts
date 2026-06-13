@@ -1,6 +1,6 @@
 import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
-import { ApiListResponse } from '@/services/api/types';
+import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { CategoriesResponse } from './types';
 
@@ -9,6 +9,18 @@ export async function categoriesList(query: { page: number; search: string }) {
     endpoints.categories.list,
     {
       params: query,
+    },
+  );
+
+  return data;
+}
+
+export async function createCategory(formData: FormData) {
+  const { data } = await api.post<ApiSingleResponse<CategoriesResponse>>(
+    endpoints.auth.otp,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
     },
   );
 

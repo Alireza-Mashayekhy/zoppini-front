@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { categoriesList } from './api';
+import { categoriesList, createCategory } from './api';
 
 export const useCategoriesList = (query: { page: number; search: string }) => {
   return useQuery({
@@ -8,3 +8,9 @@ export const useCategoriesList = (query: { page: number; search: string }) => {
     queryFn: () => categoriesList(query),
   });
 };
+
+export function useCreateCategory() {
+  return useMutation({
+    mutationFn: (formData: FormData) => createCategory(formData),
+  });
+}

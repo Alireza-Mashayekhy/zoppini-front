@@ -3,6 +3,7 @@
 import { MoreHorizontalIcon } from 'lucide-react';
 import { useState } from 'react';
 
+import CategoriesModal from '@/components/admin/categories-modal';
 import CustomPagination from '@/components/shared/custom-pagination';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +40,7 @@ export default function Users() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <Button size="lg">افزودن</Button>
+        <CategoriesModal />
         <Input
           placeholder="جستجو"
           value={search}

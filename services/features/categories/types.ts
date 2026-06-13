@@ -8,3 +8,11 @@ export interface CategoriesResponse {
   slug: string;
   parentId: string;
 }
+
+export interface createCategoryDto {
+  name: string;
+  image: File;
+  description: string;
+  slug: string;
+  parentId: string | null;
+}

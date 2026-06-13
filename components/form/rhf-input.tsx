@@ -7,6 +7,7 @@ import { Field, FieldError, FieldLabel } from '../ui/field';
 export type RHFInputProps = React.ComponentProps<'input'> & {
   name: string;
   label?: string;
+  required?: boolean;
 };
 
 export default function RHFInput({ type = 'text', ...other }: RHFInputProps) {
@@ -18,7 +19,10 @@ export default function RHFInput({ type = 'text', ...other }: RHFInputProps) {
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={field.name}>{other?.label}</FieldLabel>
+          <FieldLabel htmlFor={field.name}>
+            {other?.label}
+            {other?.required && <span className="text-red-500">*</span>}
+          </FieldLabel>
           <Input
             {...field}
             type={type}
