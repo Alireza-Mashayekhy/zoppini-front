@@ -11,7 +11,7 @@ export default function Menu() {
   return (
     <>
       <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-        <MenuIcon />
+        <MenuIcon className="size-5" />
       </Button>
       <div
         onClick={() => setOpen(false)}

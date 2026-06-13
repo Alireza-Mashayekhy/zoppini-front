@@ -10,7 +10,7 @@ export default function Cart() {
   return (
     <>
       <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-        <ShoppingBag />
+        <ShoppingBag className="size-5" />
       </Button>
       <div
         onClick={() => setOpen(false)}

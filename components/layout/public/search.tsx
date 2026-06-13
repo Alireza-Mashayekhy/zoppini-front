@@ -55,7 +55,7 @@ export default function Search() {
   return (
     <>
       <Button variant="ghost" size="icon" onClick={handleSearchClick}>
-        <SearchIcon />
+        <SearchIcon className="size-5" />
       </Button>
 
       <style>{`
