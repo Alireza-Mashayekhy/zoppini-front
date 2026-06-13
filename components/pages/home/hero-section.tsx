@@ -193,9 +193,14 @@ export default function HeroSection() {
           <Link
             href={product.link}
             key={idx}
-            className="px-4 py-1 text-xl font-semibold text-shadow-lg hover:bg-white/20 rounded-lg transition"
+            className="relative inline-block overflow-hidden py-1 text-xl font-semibold text-shadow-lg rounded-lg group"
           >
-            {product.name}
+            <span className="block transition-transform duration-300 group-hover:translate-y-[-110%]">
+              {product.name}
+            </span>
+            <span className="absolute inset-0 block transition-transform duration-300 translate-y-full group-hover:translate-y-0">
+              {product.name}
+            </span>
           </Link>
         ))}
       </div>
