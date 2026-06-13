@@ -1,5 +1,6 @@
 'use client';
 
+import CategoriesSection from '@/components/pages/home/category-section';
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
 
@@ -8,6 +9,7 @@ export default function HomePage() {
     <div>
       <HeroSection />
       <NewIn />
+      <CategoriesSection />
     </div>
   );
 }
