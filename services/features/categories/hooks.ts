@@ -2,9 +2,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { categoriesList, createCategory } from './api';
 
-export const useCategoriesList = (query: { page: number; search: string }) => {
+export const useCategoriesList = (query: {
+  page?: number;
+  search?: string;
+  all: boolean;
+}) => {
   return useQuery({
-    queryKey: ['users', { ...query }],
+    queryKey: ['categories', { ...query }],
     queryFn: () => categoriesList(query),
   });
 };

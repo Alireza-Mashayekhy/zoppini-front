@@ -11,5 +11,6 @@ export const endpoints = {
 
   categories: {
     list: '/categories',
+    create: '/categories',
   },
 };

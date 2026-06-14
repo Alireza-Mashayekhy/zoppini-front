@@ -15,4 +15,6 @@ export interface createCategoryDto {
   description: string;
   slug: string;
   parentId: string | null;
+  isInHeroSection: boolean;
+  isInHome: boolean;
 }

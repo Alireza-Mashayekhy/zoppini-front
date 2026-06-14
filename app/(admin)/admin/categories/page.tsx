@@ -1,6 +1,7 @@
 'use client';
 
 import { MoreHorizontalIcon } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import CategoriesModal from '@/components/admin/categories-modal';
@@ -33,14 +34,14 @@ export default function Users() {
   const debouncedSearch = useDebounce(search, 500);
 
   const { data } = useCategoriesList({
-    page,
+    all: true,
     search: debouncedSearch,
   });
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <CategoriesModal />
+        <CategoriesModal categories={data?.data || []} />
         <Input
           placeholder="جستجو"
           value={search}
@@ -56,10 +57,9 @@ export default function Users() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">آیدی</TableHead>
-              <TableHead>نام و نام خانوادگی</TableHead>
-              <TableHead>شماره تلفن</TableHead>
-              <TableHead>تاریخ تولد</TableHead>
-              <TableHead>نقش</TableHead>
+              <TableHead>عکس</TableHead>
+              <TableHead>نام دسته بندی</TableHead>
+              <TableHead>اسلاگ</TableHead>
               <TableHead>عملیات</TableHead>
             </TableRow>
           </TableHeader>
@@ -67,7 +67,14 @@ export default function Users() {
             {data?.data.map((cat: CategoriesResponse) => (
               <TableRow key={cat.id}>
                 <TableCell className="text-center">{cat.id}</TableCell>
-                <TableCell>{cat.image}</TableCell>
+                <TableCell>
+                  <Image
+                    src={process.env.NEXT_PUBLIC_IMAGE_URL + cat.image}
+                    width={30}
+                    height={30}
+                    alt={cat.name}
+                  />
+                </TableCell>
                 <TableCell>{cat.name}</TableCell>
                 <TableCell>{cat.slug}</TableCell>
                 <TableCell className="text-right">
