@@ -3,6 +3,7 @@
 import CategoriesSection from '@/components/pages/home/category-section';
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
+import SaleSection from '@/components/pages/home/sale-section';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 
 export default function HomePage() {
@@ -11,6 +12,7 @@ export default function HomePage() {
       <HeroSection />
       <NewIn />
       <CategoriesSection />
+      <SaleSection />
       <SuggestedStyle />
       <div className="h-screen">
         <video muted loop autoPlay className="w-full h-full object-cover">

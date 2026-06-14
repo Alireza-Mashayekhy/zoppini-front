@@ -9,7 +9,7 @@ import { useState } from 'react';
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
 
-export default function NewIn() {
+export default function SaleSection() {
   const [loaded, setLoaded] = useState(false);
 
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -34,7 +34,7 @@ export default function NewIn() {
 
   return (
     <div>
-      <LuxuryTitle className="p-10">جدیدترین محصولات</LuxuryTitle>
+      <LuxuryTitle className="p-10">فروش ویژه</LuxuryTitle>
       <div ref={sliderRef} className="keen-slider group">
         {[1, 2, 3, 4, 5].map(product => (
           <div key={product} className="keen-slider__slide number-slide1">
