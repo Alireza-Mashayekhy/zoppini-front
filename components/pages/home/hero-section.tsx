@@ -119,7 +119,7 @@ export default function HeroSection() {
 
   return (
     <div ref={sectionRef} className="relative h-screen overflow-hidden">
-      <div className="grid grid-cols-2 h-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 h-full">
         {/* ویدیو راست */}
         <div className="relative h-full overflow-hidden bg-black">
           <video
