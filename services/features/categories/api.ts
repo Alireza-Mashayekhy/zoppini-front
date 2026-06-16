@@ -40,3 +40,9 @@ export async function updateCategory(id: number, formData: FormData) {
   );
   return data;
 }
+
+export async function deleteCategory(id: number) {
+  const url = endpoints.categories.delete(id);
+  const { data } = await api.delete<ApiSingleResponse<CategoriesResponse>>(url);
+  return data;
+}

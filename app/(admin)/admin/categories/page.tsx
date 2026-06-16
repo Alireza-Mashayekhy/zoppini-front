@@ -1,11 +1,23 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { MoreHorizontalIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import CategoriesModal from '@/components/admin/categories-modal';
 import CustomPagination from '@/components/shared/custom-pagination';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,7 +36,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useCategoriesList } from '@/services/features/categories/hooks';
+import {
+  useCategoriesList,
+  useDeleteCategory,
+} from '@/services/features/categories/hooks';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 export default function Users() {
@@ -33,8 +48,14 @@ export default function Users() {
   const [selectedCategory, setSelectedCategory] =
     useState<CategoriesResponse | null>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [isDeleteModal, setDeleteModal] = useState(false);
+  const [deleteCatId, setDeleteCatId] = useState<number | null>(null);
+
+  const queryClient = useQueryClient();
 
   const debouncedSearch = useDebounce(search, 500);
+
+  const deleteMutation = useDeleteCategory();
 
   const { data } = useCategoriesList({
     all: true,
@@ -44,6 +65,19 @@ export default function Users() {
   const handleEdit = (cat: CategoriesResponse) => {
     setSelectedCategory(cat);
     setOpenModal(true);
+  };
+
+  const deleteCategory = async () => {
+    if (deleteCatId) {
+      try {
+        await deleteMutation.mutateAsync({ id: deleteCatId });
+        toast.success('دسته بندی با موفقیت حذف شد.');
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        setDeleteModal(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
   };
 
   return (
@@ -102,7 +136,13 @@ export default function Users() {
                       <DropdownMenuItem onClick={() => handleEdit(cat)}>
                         ویرایش
                       </DropdownMenuItem>
-                      <DropdownMenuItem variant="destructive">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDeleteModal(true);
+                          setDeleteCatId(cat.id);
+                        }}
+                        variant="destructive"
+                      >
                         حذف
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -124,6 +164,27 @@ export default function Users() {
           </TableFooter>
         </Table>
       </div>
+      <AlertDialog open={isDeleteModal} onOpenChange={setDeleteModal}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              آیا از حذف این دسته بندی مطمئنید؟
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              این عملیات قابل برگشت نیست
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => deleteCategory()}
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
