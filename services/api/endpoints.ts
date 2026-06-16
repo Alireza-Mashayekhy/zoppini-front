@@ -12,5 +12,6 @@ export const endpoints = {
   categories: {
     list: '/categories',
     create: '/categories',
+    update: (id: number) => `/categories/${id}`,
   },
 };

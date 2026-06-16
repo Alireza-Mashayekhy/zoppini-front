@@ -30,6 +30,9 @@ import { CategoriesResponse } from '@/services/features/categories/types';
 export default function Users() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoriesResponse | null>(null);
+  const [openModal, setOpenModal] = useState(false);
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -38,10 +41,20 @@ export default function Users() {
     search: debouncedSearch,
   });
 
+  const handleEdit = (cat: CategoriesResponse) => {
+    setSelectedCategory(cat);
+    setOpenModal(true);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <CategoriesModal categories={data?.data || []} />
+        <CategoriesModal
+          categories={data?.data || []}
+          selectedData={selectedCategory}
+          open={openModal}
+          onOpenChange={setOpenModal}
+        />
         <Input
           placeholder="جستجو"
           value={search}
@@ -86,7 +99,9 @@ export default function Users() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>ویرایش</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(cat)}>
+                        ویرایش
+                      </DropdownMenuItem>
                       <DropdownMenuItem variant="destructive">
                         حذف
                       </DropdownMenuItem>

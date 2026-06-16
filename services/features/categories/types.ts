@@ -7,9 +7,12 @@ export interface CategoriesResponse {
   updatedAt: string;
   slug: string;
   parentId: string;
+  isInHeroSection: boolean;
+  isInHome: boolean;
 }
 
 export interface createCategoryDto {
+  id?: string;
   name: string;
   image: File;
   description: string;

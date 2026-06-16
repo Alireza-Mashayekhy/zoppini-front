@@ -6,24 +6,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-const products = [
-  { name: 'لینن کالکشن', link: '/' },
-  { name: 'کت تک', link: '/' },
-  { name: 'پیراهن', link: '/' },
-  { name: 'شلوار', link: '/' },
-  { name: 'اسنیکرز', link: '/' },
-  { name: 'پولوشرت', link: '/' },
-  { name: 'تخته نرد', link: '/' },
-  { name: 'شلوارک', link: '/' },
-  { name: 'کالج', link: '/' },
-  { name: 'تی شرت', link: '/' },
-  { name: 'شکت و روپوش', link: '/' },
-  { name: 'کفش آکسفورد', link: '/' },
-];
+import { CategoriesResponse } from '@/services/features/categories/types';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function HeroSection() {
+export default function HeroSection({
+  categories,
+}: {
+  categories: CategoriesResponse[];
+}) {
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const productsRef = useRef<HTMLDivElement>(null);
@@ -189,9 +180,9 @@ export default function HeroSection() {
         ref={productsRef}
         className="absolute bottom-0 right-0 m-6 z-20 text-white font-sans flex flex-col gap-2 text-right"
       >
-        {products.map((product, idx) => (
+        {categories.map((product, idx) => (
           <Link
-            href={product.link}
+            href={`/products/${product.slug}`}
             key={idx}
             className="relative inline-block overflow-hidden py-1 text-xl font-semibold text-shadow-lg rounded-lg group"
           >

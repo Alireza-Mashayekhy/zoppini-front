@@ -1,53 +1,13 @@
+'use client';
 import Image from 'next/image';
 
-const categories = [
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-  {
-    title: 'پیراهن',
-    image: '/home/dress.png',
-  },
-];
+import { CategoriesResponse } from '@/services/features/categories/types';
 
-export default function CategoriesSection() {
+export default function CategoriesSection({
+  categories,
+}: {
+  categories: CategoriesResponse[];
+}) {
   return (
     <section className="relative grid grid-cols-4">
       <div className="relative col-span-2 aspect-square">
@@ -68,17 +28,18 @@ export default function CategoriesSection() {
       </div>
       {categories.slice(0, 4).map(category => (
         <div
-          key={category.title}
+          key={category.name}
           className="aspect-square relative my-1 mx-0.5 group bg-gray-300"
         >
           <Image
-            src={category.image}
+            src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${category.image}`}
             fill
             alt="image category 1"
             objectFit="cover"
+            onError={err => console.log(err)}
           />
           <div className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all">
-            {category.title}
+            {category.name}
           </div>
         </div>
       ))}
@@ -100,17 +61,17 @@ export default function CategoriesSection() {
       </div>
       {categories.slice(4, 8).map(category => (
         <div
-          key={category.title}
+          key={category.name}
           className="aspect-square relative my-1 mx-0.5 group bg-gray-300"
         >
           <Image
-            src={category.image}
+            src={process.env.NEXT_PUBLIC_IMAGE_URL + category.image}
             fill
             alt="image category 1"
             objectFit="cover"
           />
           <div className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all">
-            {category.title}
+            {category.name}
           </div>
         </div>
       ))}

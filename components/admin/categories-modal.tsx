@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -12,7 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useCreateCategory } from '@/services/features/categories/hooks';
+import {
+  useCreateCategory,
+  useUpdateCategory,
+} from '@/services/features/categories/hooks';
 import {
   CategoriesResponse,
   createCategoryDto,
@@ -28,23 +31,32 @@ import { Button } from '../ui/button';
 
 export default function CategoriesModal({
   categories,
+  selectedData,
+  open,
+  onOpenChange,
 }: {
   categories: CategoriesResponse[];
+  selectedData: CategoriesResponse | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   const queryClient = useQueryClient();
-  const createCategoryMutaion = useCreateCategory();
+  const createCategoryMutation = useCreateCategory();
+  const updateCategoryMutation = useUpdateCategory();
+
+  const isEdit = !!selectedData;
 
   const schema = z.object({
     name: z.string().nonempty('این فیلد اجباری است'),
-    image: z
-      .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
-      .refine(file => file.size <= 5 * 1024 * 102, `حداکثر حجم 5MB`)
-      .refine(
-        file => ['image/webp'].includes(file.type),
-        'فقط فرمت‌ webp مجازند',
-      ),
+    image: selectedData
+      ? z.any().optional()
+      : z
+          .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
+          .refine(file => file.size <= 5 * 1024 * 102, `حداکثر حجم 5MB`)
+          .refine(
+            file => ['image/webp'].includes(file.type),
+            'فقط فرمت‌ webp مجازند',
+          ),
     description: z.string().nonempty('این فیلد اجباری است'),
     slug: z.string().nonempty('این فیلد اجباری است'),
     parentId: z.string().nullable(),
@@ -66,62 +78,87 @@ export default function CategoriesModal({
   });
 
   const {
+    reset,
     setValue,
     formState: { errors },
   } = methods;
+
+  useEffect(() => {
+    if (selectedData) {
+      reset({
+        name: selectedData.name,
+        description: selectedData.description,
+        slug: selectedData.slug,
+        parentId: selectedData.parentId || '',
+        isInHeroSection: selectedData.isInHeroSection,
+        isInHome: selectedData.isInHome,
+      });
+    } else {
+      reset({
+        name: '',
+        image: undefined,
+        description: '',
+        slug: '',
+        parentId: '',
+        isInHeroSection: false,
+        isInHome: false,
+      });
+    }
+  }, [selectedData, reset]);
 
   const onSubmit = async (data: createCategoryDto) => {
     try {
       const formData = new FormData();
       formData.append('name', data.name);
-      formData.append('file', data.image);
+      if (data.image instanceof File) {
+        formData.append('file', data.image);
+      }
       formData.append('description', data.description);
       formData.append('slug', data.slug);
       formData.append('isInHeroSection', data.isInHeroSection.toString());
       formData.append('isInHome', data.isInHome.toString());
       if (data.parentId) formData.append('parentId', data.parentId);
-      createCategoryMutaion.mutateAsync(formData);
-      toast.success('دسته بندی با موفقیت ساخته شد');
-      setOpen(false);
-      methods.reset();
+      if (isEdit && selectedData.id) {
+        await updateCategoryMutation.mutateAsync({
+          id: selectedData.id,
+          data: formData,
+        });
+        toast.success('دسته بندی ویرایش شد');
+      } else {
+        await createCategoryMutation.mutateAsync(formData);
+        toast.success('دسته بندی ساخته شد');
+      }
+      onOpenChange(false);
+      reset();
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (error) {
       console.log(error);
     }
   };
-  const items: { text: string; value: string }[] = [
-    {
-      text: 'بدون دسته بندی',
-      value: 'null',
-    },
+
+  const items = [
+    { text: 'بدون دسته بندی', value: 'null' },
+    ...categories.map(cat => ({ text: cat.name, value: String(cat.id) })),
   ];
-  categories.map(cat => {
-    items.push({
-      text: cat.name,
-      value: cat.id.toString(),
-    });
-  });
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger>
-          <Button size="lg">افزودن</Button>
+          <Button size="lg">{isEdit ? 'ویرایش' : 'افزودن'}</Button>
         </DialogTrigger>
         <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
           <DialogHeader className="h-fit">
-            <DialogTitle>افزودن دسته بندی</DialogTitle>
+            <DialogTitle>
+              {isEdit ? 'ویرایش دسته بندی' : 'افزودن دسته بندی'}
+            </DialogTitle>
           </DialogHeader>
 
           <FormProvider methods={methods} onSubmit={onSubmit}>
             <div className="grid grid-cols-2 gap-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin px-4">
               <RHFInput label="نام دسته بندی" name="name" isRequired />
               <RHFInput label="نامک" name="slug" isRequired />
-              <RHFSelect
-                label="دسته بندی مادر"
-                name="parent_id"
-                items={items}
-              />
+              <RHFSelect label="دسته بندی مادر" name="parentId" items={items} />
 
               <span />
 
@@ -146,10 +183,18 @@ export default function CategoriesModal({
                 accept="image/webp"
                 aspectRatio={1}
                 className="col-span-2"
+                defaultValue={
+                  selectedData?.image
+                    ? process.env.NEXT_PUBLIC_IMAGE_URL + selectedData.image
+                    : null
+                }
               />
               <Button
                 type="submit"
-                loading={createCategoryMutaion.isPending}
+                loading={
+                  createCategoryMutation.isPending ||
+                  updateCategoryMutation.isPending
+                }
                 size="lg"
                 className="w-full col-span-2"
               >

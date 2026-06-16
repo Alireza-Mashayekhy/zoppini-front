@@ -30,3 +30,13 @@ export async function createCategory(formData: FormData) {
 
   return data;
 }
+
+export async function updateCategory(id: number, formData: FormData) {
+  const url = endpoints.categories.update(id);
+  const { data } = await api.patch<ApiSingleResponse<CategoriesResponse>>(
+    url,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data;
+}

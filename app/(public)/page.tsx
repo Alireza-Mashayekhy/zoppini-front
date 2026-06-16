@@ -1,17 +1,25 @@
-'use client';
-
 import CategoriesSection from '@/components/pages/home/category-section';
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
 import SaleSection from '@/components/pages/home/sale-section';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
+import { ApiListResponse } from '@/services/api/types';
+import { getCategories } from '@/services/features/categories/server.api';
+import { CategoriesResponse } from '@/services/features/categories/types';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const categories: ApiListResponse<CategoriesResponse> = await getCategories();
+  console.log(categories);
+  const HeroSectionCategories = categories?.data.filter(
+    cat => cat.isInHeroSection,
+  );
+  const HomeCategories = categories?.data.filter(cat => cat.isInHome);
+
   return (
     <div>
-      <HeroSection />
+      <HeroSection categories={HeroSectionCategories} />
       <NewIn />
-      <CategoriesSection />
+      <CategoriesSection categories={HomeCategories} />
       <SaleSection />
       <SuggestedStyle />
       <div className="h-screen">
