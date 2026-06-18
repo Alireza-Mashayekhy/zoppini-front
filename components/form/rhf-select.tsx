@@ -40,7 +40,7 @@ export default function RHFSelect({ ...other }: RHFSelectProps) {
             >
               <SelectValue placeholder={other?.placeholder} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {other.items?.map((item, index) => (
                 <SelectItem key={index} value={item.value}>
                   {item?.text || item.value}

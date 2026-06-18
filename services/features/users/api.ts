@@ -14,3 +14,18 @@ export async function usersList(query: { page: number; search: string }) {
 
   return data;
 }
+
+export async function categoriesList(query: {
+  page?: number;
+  search?: string;
+  all?: boolean;
+}) {
+  const { data } = await api.get<ApiListResponse<CategoriesResponse>>(
+    endpoints.categories.list,
+    {
+      params: query,
+    },
+  );
+
+  return data;
+}

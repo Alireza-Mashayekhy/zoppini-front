@@ -15,4 +15,13 @@ export const endpoints = {
     update: (id: number) => `/categories/${id}`,
     delete: (id: number) => `/categories/${id}`,
   },
+
+  products: {
+    colorList: '/products/color',
+    createColor: '/products/color',
+    sizeList: '/products/size',
+    createSize: '/products/size',
+    list: '/products',
+    create: '/products',
+  },
 };
