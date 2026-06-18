@@ -5,6 +5,7 @@ import { MoreHorizontalIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import AddImagesModal from '@/components/admin/product/add-images-modal';
 import ProductCreateModal from '@/components/admin/product/create-modal';
 import CustomPagination from '@/components/shared/custom-pagination';
 import {
@@ -52,6 +53,7 @@ export default function Users() {
   const [selectedProduct, setSelectedProduct] =
     useState<ProductsResponse | null>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [openImagesModal, setOpenImagesModal] = useState(false);
   const [isDeleteModal, setDeleteModal] = useState(false);
   const [deleteCatId, setDeleteCatId] = useState<number | null>(null);
 
@@ -71,9 +73,16 @@ export default function Users() {
   const { data: colorsData } = useColorsList();
   const { data: sizeData } = useSizeList();
 
+  console.log(productsList);
+
   const handleEdit = (product: ProductsResponse) => {
     setSelectedProduct(product);
     setOpenModal(true);
+  };
+
+  const handleImages = (product: ProductsResponse) => {
+    setSelectedProduct(product);
+    setOpenImagesModal(true);
   };
 
   const deleteCategory = async () => {
@@ -99,6 +108,12 @@ export default function Users() {
           onOpenChange={setOpenModal}
           colorsData={colorsData?.data || []}
           sizeData={sizeData?.data || []}
+        />
+        <AddImagesModal
+          selectedData={selectedProduct}
+          open={openImagesModal}
+          onOpenChange={setOpenImagesModal}
+          colorsData={colorsData?.data || []}
         />
         <Input
           placeholder="جستجو"
@@ -139,6 +154,9 @@ export default function Users() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(product)}>
                         ویرایش
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleImages(product)}>
+                        مدیریت تصاویر
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {

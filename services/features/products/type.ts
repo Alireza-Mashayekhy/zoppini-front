@@ -40,6 +40,11 @@ export interface CommentResponse {
 export interface ColorImageResponse {
   id: number;
   url: string;
+  color: {
+    hexCode: string;
+    id: number;
+    name: string;
+  };
 }
 
 export interface ProductsResponse {
@@ -84,4 +89,9 @@ export interface createApiProductDto {
     sizeId: number;
     price: number;
   }[];
+}
+
+export interface AddImagesDto {
+  colorIds: number[];
+  files: File[];
 }

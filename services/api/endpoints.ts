@@ -23,5 +23,7 @@ export const endpoints = {
     createSize: '/products/size',
     list: '/products',
     create: '/products',
+    addColorImage: (productId: number) => `/products/${productId}/color-images`,
+    deleteColorImage: (id: number) => `/products/images/${id}`,
   },
 };

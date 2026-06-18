@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  addImages,
   colorsList,
   createColor,
   createProduct,
   createSize,
+  deleteImage,
   productsList,
   siezList,
 } from './api';
@@ -50,5 +52,18 @@ export const useProducsList = (query: {
 export function useCreateProduct() {
   return useMutation({
     mutationFn: (formData: createApiProductDto) => createProduct(formData),
+  });
+}
+
+export function useAddImages() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
+      addImages(id, data),
+  });
+}
+
+export function useDeleteImage() {
+  return useMutation({
+    mutationFn: (id: number) => deleteImage(id),
   });
 }

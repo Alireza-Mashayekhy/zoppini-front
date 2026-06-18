@@ -3,6 +3,7 @@ import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import {
+  AddImagesDto,
   ColorResponse,
   createApiProductDto,
   CreateColorDto,
@@ -66,5 +67,21 @@ export async function createProduct(formData: createApiProductDto) {
     formData,
   );
 
+  return data;
+}
+
+export async function addImages(id: number, formData: FormData) {
+  const url = endpoints.products.addColorImage(id);
+  const { data } = await api.post<ApiSingleResponse<AddImagesDto>>(
+    url,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data;
+}
+
+export async function deleteImage(id: number) {
+  const url = endpoints.products.deleteColorImage(id);
+  const { data } = await api.delete(url);
   return data;
 }
