@@ -4,22 +4,23 @@ import NewIn from '@/components/pages/home/new-in';
 import SaleSection from '@/components/pages/home/sale-section';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 import { ApiListResponse } from '@/services/api/types';
-import { getCategories } from '@/services/features/categories/server.api';
+import {
+  getHeroSectionCategories,
+  getHomeCategories,
+} from '@/services/features/categories/server.api';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 export default async function HomePage() {
-  const categories: ApiListResponse<CategoriesResponse> = await getCategories();
-  console.log(categories);
-  const HeroSectionCategories = categories?.data.filter(
-    cat => cat.isInHeroSection,
-  );
-  const HomeCategories = categories?.data.filter(cat => cat.isInHome);
+  const HeroSectionCategories: ApiListResponse<CategoriesResponse> =
+    await getHeroSectionCategories();
+  const HomeCategories: ApiListResponse<CategoriesResponse> =
+    await getHomeCategories();
 
   return (
     <div>
-      <HeroSection categories={HeroSectionCategories} />
+      <HeroSection categories={HeroSectionCategories?.data} />
       <NewIn />
-      <CategoriesSection categories={HomeCategories} />
+      <CategoriesSection categories={HomeCategories?.data} />
       <SaleSection />
       <SuggestedStyle />
       <div className="h-screen">

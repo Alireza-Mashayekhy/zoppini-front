@@ -8,3 +8,15 @@ export async function getCategories() {
     'categories?isInHeroSection=true&isInHome=true',
   );
 }
+
+export async function getHeroSectionCategories() {
+  return serverFetch<ApiListResponse<CategoriesResponse>>(
+    'categories?isInHeroSection=true',
+  );
+}
+
+export async function getHomeCategories() {
+  return serverFetch<ApiListResponse<CategoriesResponse>>(
+    'categories?isInHome=true',
+  );
+}
