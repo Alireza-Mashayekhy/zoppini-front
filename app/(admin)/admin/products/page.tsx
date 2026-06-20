@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import AddImagesModal from '@/components/admin/product/add-images-modal';
 import ProductCreateModal from '@/components/admin/product/create-modal';
+import SuggestedProductsModal from '@/components/admin/product/suggested-modal';
 import CustomPagination from '@/components/shared/custom-pagination';
 import {
   AlertDialog,
@@ -36,24 +37,23 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDebounce } from '@/hooks/use-debounce';
-import {
-  useCategoriesList,
-  useDeleteCategory,
-} from '@/services/features/categories/hooks';
+import { useCategoriesList } from '@/services/features/categories/hooks';
 import {
   useColorsList,
+  useDeleteProduct,
   useProducsList,
   useSizeList,
 } from '@/services/features/products/hooks';
 import { ProductsResponse } from '@/services/features/products/type';
 
-export default function Users() {
+export default function Products() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] =
     useState<ProductsResponse | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [openImagesModal, setOpenImagesModal] = useState(false);
+  const [openSuggestedModal, setOpenSuggestedModal] = useState(false);
   const [isDeleteModal, setDeleteModal] = useState(false);
   const [deleteCatId, setDeleteCatId] = useState<number | null>(null);
 
@@ -61,7 +61,7 @@ export default function Users() {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  const deleteMutation = useDeleteCategory();
+  const deleteMutation = useDeleteProduct();
   const { data: categoriesList } = useCategoriesList({
     all: true,
     search: debouncedSearch,
@@ -85,12 +85,17 @@ export default function Users() {
     setOpenImagesModal(true);
   };
 
-  const deleteCategory = async () => {
+  const handleSuggested = (product: ProductsResponse) => {
+    setSelectedProduct(product);
+    setOpenSuggestedModal(true);
+  };
+
+  const deleteProduct = async () => {
     if (deleteCatId) {
       try {
         await deleteMutation.mutateAsync({ id: deleteCatId });
         toast.success('دسته بندی با موفقیت حذف شد.');
-        queryClient.invalidateQueries({ queryKey: ['categories'] });
+        queryClient.invalidateQueries({ queryKey: ['products'] });
         setDeleteModal(false);
       } catch (error) {
         console.log(error);
@@ -114,6 +119,11 @@ export default function Users() {
           open={openImagesModal}
           onOpenChange={setOpenImagesModal}
           colorsData={colorsData?.data || []}
+        />
+        <SuggestedProductsModal
+          selectedData={selectedProduct}
+          open={openSuggestedModal}
+          onOpenChange={setOpenSuggestedModal}
         />
         <Input
           placeholder="جستجو"
@@ -159,6 +169,11 @@ export default function Users() {
                         مدیریت تصاویر
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        onClick={() => handleSuggested(product)}
+                      >
+                        محصولات پیشنهادی
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => {
                           setDeleteModal(true);
                           setDeleteCatId(product.id);
@@ -200,7 +215,7 @@ export default function Users() {
             <AlertDialogCancel>انصراف</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => deleteCategory()}
+              onClick={() => deleteProduct()}
             >
               حذف
             </AlertDialogAction>

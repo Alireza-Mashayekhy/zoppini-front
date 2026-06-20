@@ -5,7 +5,6 @@ import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 import {
   AddImagesDto,
   ColorResponse,
-  createApiProductDto,
   CreateColorDto,
   CreateSizeDto,
   ProductsResponse,
@@ -61,12 +60,31 @@ export async function productsList(query: {
   return data;
 }
 
-export async function createProduct(formData: createApiProductDto) {
+export async function createProduct(formData: FormData) {
   const { data } = await api.post<ApiSingleResponse<ProductsResponse>>(
     endpoints.products.create,
     formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
   );
 
+  return data;
+}
+
+export async function editProduct(id: number, formData: FormData) {
+  const url = endpoints.products.edit(id);
+
+  const { data } = await api.patch<ApiSingleResponse<ProductsResponse>>(
+    url,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+
+  return data;
+}
+
+export async function deleteProduct(id: number) {
+  const url = endpoints.products.delete(id);
+  const { data } = await api.delete(url);
   return data;
 }
 
@@ -83,5 +101,14 @@ export async function addImages(id: number, formData: FormData) {
 export async function deleteImage(id: number) {
   const url = endpoints.products.deleteColorImage(id);
   const { data } = await api.delete(url);
+  return data;
+}
+
+export async function updateSuggestedProducts(
+  id: number,
+  suggestedIds: number[],
+) {
+  const url = endpoints.products.suggestedProducts(id);
+  const { data } = await api.patch(url, { suggestedProductIds: suggestedIds });
   return data;
 }

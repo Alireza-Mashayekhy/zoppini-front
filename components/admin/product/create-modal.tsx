@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { RHFImageUploader } from '@/components/form/rhf-image-uploader';
 import RHFInput from '@/components/form/rhf-input';
 import RHFMultiSelect from '@/components/form/rhf-multiselect';
 import RHFPriceInput from '@/components/form/rhf-price-input';
@@ -16,10 +18,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CategoriesResponse } from '@/services/features/categories/types';
-import { useCreateProduct } from '@/services/features/products/hooks';
+import {
+  useCreateProduct,
+  useEditProduct,
+} from '@/services/features/products/hooks';
 import {
   ColorResponse,
-  createApiProductDto,
   createProductDto,
   ProductsResponse,
   SizeResponse,
@@ -51,6 +55,7 @@ export default function ProductCreateModal({
   const queryClient = useQueryClient();
 
   const createProductMutation = useCreateProduct();
+  const editProductMutation = useEditProduct();
 
   const colorItems = colorsData.map(color => ({
     text: color.name,
@@ -69,6 +74,15 @@ export default function ProductCreateModal({
 
   const schema = z.object({
     title: z.string().nonempty('این فیلد اجباری است'),
+    image: selectedData
+      ? z.any().optional()
+      : z
+          .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
+          .refine(file => file.size <= 5 * 1024 * 102, `حداکثر حجم 5MB`)
+          .refine(
+            file => ['image/webp'].includes(file.type),
+            'فقط فرمت‌ webp مجازند',
+          ),
     description: z.string().nonempty('این فیلد اجباری است'),
     careInstructionsHtml: z.string().nonempty('این فیلد اجباری است'),
     slug: z.string().nonempty('این فیلد اجباری است'),
@@ -82,6 +96,7 @@ export default function ProductCreateModal({
   const methods = useForm<createProductDto>({
     defaultValues: {
       title: '',
+      image: undefined,
       description: '',
       careInstructionsHtml: '',
       slug: '',
@@ -96,75 +111,90 @@ export default function ProductCreateModal({
 
   const {
     reset,
-    // setValue,
-    // formState: { errors },
+    setValue,
+    formState: { errors },
   } = methods;
 
-  // useEffect(() => {
-  //   if (selectedData) {
-  //     reset({
-  //       name: selectedData.name,
-  //       description: selectedData.description,
-  //       slug: selectedData.slug,
-  //       parentId: selectedData.parentId || '',
-  //       isInHeroSection: selectedData.isInHeroSection,
-  //       isInHome: selectedData.isInHome,
-  //     });
-  //   } else {
-  //     reset({
-  //       name: '',
-  //       image: undefined,
-  //       description: '',
-  //       slug: '',
-  //       parentId: '',
-  //       isInHeroSection: false,
-  //       isInHome: false,
-  //     });
-  //   }
-  // }, [selectedData, reset]);
+  useEffect(() => {
+    if (selectedData) {
+      const categoryIds =
+        selectedData.categories?.map(cat => String(cat.id)) || [];
+      const colorIds = [
+        ...new Set(selectedData.variants?.map(v => String(v.color?.id)) || []),
+      ];
+      const sizeIds = [
+        ...new Set(selectedData.variants?.map(v => String(v.size?.id)) || []),
+      ];
+      const price = selectedData.variants?.[0]?.price || 0;
+
+      reset({
+        title: selectedData.title,
+        description: selectedData.description || '',
+        careInstructionsHtml: selectedData.careInstructionsHtml || '',
+        slug: selectedData.slug,
+        productCode: selectedData.productCode,
+        categories: categoryIds,
+        colorId: colorIds,
+        sizeId: sizeIds,
+        price: price,
+      });
+    } else {
+      reset({
+        title: '',
+        image: undefined,
+        description: '',
+        careInstructionsHtml: '',
+        slug: '',
+        productCode: '',
+        categories: [],
+        colorId: [],
+        sizeId: [],
+        price: 0,
+      });
+    }
+  }, [selectedData, reset]);
 
   const onSubmit = async (data: createProductDto) => {
     try {
-      // ۱. استخراج فیلدها
-      const {
-        title,
-        description,
-        careInstructionsHtml,
-        slug,
-        productCode,
-        categories,
-        colorId,
-        sizeId,
-        price,
-      } = data;
-
-      // ۲. ساخت آرایه واریانت‌ها (ضرب دکارتی)
       const variants = [];
-      for (const cId of colorId) {
-        for (const sId of sizeId) {
+      for (const cId of data.colorId) {
+        for (const sId of data.sizeId) {
           variants.push({
             colorId: Number(cId),
             sizeId: Number(sId),
-            price: price,
+            price: data.price,
           });
         }
       }
 
-      // ۳. ساختن payload نهایی
-      const payload: createApiProductDto = {
-        productCode,
-        title,
-        slug,
-        description,
-        careInstructionsHtml,
-        categoryIds: categories.map(id => Number(id)),
-        variants,
-      };
+      const categoryIds = data.categories.map(id => Number(id));
 
-      console.log('Payload:', payload);
+      const formData = new FormData();
 
-      // ارسال به بک‌اند
-      await createProductMutation.mutateAsync(payload);
+      formData.append('title', data.title);
+      formData.append('slug', data.slug);
+      formData.append('productCode', data.productCode);
+      formData.append('description', data.description || '');
+      formData.append('careInstructionsHtml', data.careInstructionsHtml || '');
+
+      formData.append('categoryIds', JSON.stringify(categoryIds));
+      formData.append('variants', JSON.stringify(variants));
+
+      if (data.image instanceof File) {
+        formData.append('file', data.image);
+      }
+
+      if (isEdit && selectedData.id) {
+        await editProductMutation.mutateAsync({
+          id: selectedData.id,
+          data: formData,
+        });
+        toast.success('محصول ویرایش شد');
+      } else {
+        await createProductMutation.mutateAsync(formData);
+        toast.success('محصول ساخته شد');
+      }
+
       onOpenChange(false);
       reset();
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -177,7 +207,7 @@ export default function ProductCreateModal({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger>
-          <Button size="lg">{isEdit ? 'ویرایش' : 'افزودن'}</Button>
+          <Button size="lg">افزودن</Button>
         </DialogTrigger>
         <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
           <DialogHeader className="h-fit">
@@ -218,6 +248,21 @@ export default function ProductCreateModal({
               <div className="col-span-2">
                 <RHFTextEditor name="careInstructionsHtml" label="نحوه شستشو" />
               </div>
+              <RHFImageUploader
+                name="image"
+                label="تصویر محصول"
+                setValue={setValue}
+                error={errors.image}
+                maxSize={5 * 1024 * 1024}
+                accept="image/webp"
+                aspectRatio={1}
+                className="col-span-2"
+                defaultValue={
+                  selectedData?.image
+                    ? process.env.NEXT_PUBLIC_IMAGE_URL + selectedData.image
+                    : null
+                }
+              />
               <Button
                 type="submit"
                 loading={createProductMutation.isPending}

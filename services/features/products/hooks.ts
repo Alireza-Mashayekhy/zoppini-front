@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   addImages,
@@ -7,10 +7,13 @@ import {
   createProduct,
   createSize,
   deleteImage,
+  deleteProduct,
+  editProduct,
   productsList,
   siezList,
+  updateSuggestedProducts,
 } from './api';
-import { createApiProductDto, CreateColorDto, CreateSizeDto } from './type';
+import { CreateColorDto, CreateSizeDto } from './type';
 
 export const useColorsList = () => {
   return useQuery({
@@ -51,7 +54,20 @@ export const useProducsList = (query: {
 
 export function useCreateProduct() {
   return useMutation({
-    mutationFn: (formData: createApiProductDto) => createProduct(formData),
+    mutationFn: (formData: FormData) => createProduct(formData),
+  });
+}
+
+export function useEditProduct() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: FormData }) =>
+      editProduct(id, data),
+  });
+}
+
+export function useDeleteProduct() {
+  return useMutation({
+    mutationFn: ({ id }: { id: number }) => deleteProduct(id),
   });
 }
 
@@ -67,3 +83,20 @@ export function useDeleteImage() {
     mutationFn: (id: number) => deleteImage(id),
   });
 }
+
+export const useUpdateSuggestedProducts = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      suggestedProductsIds,
+    }: {
+      productId: number;
+      suggestedProductsIds: number[];
+    }) => updateSuggestedProducts(productId, suggestedProductsIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};

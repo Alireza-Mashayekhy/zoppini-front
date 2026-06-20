@@ -23,7 +23,11 @@ export const endpoints = {
     createSize: '/products/size',
     list: '/products',
     create: '/products',
+    edit: (productId: number) => `/products/${productId}`,
+    delete: (productId: number) => `/products/${productId}`,
     addColorImage: (productId: number) => `/products/${productId}/color-images`,
     deleteColorImage: (id: number) => `/products/images/${id}`,
+    suggestedProducts: (productId: number) =>
+      `/products/${productId}/suggested-products`,
   },
 };

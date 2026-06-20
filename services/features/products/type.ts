@@ -52,6 +52,7 @@ export interface ProductsResponse {
   productCode: string;
   title: string;
   slug: string;
+  image: string;
   description: string;
   careInstructionsHtml: string;
   createdAt: string;
@@ -65,6 +66,7 @@ export interface ProductsResponse {
 
 export interface createProductDto {
   id?: string;
+  image: File;
   productCode: string;
   title: string;
   description: string;
