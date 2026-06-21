@@ -6,7 +6,7 @@ export interface CategoriesResponse {
   createdAt: string;
   updatedAt: string;
   slug: string;
-  parentId: string;
+  parentId: number | null;
   isInHeroSection: boolean;
   isInHome: boolean;
 }
