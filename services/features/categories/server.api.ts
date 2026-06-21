@@ -20,3 +20,12 @@ export async function getHomeCategories() {
     'categories?isInHome=true',
   );
 }
+
+export async function getCategoryBySlug(slug: string) {
+  const response = await serverFetch<{
+    id: number;
+    name: string;
+    slug: string;
+  }>(`categories/slug/${slug}`);
+  return response;
+}
