@@ -1,14 +1,21 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface ProductProps {
   image: string;
   title: string;
   price: number;
+  slug: string;
 }
 
-export default function ProductCard({ image, title, price }: ProductProps) {
+export default function ProductCard({
+  image,
+  title,
+  price,
+  slug,
+}: ProductProps) {
   return (
-    <div>
+    <Link href={`/product/${slug}`}>
       <div className="relative w-full aspect-9/16">
         <Image
           src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
@@ -25,6 +32,6 @@ export default function ProductCard({ image, title, price }: ProductProps) {
           {parseInt(price.toString()).toLocaleString()} تومان
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

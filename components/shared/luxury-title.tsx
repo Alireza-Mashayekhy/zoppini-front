@@ -14,7 +14,7 @@ export default function LuxuryTitle({
   className = '',
 }: {
   children: React.ReactNode;
-  className: string;
+  className?: string;
 }) {
   const titleRef = useRef(null);
   const lineRef = useRef(null);

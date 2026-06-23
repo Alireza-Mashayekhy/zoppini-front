@@ -280,6 +280,7 @@ export default function ProductList({
                 image={product.image}
                 title={product.title}
                 price={product.variants[0]?.price || 0}
+                slug={product.slug}
               />
             ))}
           </div>

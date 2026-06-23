@@ -1,5 +1,5 @@
 import { serverFetch } from '@/services/api/server';
-import { ApiListResponse } from '@/services/api/types';
+import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { ProductsResponse } from './type';
 
@@ -33,4 +33,8 @@ export async function getProducts(params: GetProductsParams = {}) {
   console.log(searchParams);
   const url = `products?${searchParams.toString()}`;
   return serverFetch<ApiListResponse<ProductsResponse>>(url);
+}
+
+export async function getProduct(slug: string) {
+  return serverFetch<ApiSingleResponse<ProductsResponse>>(`products/${slug}`);
 }

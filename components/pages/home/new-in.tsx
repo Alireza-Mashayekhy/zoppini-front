@@ -42,6 +42,7 @@ export default function NewIn() {
               image="/home/5 (5).jpg"
               title="پیراهن مردانه"
               price={100000}
+              slug="test"
             />
           </div>
         ))}
