@@ -35,6 +35,7 @@ export const useSizeList = () => {
 export const useProducsList = (query: {
   page?: number;
   search?: string;
+  limit?: number;
   all: boolean;
 }) => {
   return useQuery({

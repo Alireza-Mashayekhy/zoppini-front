@@ -2,14 +2,27 @@
 import { SearchIcon, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import ProductCard from '@/components/shared/product-card';
 import { Button } from '@/components/ui/button';
+import { useDebounce } from '@/hooks/use-debounce'; // فرض می‌کنیم هوک دیبانس را در مسیر hooks دارید
+import { useProducsList } from '@/services/features/products/hooks';
 
 export default function Search() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [query, setQuery] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout>(null);
+
+  const debouncedQuery = useDebounce(query, 300); // 300ms تأخیر
+
+  const { data, isLoading } = useProducsList({
+    search: debouncedQuery,
+    all: false,
+    page: 1,
+    limit: 20,
+  });
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
@@ -18,12 +31,12 @@ export default function Search() {
   };
 
   const handleCloseSearch = () => {
-    if (isClosing) return; // already closing
+    if (isClosing) return;
     setIsClosing(true);
-    // Fallback: force close after 600ms if animationend doesn't fire
     closeTimeoutRef.current = setTimeout(() => {
       setIsSearchOpen(false);
       setIsClosing(false);
+      setQuery('');
     }, 600);
   };
 
@@ -39,11 +52,11 @@ export default function Search() {
     if (isClosing && panelRef.current) {
       const panel = panelRef.current;
       const handleAnimationEnd = (e: AnimationEvent) => {
-        // Ensure it's our flyUp animation
         if (e.animationName === 'flyUp') {
           if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
           setIsSearchOpen(false);
           setIsClosing(false);
+          setQuery('');
         }
       };
       panel.addEventListener('animationend', handleAnimationEnd);
@@ -77,7 +90,7 @@ export default function Search() {
       {isSearchOpen && (
         <div
           ref={panelRef}
-          className="fixed z-50 bg-white flex flex-col items-center justify-start px-4"
+          className="fixed z-50 bg-white flex flex-col items-center px-4"
           style={{
             top: 0,
             left: 0,
@@ -86,7 +99,7 @@ export default function Search() {
             width: '100vw',
             height: '100vh',
             minHeight: '100vh',
-            paddingTop: '5rem', // instead of pt-24 for better control
+            paddingTop: '5rem',
             animation: isClosing
               ? 'flyUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
               : 'ballDrop 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards',
@@ -100,16 +113,41 @@ export default function Search() {
             <X className="w-6 h-6 text-gray-600" />
           </button>
 
-          <div className="w-full max-w-2xl">
-            <div className="relative">
+          <div className="flex flex-col items-center w-full">
+            <div className="relative w-full max-w-2xl">
               <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="جستجوی محصولات ..."
-                className="w-full h-10 pr-10 pl-3 rounded-md border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="w-full h-12 pr-10 pl-3  border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                 autoFocus={!isClosing}
               />
+            </div>
+
+            {/* نتایج جستجو */}
+            <div className="mt-6 max-h-[70vh] overflow-y-auto w-full">
+              {isLoading ? (
+                <div className="text-center text-gray-400">در حال جستجو...</div>
+              ) : data?.data && data?.data.length > 0 ? (
+                <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                  {data?.data.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      image={product.image}
+                      price={product.variants[0].price}
+                      slug={product.slug}
+                      title={product.title}
+                    />
+                  ))}
+                </div>
+              ) : query.trim() && !isLoading ? (
+                <div className="text-center text-gray-400">
+                  نتیجه‌ای یافت نشد
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

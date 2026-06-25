@@ -46,7 +46,7 @@ export default function Menu({
       return (
         <Link
           href={`/products/${category.slug}`}
-          className="block px-4 py-2 text-sm hover:bg-gray-100 rounded-md decoration-transparent"
+          className="block px-4 py-2 text-sm border border-transparent hover:border-black rounded-none decoration-transparent"
           onClick={() => setOpen(false)}
         >
           {category.name}
@@ -58,15 +58,15 @@ export default function Menu({
     return (
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value={String(category.id)}>
-          <AccordionTrigger className="text-sm hover:bg-gray-100 rounded-md hover:no-underline px-4">
+          <AccordionTrigger className="text-sm border border-transparent hover:border-black rounded-none hover:no-underline px-4">
             {category.name}
           </AccordionTrigger>
           <AccordionContent>
-            <div className="mr-4 space-y-1 border-r pr-4">
+            <div className="mr-4 mt-1 space-y-1 border-r pr-4">
               {/* لینک مشاهده همه */}
               <Link
                 href={`/products/${category.slug}`}
-                className="block px-4 py-2 text-sm hover:bg-gray-100 rounded-md decoration-transparent"
+                className="block px-4 py-2 text-sm border border-transparent hover:border-black rounded-none decoration-transparent"
                 onClick={() => setOpen(false)}
               >
                 مشاهده همه
