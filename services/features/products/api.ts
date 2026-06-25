@@ -19,6 +19,38 @@ export async function colorsList() {
   return data;
 }
 
+export async function siezList() {
+  const { data } = await api.get<ApiListResponse<SizeResponse>>(
+    endpoints.products.sizeList,
+  );
+
+  return data;
+}
+
+export async function productsList(query: {
+  page?: number;
+  search?: string;
+  all?: boolean;
+}) {
+  const { data } = await api.get<ApiListResponse<ProductsResponse>>(
+    endpoints.products.list,
+    {
+      params: query,
+    },
+  );
+
+  return data;
+}
+
+// admin
+export async function adminColorsList() {
+  const { data } = await api.get<ApiListResponse<ColorResponse>>(
+    endpoints.products.adminColorList,
+  );
+
+  return data;
+}
+
 export async function createColor(formData: CreateColorDto) {
   const { data } = await api.post<ApiSingleResponse<ColorResponse>>(
     endpoints.products.createColor,
@@ -28,9 +60,9 @@ export async function createColor(formData: CreateColorDto) {
   return data;
 }
 
-export async function siezList() {
+export async function adminSizeList() {
   const { data } = await api.get<ApiListResponse<SizeResponse>>(
-    endpoints.products.sizeList,
+    endpoints.products.adminSizeList,
   );
 
   return data;
@@ -45,13 +77,13 @@ export async function createSize(formData: CreateSizeDto) {
   return data;
 }
 
-export async function productsList(query: {
+export async function adminProductsList(query: {
   page?: number;
   search?: string;
   all?: boolean;
 }) {
   const { data } = await api.get<ApiListResponse<ProductsResponse>>(
-    endpoints.products.list,
+    endpoints.products.adminList,
     {
       params: query,
     },

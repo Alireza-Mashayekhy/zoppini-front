@@ -5,29 +5,35 @@ export const endpoints = {
   },
 
   users: {
-    list: '/users',
-    detail: (id: number) => `/users/${id}`,
+    list: '/admin/users',
+    detail: (id: number) => `/admin/users/${id}`,
   },
 
   categories: {
     list: '/categories',
-    create: '/categories',
-    update: (id: number) => `/categories/${id}`,
-    delete: (id: number) => `/categories/${id}`,
+    adminList: '/admin/categories',
+    create: '/admin/categories',
+    update: (id: number) => `/admin/categories/${id}`,
+    delete: (id: number) => `/admin/categories/${id}`,
   },
 
   products: {
     colorList: '/products/color',
-    createColor: '/products/color',
     sizeList: '/products/size',
-    createSize: '/products/size',
     list: '/products',
-    create: '/products',
-    edit: (productId: number) => `/products/${productId}`,
-    delete: (productId: number) => `/products/${productId}`,
-    addColorImage: (productId: number) => `/products/${productId}/color-images`,
-    deleteColorImage: (id: number) => `/products/images/${id}`,
+
+    adminColorList: '/admin/products/color',
+    createColor: '/admin/products/color',
+    adminSizeList: '/admin/products/size',
+    createSize: '/admin/products/size',
+    create: '/admin/products',
+    adminList: '/admin/products',
+    edit: (productId: number) => `/admin/products/${productId}`,
+    delete: (productId: number) => `/admin/products/${productId}`,
+    addColorImage: (productId: number) =>
+      `/admin/products/${productId}/color-images`,
+    deleteColorImage: (id: number) => `/admin/products/images/${id}`,
     suggestedProducts: (productId: number) =>
-      `/products/${productId}/suggested-products`,
+      `/admin/products/${productId}/suggested-products`,
   },
 };

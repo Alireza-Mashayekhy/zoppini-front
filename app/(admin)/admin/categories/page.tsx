@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/table';
 import { useDebounce } from '@/hooks/use-debounce';
 import {
-  useCategoriesList,
+  useAdminCategoriesList,
   useDeleteCategory,
 } from '@/services/features/categories/hooks';
 import { CategoriesResponse } from '@/services/features/categories/types';
@@ -57,7 +57,7 @@ export default function Users() {
 
   const deleteMutation = useDeleteCategory();
 
-  const { data } = useCategoriesList({
+  const { data } = useAdminCategoriesList({
     all: true,
     search: debouncedSearch,
   });

@@ -37,12 +37,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useCategoriesList } from '@/services/features/categories/hooks';
+import { useAdminCategoriesList } from '@/services/features/categories/hooks';
 import {
-  useColorsList,
+  useAdminColorsList,
+  useAdminProducsList,
+  useAdminSizeList,
   useDeleteProduct,
-  useProducsList,
-  useSizeList,
 } from '@/services/features/products/hooks';
 import { ProductsResponse } from '@/services/features/products/type';
 
@@ -62,18 +62,16 @@ export default function Products() {
   const debouncedSearch = useDebounce(search, 500);
 
   const deleteMutation = useDeleteProduct();
-  const { data: categoriesList } = useCategoriesList({
+  const { data: categoriesList } = useAdminCategoriesList({
     all: true,
     search: debouncedSearch,
   });
-  const { data: productsList } = useProducsList({
+  const { data: productsList } = useAdminProducsList({
     all: true,
     search: debouncedSearch,
   });
-  const { data: colorsData } = useColorsList();
-  const { data: sizeData } = useSizeList();
-
-  console.log(productsList);
+  const { data: colorsData } = useAdminColorsList();
+  const { data: sizeData } = useAdminSizeList();
 
   const handleEdit = (product: ProductsResponse) => {
     setSelectedProduct(product);

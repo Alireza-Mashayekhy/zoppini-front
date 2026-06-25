@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   addImages,
+  adminColorsList,
+  adminProductsList,
+  adminSizeList,
   colorsList,
   createColor,
   createProduct,
@@ -22,24 +25,12 @@ export const useColorsList = () => {
   });
 };
 
-export function useCreateColor() {
-  return useMutation({
-    mutationFn: (formData: CreateColorDto) => createColor(formData),
-  });
-}
-
 export const useSizeList = () => {
   return useQuery({
     queryKey: ['sizes'],
     queryFn: () => siezList(),
   });
 };
-
-export function useCreateSize() {
-  return useMutation({
-    mutationFn: (formData: CreateSizeDto) => createSize(formData),
-  });
-}
 
 export const useProducsList = (query: {
   page?: number;
@@ -51,6 +42,45 @@ export const useProducsList = (query: {
     queryFn: () => productsList(query),
   });
 };
+
+//admin
+
+export const useAdminColorsList = () => {
+  return useQuery({
+    queryKey: ['colors'],
+    queryFn: () => adminColorsList(),
+  });
+};
+
+export const useAdminSizeList = () => {
+  return useQuery({
+    queryKey: ['sizes'],
+    queryFn: () => adminSizeList(),
+  });
+};
+
+export const useAdminProducsList = (query: {
+  page?: number;
+  search?: string;
+  all: boolean;
+}) => {
+  return useQuery({
+    queryKey: ['products', { ...query }],
+    queryFn: () => adminProductsList(query),
+  });
+};
+
+export function useCreateColor() {
+  return useMutation({
+    mutationFn: (formData: CreateColorDto) => createColor(formData),
+  });
+}
+
+export function useCreateSize() {
+  return useMutation({
+    mutationFn: (formData: CreateSizeDto) => createSize(formData),
+  });
+}
 
 export function useCreateProduct() {
   return useMutation({

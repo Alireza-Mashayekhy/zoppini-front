@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  adminCategoriesList,
   categoriesList,
   createCategory,
   deleteCategory,
@@ -15,6 +16,17 @@ export const useCategoriesList = (query: {
   return useQuery({
     queryKey: ['categories', { ...query }],
     queryFn: () => categoriesList(query),
+  });
+};
+
+export const useAdminCategoriesList = (query: {
+  page?: number;
+  search?: string;
+  all: boolean;
+}) => {
+  return useQuery({
+    queryKey: ['categories', { ...query }],
+    queryFn: () => adminCategoriesList(query),
   });
 };
 

@@ -19,6 +19,21 @@ export async function categoriesList(query: {
   return data;
 }
 
+export async function adminCategoriesList(query: {
+  page?: number;
+  search?: string;
+  all?: boolean;
+}) {
+  const { data } = await api.get<ApiListResponse<CategoriesResponse>>(
+    endpoints.categories.adminList,
+    {
+      params: query,
+    },
+  );
+
+  return data;
+}
+
 export async function createCategory(formData: FormData) {
   const { data } = await api.post<ApiSingleResponse<CategoriesResponse>>(
     endpoints.categories.create,
