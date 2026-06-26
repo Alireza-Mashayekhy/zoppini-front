@@ -1,8 +1,27 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
+import Cookies from 'js-cookie';
+import { v4 as uuidv4 } from 'uuid';
+
+const getGuestId = (): string => {
+  let guestId = Cookies.get('guestId');
+  if (!guestId) {
+    guestId = uuidv4();
+    Cookies.set('guestId', guestId, { expires: 30 }); // ۳۰ روز
+  }
+  return guestId;
+};
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
+});
+
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const guestId = getGuestId();
+  if (guestId) {
+    config.headers['x-guest-id'] = guestId;
+  }
+  return config;
 });
 
 let isRefreshing = false;
