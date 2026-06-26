@@ -36,4 +36,12 @@ export const endpoints = {
     suggestedProducts: (productId: number) =>
       `/admin/products/${productId}/suggested-products`,
   },
+
+  cart: {
+    list: '/cart',
+    add: '/cart/add',
+    update: (itemId: number) => `/cart/item/${itemId}`,
+    deleteItem: (itemId: number) => `/cart/item/${itemId}`,
+    clear: '/cart/clear',
+  },
 };
