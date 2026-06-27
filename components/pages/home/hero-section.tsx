@@ -172,7 +172,7 @@ export default function HeroSection({
 
       {/* عنوان مرکزی */}
       <h1 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-5xl text-shadow-lg z-10">
-        Zoopini
+        Zoppini
       </h1>
 
       {/* لیست محصولات */}

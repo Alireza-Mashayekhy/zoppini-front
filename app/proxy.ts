@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
 
   // چون matcher فقط روی /admin و /panel اجرا می‌شود،
   // دیگر نیازی به بررسی مجدد نیست، اما برای اطمینان می‌گذاریم
-  if (!pathname.startsWith('/admin') && !pathname.startsWith('/panel')) {
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
 
@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
 
     // دسترسی به /admin فقط برای نقش‌های admin و editor
     if (pathname.startsWith('/admin') && !['admin', 'editor'].includes(role)) {
-      return NextResponse.redirect(new URL('/panel', request.url));
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     // /panel برای هر کاربر لاگین‌شده‌ای مجاز است

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import FormProvider from '@/components/form/form-provider';
+import { PersianDatePicker } from '@/components/form/persian-date-picker';
 import RHFInput from '@/components/form/rhf-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,31 +18,43 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { useLogin, useSendOtp } from '@/services/features/auth/hooks';
-import { sendOtpDto } from '@/services/features/auth/types';
+import { useSendOtp, useSignUp } from '@/services/features/auth/hooks';
+import { SignUpDto } from '@/services/features/auth/types';
 
-export default function Login() {
+export default function SignUp() {
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState('');
-  const [timeLeft, setTimeLeft] = useState(120); // ۲ دقیقه به ثانیه
+  const [timeLeft, setTimeLeft] = useState(120);
   const [canResend, setCanResend] = useState(false);
 
   const sendOtpMutation = useSendOtp();
-  const loginMutation = useLogin();
+  const signUpMutation = useSignUp();
   const router = useRouter();
 
-  const schema = z.object({
+  // شمای اعتبارسنجی مرحله اول
+  const schemaStep1 = z.object({
+    fullName: z.string().min(3, 'نام کامل حداقل ۳ کاراکتر است'),
     phone: z
       .string()
       .length(11, 'شماره تلفن وارد شده اشتباه است.')
       .startsWith('09', 'شماره تلفن وارد شده اشتباه است.'),
+    email: z.string().email('ایمیل نامعتبر است').optional().or(z.literal('')),
+    password: z.string().min(6, 'رمز عبور حداقل ۶ کاراکتر است'),
+    birthDate: z.string().optional(),
   });
 
-  const methods = useForm<sendOtpDto>({
+  type FormData = z.infer<typeof schemaStep1>;
+
+  const methods = useForm<FormData>({
     defaultValues: {
+      fullName: '',
       phone: '',
+      email: '',
+      password: '',
+      birthDate: '',
     },
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schemaStep1),
+    mode: 'onChange',
   });
 
   // تایمر
@@ -58,16 +71,17 @@ export default function Login() {
     }
   }, [step, timeLeft]);
 
-  const onSubmit = async (data: sendOtpDto) => {
+  // مرحله اول: ارسال اطلاعات و درخواست کد
+  const onSubmitStep1 = async (data: FormData) => {
     try {
-      await sendOtpMutation.mutateAsync(data);
+      await sendOtpMutation.mutateAsync({ phone: data.phone });
       setStep(2);
-      setTimeLeft(120); // ریست تایمر
+      setTimeLeft(120);
       setCanResend(false);
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error.message || 'خطا در ارسال کد';
-      if (message == 'کد قبلا برای شما ارسال شده است') {
+      if (message === 'کد قبلا برای شما ارسال شده است') {
         setStep(2);
       } else {
         toast.error(message);
@@ -75,18 +89,26 @@ export default function Login() {
     }
   };
 
-  const onSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  // مرحله دوم: تأیید کد و ثبت‌نام
+  const onSubmitStep2 = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      await loginMutation.mutateAsync({
-        code,
-        phone: methods.getValues().phone,
-      });
+    const formData = methods.getValues();
+    const payload: SignUpDto = {
+      fullName: formData.fullName,
+      phone: formData.phone,
+      email: formData.email || '',
+      code,
+      password: formData.password,
+      birthDate: formData.birthDate || '',
+    };
 
+    try {
+      await signUpMutation.mutateAsync(payload);
+      toast.success('ثبت‌نام موفق');
       router.push('/');
     } catch (error: any) {
       const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
+        error?.response?.data?.message || error.message || 'خطا در ثبت‌نام';
       toast.error(message);
     }
   };
@@ -94,16 +116,17 @@ export default function Login() {
   // ارسال مجدد کد
   const handleResendCode = async () => {
     try {
-      await sendOtpMutation.mutateAsync({ phone: methods.getValues().phone });
+      await sendOtpMutation.mutateAsync({ phone: methods.getValues('phone') });
       setTimeLeft(120);
       setCanResend(false);
       setCode('');
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || error.message || 'خطا در ارسال مجدد';
+      toast.error(message);
     }
   };
 
-  // فرمت نمایش زمان (دقیقه:ثانیه)
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -115,10 +138,18 @@ export default function Login() {
       {step === 1 ? (
         <FormProvider
           methods={methods}
-          onSubmit={methods.handleSubmit(onSubmit)}
+          onSubmit={methods.handleSubmit(onSubmitStep1)}
           className="space-y-3"
         >
+          <RHFInput label="نام کامل" name="fullName" />
           <RHFInput label="شماره تلفن" name="phone" />
+          <RHFInput label="ایمیل (اختیاری)" name="email" type="email" />
+          <RHFInput label="رمز عبور" name="password" type="password" />
+          <PersianDatePicker
+            name="birthDate"
+            label="تاریخ تولد"
+            placeholder="تاریخ تولد را انتخاب کنید"
+          />
           <Button
             type="submit"
             loading={sendOtpMutation.isPending}
@@ -126,10 +157,10 @@ export default function Login() {
             variant="dark"
             className="w-full"
           >
-            ارسال کد
+            دریافت کد تایید
           </Button>
           <div className="flex items-center justify-between">
-            <Link href="/sign-up">ثبت نام</Link>
+            <Link href="/login">ورود</Link>
             <Link href="/login-with-pass">ورود با رمز عبور</Link>
           </div>
           <Link href="/" className="flex items-center justify-center gap-2">
@@ -137,7 +168,7 @@ export default function Login() {
           </Link>
         </FormProvider>
       ) : (
-        <form onSubmit={onSubmitLogin} className="space-y-4">
+        <form onSubmit={onSubmitStep2} className="space-y-4">
           <p className="text-sm text-center">
             کد به شماره{' '}
             <span className="font-semibold mx-1">
@@ -177,7 +208,6 @@ export default function Login() {
             </InputOTPGroup>
           </InputOTP>
 
-          {/* تایمر و دکمه ارسال مجدد */}
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-500">
               {canResend ? (
@@ -199,19 +229,19 @@ export default function Login() {
               onClick={() => setStep(1)}
               className="text-xs text-gray-400 cursor-pointer hover:text-gray-600 transition"
             >
-              تغییر شماره
+              تغییر مشخصات
             </span>
           </div>
 
           <Button
             type="submit"
-            loading={loginMutation.isPending}
+            loading={signUpMutation.isPending}
             disabled={code.length !== 5}
             size="lg"
             className="w-full"
             variant="dark"
           >
-            ورود
+            ثبت‌نام
           </Button>
         </form>
       )}

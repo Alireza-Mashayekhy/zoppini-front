@@ -37,7 +37,7 @@ export default function ProductColors({
       ?.map(v => v.color)
       .filter(
         (color, index, self) =>
-          self.findIndex(c => c.id === color.id) === index,
+          self.findIndex(c => c?.id === color?.id) === index,
       ) || [];
 
   const getColorImages = (colorId: number) => {
@@ -53,7 +53,9 @@ export default function ProductColors({
 
   const activeColorId = localSelectedColorId || uniqueColors[0]?.id;
 
-  const displayColorName = uniqueColors.find(c => c.id === activeColorId)?.name;
+  const displayColorName = uniqueColors.find(
+    c => c?.id === activeColorId,
+  )?.name;
 
   const MAX_VISIBLE_COLORS = 6;
   const visibleColors = uniqueColors.slice(0, MAX_VISIBLE_COLORS);
@@ -76,15 +78,15 @@ export default function ProductColors({
           {visibleColors.map(color => {
             return (
               <span
-                key={color.id}
+                key={color?.id}
                 className={cn(
                   'absolute inset-0 block transition-transform duration-300',
-                  hoveredColorId === color.id && activeColorId !== color.id
+                  hoveredColorId === color?.id && activeColorId !== color?.id
                     ? 'translate-y-0'
                     : 'translate-y-full',
                 )}
               >
-                {color.name}
+                {color?.name}
               </span>
             );
           })}
@@ -95,18 +97,18 @@ export default function ProductColors({
         {/* دکمه‌های رنگ */}
         <div className="flex items-center gap-1">
           {visibleColors.map(color => {
-            const isActive = activeColorId === color.id;
+            const isActive = activeColorId === color?.id;
 
             return (
               <button
-                key={color.id}
+                key={color?.id}
                 className={cn(
                   'w-5 h-5 transition-all duration-200 border border-black relative',
                 )}
                 style={{ backgroundColor: color.hexCode }}
-                title={color.name}
-                onClick={() => handleColorClick(color.id)}
-                onMouseEnter={() => setHoveredColorId(color.id)}
+                title={color?.name}
+                onClick={() => handleColorClick(color?.id)}
+                onMouseEnter={() => setHoveredColorId(color?.id)}
                 onMouseLeave={() => setHoveredColorId(null)}
               >
                 {isActive && (
@@ -139,16 +141,16 @@ export default function ProductColors({
             </SheetHeader>
             <div className="grid grid-cols-3 px-5 gap-2">
               {uniqueColors.map(color => {
-                const images = getColorImages(color.id);
+                const images = getColorImages(color?.id);
                 const firstImage =
                   images.length > 0 ? images[0].url : product.image;
 
                 return (
                   <div
-                    key={color.id}
+                    key={color?.id}
                     className="cursor-pointer relative overflow-hidden group"
                     onClick={() => {
-                      handleColorClick(color.id);
+                      handleColorClick(color?.id);
                       setIsSheetOpen(false);
                     }}
                   >
@@ -156,7 +158,7 @@ export default function ProductColors({
                       {firstImage ? (
                         <Image
                           src={process.env.NEXT_PUBLIC_IMAGE_URL + firstImage}
-                          alt={color.name}
+                          alt={color?.name}
                           fill
                           className="object-cover"
                         />
@@ -168,7 +170,7 @@ export default function ProductColors({
                       )}
                     </div>
                     <div className="absolute bottom-1 right-2 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
-                      <p className="font-medium">{color.name}</p>
+                      <p className="font-medium">{color?.name}</p>
                     </div>
                   </div>
                 );

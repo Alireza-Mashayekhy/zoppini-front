@@ -1,10 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Logo() {
+import { cn } from '@/lib/utils';
+
+export default function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/">
-      <Image src="/logo/ZOPPINI.png" width={140} height={33.22} alt="logo" />
+    <Link
+      href="/"
+      className={cn('relative w-[140px] h-[33px] block', className)}
+    >
+      <Image src="/logo/ZOPPINI.png" fill alt="logo" objectFit="cover" />
     </Link>
   );
 }

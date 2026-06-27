@@ -2,6 +2,12 @@ export const endpoints = {
   auth: {
     login: '/auth/login',
     otp: '/auth/send-otp',
+    logout: '/auth/logout',
+    me: '/auth/me',
+    signUp: '/auth/sign-up',
+    loginPassword: '/auth/login-password',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
   },
 
   users: {

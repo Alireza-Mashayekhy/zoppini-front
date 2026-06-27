@@ -21,3 +21,27 @@ export interface UserResponse {
   birthDate: Date;
   id: number;
 }
+
+export interface ForgetPasswordDto {
+  phone: string;
+}
+
+export interface ResetPasswordDto {
+  phone: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface LoginWithPasswordDto {
+  phone: string;
+  password: string;
+}
+
+export interface SignUpDto {
+  phone: string;
+  password: string;
+  fullName: string;
+  email: string;
+  birthDate: string;
+  code: string;
+}
