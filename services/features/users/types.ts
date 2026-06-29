@@ -1,9 +1,10 @@
 export interface UserResponse {
-  fullName: string[];
-  roles: string[];
-  birthDate: string;
   id: number;
+  fullName: string;
   phone: string;
+  email?: string;
+  birthDate?: string;
+  role?: string;
 }
 
 export interface UsersListResponse {

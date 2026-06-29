@@ -238,6 +238,8 @@ export default function ProductCreateModal({
         return;
       }
 
+      console.log(variantsPayload);
+
       const formData = new FormData();
       formData.append('productCode', productCode);
       formData.append('title', title);
@@ -352,6 +354,10 @@ export default function ProductCreateModal({
                               name={`variant-price-${index}`}
                               label=""
                               className="w-32"
+                              value={variant.price}
+                              onChange={val =>
+                                updateVariant(index, 'price', val)
+                              }
                             />
                           </td>
                           <td className="p-2">

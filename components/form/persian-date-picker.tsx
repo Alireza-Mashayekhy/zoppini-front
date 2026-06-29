@@ -2,10 +2,11 @@
 'use client';
 
 import { CalendarIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
-import { useFormContext } from 'react-hook-form';
-import DatePicker from 'react-multi-date-picker';
+import { useFormContext, useWatch } from 'react-hook-form';
+import DatePicker, { DateObject } from 'react-multi-date-picker';
 
 import { cn } from '@/lib/utils';
 
@@ -24,7 +25,33 @@ export function PersianDatePicker({
   required = false,
   className,
 }: PersianDatePickerProps) {
-  const { setValue } = useFormContext();
+  const { setValue, control } = useFormContext();
+  const formValue = useWatch({ name, control });
+  const [dateValue, setDateValue] = useState<any>(null);
+
+  useEffect(() => {
+    if (formValue && typeof formValue === 'string') {
+      const date = new DateObject({
+        calendar: persian,
+        locale: persian_fa,
+        date: formValue,
+      });
+      console.log(formValue, date.format());
+      setDateValue(date.format());
+      return;
+      const parts = formValue.split('/');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+          setDateValue(new Date(year, month, day));
+          return;
+        }
+      }
+    }
+    setDateValue(null);
+  }, [formValue]);
 
   const handleDateChange = (date: any) => {
     if (!date) {
@@ -58,6 +85,7 @@ export function PersianDatePicker({
         )}
         style={{ width: '100%' }}
         render={<CustomInput />}
+        value={dateValue}
       />
     </div>
   );

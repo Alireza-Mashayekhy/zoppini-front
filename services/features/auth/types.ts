@@ -15,13 +15,6 @@ export interface LoginResponse {
   user: string[];
 }
 
-export interface UserResponse {
-  fullName: string[];
-  roles: string[];
-  birthDate: Date;
-  id: number;
-}
-
 export interface ForgetPasswordDto {
   phone: string;
 }

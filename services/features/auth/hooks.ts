@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  fetchMe,
   forgotPassword,
   login,
   loginPassword,
@@ -53,3 +54,11 @@ export function useResetPassword() {
     mutationFn: resetPassword,
   });
 }
+
+export const useMe = () => {
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: fetchMe,
+    staleTime: 5 * 60 * 1000, // 5 دقیقه کش
+  });
+};

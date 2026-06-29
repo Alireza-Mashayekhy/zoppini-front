@@ -15,17 +15,12 @@ export async function usersList(query: { page: number; search: string }) {
   return data;
 }
 
-export async function categoriesList(query: {
-  page?: number;
-  search?: string;
-  all?: boolean;
-}) {
-  const { data } = await api.get<ApiListResponse<CategoriesResponse>>(
-    endpoints.categories.list,
-    {
-      params: query,
-    },
-  );
+export const updateUser = async (
+  id: number,
+  data: Partial<UserResponse>,
+): Promise<UserResponse> => {
+  const url = endpoints.users.edit(id);
+  const { data: response } = await api.patch(url, data);
 
-  return data;
-}
+  return response.data;
+};

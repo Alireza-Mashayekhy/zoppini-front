@@ -13,6 +13,7 @@ export const endpoints = {
   users: {
     list: '/admin/users',
     detail: (id: number) => `/admin/users/${id}`,
+    edit: (id: number) => `/users/${id}`,
   },
 
   categories: {
