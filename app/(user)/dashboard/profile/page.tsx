@@ -12,6 +12,7 @@ import { PersianDatePicker } from '@/components/form/persian-date-picker';
 import RHFInput from '@/components/form/rhf-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useMe } from '@/services/features/auth/hooks';
 import { useUpdateProfile } from '@/services/features/users/hooks';
 import { useAuthStore } from '@/store/auth.store';
@@ -53,12 +54,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user && !Array.isArray(user) && !isInitialized) {
-      console.log('user.birthDate', user.birthDate);
       reset({
         fullName: user.fullName || '',
         email: user.email || '',
-        birthDate: user.birthDate,
+        birthDate: user.birthDate || '',
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhone(user.phone);
       setIsInitialized(true);
     }
@@ -82,8 +83,32 @@ export default function ProfilePage() {
     }
   };
 
+  // اسکلتون لودینگ
   if (isLoading) {
-    return <div>در حال بارگذاری...</div>;
+    return (
+      <div className="space-y-6 p-6 bg-white rounded-lg shadow-sm">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
   }
 
   return (

@@ -51,4 +51,13 @@ export const endpoints = {
     deleteItem: (itemId: number) => `/cart/item/${itemId}`,
     clear: '/cart/clear',
   },
+
+  wishlist: {
+    get: '/wishlist',
+    products: '/wishlist/products',
+    check: (productId: number) => `/wishlist/check/${productId}`,
+    count: '/wishlist/count',
+    add: '/wishlist',
+    remove: (productId: number) => `/wishlist/${productId}`,
+  },
 };

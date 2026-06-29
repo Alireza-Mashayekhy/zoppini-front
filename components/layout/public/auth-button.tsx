@@ -54,7 +54,7 @@ export default function AuthButton({ user }: { user: UserResponse | null }) {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/favorites">
+            <Link href="/dashboard/wishlist">
               <Heart />
               علاقه مندی ها
             </Link>

@@ -13,6 +13,7 @@ import { useCartStore } from '@/store/cart.store';
 
 import ProductInfo from './description';
 import RelatedSlider from './relatedSlider';
+import WishlistButton from './wishlist-button';
 
 interface ContentProps {
   product: ProductsResponse;
@@ -89,14 +90,19 @@ export default function ProductContent({
               onSizeSelect={setSelectedSizeId}
             />
 
-            <button
-              onClick={handleAddToCart}
-              disabled={addToCart.isPending}
-              className="w-full text-sm mt-6 border flex items-center justify-between h-[50px] px-5 bg-gray-800 text-background disabled:opacity-60"
-            >
-              {addToCart.isPending ? 'در حال افزودن...' : 'افزودن به سبد خرید'}
-              <span>{parseInt(price.toString()).toLocaleString()} تومان</span>
-            </button>
+            <div className="flex gap-1 mt-6">
+              <button
+                onClick={handleAddToCart}
+                disabled={addToCart.isPending}
+                className="w-full text-sm border flex items-center justify-between h-[50px] px-5 bg-gray-800 text-background disabled:opacity-60"
+              >
+                {addToCart.isPending
+                  ? 'در حال افزودن...'
+                  : 'افزودن به سبد خرید'}
+                <span>{parseInt(price.toString()).toLocaleString()} تومان</span>
+              </button>
+              <WishlistButton productId={product.id} />
+            </div>
           </div>
           <ProductInfo product={product} />
         </div>
