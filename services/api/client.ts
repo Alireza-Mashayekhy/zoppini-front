@@ -12,17 +12,11 @@ const getGuestId = (): string => {
   return guestId;
 };
 
-// دریافت توکن از کوکی
-const getAccessToken = (): string | undefined => {
-  return Cookies.get('access_token');
-};
-
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
+  withCredentials: true, // کوکی‌ها به‌طور خودکار ارسال می‌شوند
 });
 
-// Interceptor درخواست
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const guestId = getGuestId();
   if (guestId) {
@@ -31,7 +25,6 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// مدیریت رفرش توکن با صف
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
@@ -49,7 +42,6 @@ const processQueue = (error: Error | null = null) => {
   failedQueue = [];
 };
 
-// Interceptor پاسخ
 api.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
@@ -57,15 +49,12 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // اگر خطای ۴۰۱ نباشد یا قبلاً تلاش شده باشد
-    if (error.response?.status !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    // بررسی وجود توکن - اگر توکنی وجود نداشته باشد، رفرش بی‌معناست
-    const token = getAccessToken();
-    if (!token) {
-      // اگر توکن وجود ندارد، خطا را برگردان (بدون رفرش)
+    // اگر درخواست قبلاً retry شده یا درخواست refresh است، reject کن
+    if (
+      error.response?.status !== 401 ||
+      originalRequest._retry ||
+      originalRequest.url?.includes('/auth/refresh')
+    ) {
       return Promise.reject(error);
     }
 
@@ -83,12 +72,13 @@ api.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // درخواست رفرش
+      // درخواست رفرش - کوکی به‌طور خودکار همراه درخواست ارسال می‌شود
       await api.post('/auth/refresh');
       processQueue(null);
       return api(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError as Error);
+      // لاگ‌اوت و هدایت به صفحه لاگین
       await api.post('/auth/logout').catch(() => {});
       return Promise.reject(refreshError);
     } finally {

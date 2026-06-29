@@ -12,7 +12,7 @@ export default function CategoriesSection({
     <section className="relative grid grid-cols-4">
       <div className="relative col-span-2 aspect-square">
         <Image
-          src="/home/5 (5).jpg"
+          src="/home/category_1.jpg"
           fill
           alt="image category 1"
           objectFit="cover"
@@ -20,7 +20,7 @@ export default function CategoriesSection({
       </div>
       <div className="relative col-span-2 aspect-square">
         <Image
-          src="/home/5 (5).jpg"
+          src="/home/category_2.jpg"
           fill
           alt="image category 1"
           objectFit="cover"
@@ -45,18 +45,12 @@ export default function CategoriesSection({
       ))}
       <div className="relative col-span-2 aspect-square">
         <video muted loop autoPlay className="w-full h-full object-cover">
-          <source
-            src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
-            type="video/mp4"
-          />
+          <source src="/home/category_1.mp4" type="video/mp4" />
         </video>
       </div>
       <div className="relative col-span-2 aspect-square">
         <video muted loop autoPlay className="w-full h-full object-cover">
-          <source
-            src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
-            type="video/mp4"
-          />
+          <source src="/home/category_2.mp4" type="video/mp4" />
         </video>
       </div>
       {categories.slice(4, 8).map(category => (

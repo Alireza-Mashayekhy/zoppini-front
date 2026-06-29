@@ -26,10 +26,7 @@ export default function SuggestedStyle() {
     <div ref={sliderRef} className="keen-slider h-screen">
       <div className="keen-slider__slide">
         <video muted loop autoPlay className="w-full h-full object-cover">
-          <source
-            src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
-            type="video/mp4"
-          />
+          <source src="/home/style.mp4" type="video/mp4" />
         </video>
       </div>
       {[1, 2, 3, 4, 5].map(product => (

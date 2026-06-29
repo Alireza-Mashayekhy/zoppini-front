@@ -130,10 +130,7 @@ export default function HeroSection({
             onPlay={onPlay1}
             onPause={onPause1}
           >
-            <source
-              src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
-              type="video/mp4"
-            />
+            <source src="/home/hero_section_1.MOV" type="video/MOV" />
           </video>
           <div
             className={`absolute inset-0 pointer-events-none transition-all ${!isPlaying1 ? 'bg-black/70' : 'bg-black/0'}`}
@@ -159,10 +156,7 @@ export default function HeroSection({
             onPlay={onPlay2}
             onPause={onPause2}
           >
-            <source
-              src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
-              type="video/mp4"
-            />
+            <source src="/home/hero_section_2.MOV" type="video/MOV" />
           </video>
           <div
             className={`absolute inset-0 pointer-events-none transition-all ${!isPlaying2 ? 'bg-black/70' : 'bg-black/0'}`}

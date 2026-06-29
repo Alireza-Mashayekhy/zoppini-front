@@ -25,8 +25,10 @@ export interface VariantResponse {
   id: number;
   price: number;
   stock: number;
+  sku?: string;
   color: ColorResponse;
   size: SizeResponse;
+  product?: ProductsResponse;
 }
 
 export interface CommentResponse {
@@ -75,7 +77,6 @@ export interface createProductDto {
   categories: string[];
   colorId: string[];
   sizeId: string[];
-  price: number;
 }
 
 export interface createApiProductDto {
