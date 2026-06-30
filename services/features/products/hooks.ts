@@ -11,11 +11,14 @@ import {
   createFeaturedProduct,
   createProduct,
   createSize,
+  createStyleProduct,
   deleteFeaturedProduct,
   deleteImage,
   deleteProduct,
+  deleteStyleProduct,
   editProduct,
   getFeaturedProducts,
+  getStyleProducts,
   productsList,
   siezList,
   updateSuggestedProducts,
@@ -169,6 +172,44 @@ export const useDeleteFeaturedProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['featured-products'] });
       toast.success('محصول از لیست ویژه حذف شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف محصول ویژه');
+    },
+  });
+};
+
+export const useStyleProducts = () => {
+  return useQuery({
+    queryKey: ['style-products'],
+    queryFn: getStyleProducts,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useCreateStyleProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: CreateFeaturedProductDto) => createStyleProduct(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['style-products'] });
+      toast.success('محصول با موفقیت به لیست استایل اضافه شد');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'خطا در افزودن محصول استایل',
+      );
+    },
+  });
+};
+
+export const useDeleteStyleProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteStyleProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['style-products'] });
+      toast.success('محصول از لیست استایل حذف شد');
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'خطا در حذف محصول ویژه');

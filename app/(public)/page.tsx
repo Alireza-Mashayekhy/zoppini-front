@@ -8,7 +8,10 @@ import {
   getHomeCategories,
 } from '@/services/features/categories/server.api';
 import { CategoriesResponse } from '@/services/features/categories/types';
-import { getFeaturedProducts } from '@/services/features/products/server.api';
+import {
+  getFeaturedProducts,
+  getStyleProducts,
+} from '@/services/features/products/server.api';
 import { FeaturedProductResponse } from '@/services/features/products/type';
 
 export default async function HomePage() {
@@ -18,6 +21,8 @@ export default async function HomePage() {
     await getHomeCategories();
   const FeaturedProducts: ApiListResponse<FeaturedProductResponse> =
     await getFeaturedProducts();
+  const StyleProducts: ApiListResponse<FeaturedProductResponse> =
+    await getStyleProducts();
 
   return (
     <div>
@@ -25,7 +30,7 @@ export default async function HomePage() {
       <NewIn products={FeaturedProducts?.data} />
       <CategoriesSection categories={HomeCategories?.data} />
       {/* <SaleSection /> */}
-      <SuggestedStyle />
+      <SuggestedStyle products={StyleProducts?.data} />
       <div className="h-screen">
         <video muted loop autoPlay className="w-full h-full object-cover">
           <source src="/home/end.mp4" type="video/mp4" />

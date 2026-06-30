@@ -42,3 +42,7 @@ export async function getProduct(slug: string) {
 export async function getFeaturedProducts() {
   return serverFetch<ApiListResponse<FeaturedProductResponse>>('featured');
 }
+
+export async function getStyleProducts() {
+  return serverFetch<ApiListResponse<FeaturedProductResponse>>('style');
+}

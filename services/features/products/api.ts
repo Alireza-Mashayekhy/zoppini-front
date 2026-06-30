@@ -165,3 +165,22 @@ export const deleteFeaturedProduct = async (id: number): Promise<void> => {
   const url = endpoints.products.removeFeatured(id);
   await api.delete(url);
 };
+
+export const getStyleProducts = async (): Promise<
+  ApiListResponse<FeaturedProductResponse>
+> => {
+  const { data } = await api.get(endpoints.products.style);
+  return data;
+};
+
+export const createStyleProduct = async (
+  dto: CreateFeaturedProductDto,
+): Promise<ApiSingleResponse<FeaturedProductResponse>> => {
+  const { data } = await api.post(endpoints.products.adminStyle, dto);
+  return data;
+};
+
+export const deleteStyleProduct = async (id: number): Promise<void> => {
+  const url = endpoints.products.removeStyle(id);
+  await api.delete(url);
+};

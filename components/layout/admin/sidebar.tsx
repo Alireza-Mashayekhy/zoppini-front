@@ -36,6 +36,7 @@ const items = [
     name: 'محصولات',
   },
   { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
+  { icon: Star, name: 'محصولات پیشنهاد استایل', link: '/admin/style' },
 ];
 
 export default function AdminSidebar() {

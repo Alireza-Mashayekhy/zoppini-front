@@ -46,6 +46,10 @@ export const endpoints = {
     featured: '/featured',
     adminFeatured: '/admin/featured',
     removeFeatured: (id: number) => `/admin/featured/${id}`,
+
+    style: '/style',
+    adminStyle: '/admin/style',
+    removeStyle: (id: number) => `/admin/style/${id}`,
   },
 
   cart: {
