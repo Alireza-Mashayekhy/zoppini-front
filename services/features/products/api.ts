@@ -6,7 +6,9 @@ import {
   AddImagesDto,
   ColorResponse,
   CreateColorDto,
+  CreateFeaturedProductDto,
   CreateSizeDto,
+  FeaturedProductResponse,
   ProductsResponse,
   SizeResponse,
 } from './type';
@@ -144,3 +146,22 @@ export async function updateSuggestedProducts(
   const { data } = await api.patch(url, { suggestedProductIds: suggestedIds });
   return data;
 }
+
+export const getFeaturedProducts = async (): Promise<
+  ApiListResponse<FeaturedProductResponse>
+> => {
+  const { data } = await api.get(endpoints.products.featured);
+  return data;
+};
+
+export const createFeaturedProduct = async (
+  dto: CreateFeaturedProductDto,
+): Promise<ApiSingleResponse<FeaturedProductResponse>> => {
+  const { data } = await api.post(endpoints.products.adminFeatured, dto);
+  return data;
+};
+
+export const deleteFeaturedProduct = async (id: number): Promise<void> => {
+  const url = endpoints.products.removeFeatured(id);
+  await api.delete(url);
+};

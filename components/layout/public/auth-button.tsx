@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLogout } from '@/services/features/auth/hooks';
-import { UserResponse } from '@/services/features/auth/types';
+import { UserResponse } from '@/services/features/users/types';
 
 export default function AuthButton({ user }: { user: UserResponse | null }) {
   const router = useRouter();

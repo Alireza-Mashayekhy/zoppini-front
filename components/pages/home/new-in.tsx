@@ -8,8 +8,13 @@ import { useState } from 'react';
 
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
+import { FeaturedProductResponse } from '@/services/features/products/type';
 
-export default function NewIn() {
+export default function NewIn({
+  products,
+}: {
+  products: FeaturedProductResponse[];
+}) {
   const [loaded, setLoaded] = useState(false);
 
   const [sliderRef, instanceRef] = useKeenSlider({
@@ -34,18 +39,31 @@ export default function NewIn() {
 
   return (
     <div>
-      <LuxuryTitle className="p-10">جدیدترین محصولات</LuxuryTitle>
+      <LuxuryTitle className="p-10">New In</LuxuryTitle>
       <div ref={sliderRef} className="keen-slider group">
-        {[1, 2, 3, 4, 5].map(product => (
-          <div key={product} className="keen-slider__slide number-slide1">
-            <ProductCard
-              image="/home/5 (5).jpg"
-              title="پیراهن مردانه"
-              price={100000}
-              slug="test"
-            />
-          </div>
-        ))}
+        {products.map(product => {
+          const colorImage = product.product.colorImages?.find(
+            img => img?.color?.id === product?.colorId,
+          );
+          const image = colorImage?.url || '';
+
+          // واریانت مربوط به رنگ
+          const variant = product.product.variants?.find(
+            v => v?.colorId === product?.colorId,
+          );
+          const price = variant?.price || 0;
+
+          return (
+            <div key={product.id} className="keen-slider__slide number-slide1">
+              <ProductCard
+                image={image}
+                title={product.product.title}
+                price={price}
+                slug={product.product.slug}
+              />
+            </div>
+          );
+        })}
         {loaded && (
           <>
             <ChevronLeft

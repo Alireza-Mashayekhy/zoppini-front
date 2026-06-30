@@ -1,6 +1,6 @@
 'use client';
 
-import { Boxes, Grid2X2, User } from 'lucide-react';
+import { Boxes, Grid2X2, Star, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -35,6 +35,7 @@ const items = [
     icon: Boxes,
     name: 'محصولات',
   },
+  { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
 ];
 
 export default function AdminSidebar() {

@@ -1,7 +1,6 @@
 import CategoriesSection from '@/components/pages/home/category-section';
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
-import SaleSection from '@/components/pages/home/sale-section';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 import { ApiListResponse } from '@/services/api/types';
 import {
@@ -9,19 +8,23 @@ import {
   getHomeCategories,
 } from '@/services/features/categories/server.api';
 import { CategoriesResponse } from '@/services/features/categories/types';
+import { getFeaturedProducts } from '@/services/features/products/server.api';
+import { FeaturedProductResponse } from '@/services/features/products/type';
 
 export default async function HomePage() {
   const HeroSectionCategories: ApiListResponse<CategoriesResponse> =
     await getHeroSectionCategories();
   const HomeCategories: ApiListResponse<CategoriesResponse> =
     await getHomeCategories();
+  const FeaturedProducts: ApiListResponse<FeaturedProductResponse> =
+    await getFeaturedProducts();
 
   return (
     <div>
       <HeroSection categories={HeroSectionCategories?.data} />
-      <NewIn />
+      <NewIn products={FeaturedProducts?.data} />
       <CategoriesSection categories={HomeCategories?.data} />
-      <SaleSection />
+      {/* <SaleSection /> */}
       <SuggestedStyle />
       <div className="h-screen">
         <video muted loop autoPlay className="w-full h-full object-cover">

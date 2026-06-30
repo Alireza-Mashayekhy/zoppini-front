@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import {
   addImages,
@@ -7,16 +8,23 @@ import {
   adminSizeList,
   colorsList,
   createColor,
+  createFeaturedProduct,
   createProduct,
   createSize,
+  deleteFeaturedProduct,
   deleteImage,
   deleteProduct,
   editProduct,
+  getFeaturedProducts,
   productsList,
   siezList,
   updateSuggestedProducts,
 } from './api';
-import { CreateColorDto, CreateSizeDto } from './type';
+import {
+  CreateColorDto,
+  CreateFeaturedProductDto,
+  CreateSizeDto,
+} from './type';
 
 export const useColorsList = () => {
   return useQuery({
@@ -128,6 +136,42 @@ export const useUpdateSuggestedProducts = () => {
     }) => updateSuggestedProducts(productId, suggestedProductsIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+export const useFeaturedProducts = () => {
+  return useQuery({
+    queryKey: ['featured-products'],
+    queryFn: getFeaturedProducts,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useCreateFeaturedProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: CreateFeaturedProductDto) => createFeaturedProduct(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['featured-products'] });
+      toast.success('محصول با موفقیت به لیست ویژه اضافه شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در افزودن محصول ویژه');
+    },
+  });
+};
+
+export const useDeleteFeaturedProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteFeaturedProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['featured-products'] });
+      toast.success('محصول از لیست ویژه حذف شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف محصول ویژه');
     },
   });
 };

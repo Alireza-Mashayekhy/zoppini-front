@@ -37,18 +37,9 @@ export function PersianDatePicker({
         date: formValue,
       });
       console.log(formValue, date.format());
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDateValue(date.format());
       return;
-      const parts = formValue.split('/');
-      if (parts.length === 3) {
-        const year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1;
-        const day = parseInt(parts[2]);
-        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-          setDateValue(new Date(year, month, day));
-          return;
-        }
-      }
     }
     setDateValue(null);
   }, [formValue]);

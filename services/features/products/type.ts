@@ -1,5 +1,5 @@
-import { UserResponse } from '../auth/types';
 import { CategoriesResponse } from '../categories/types';
+import { UserResponse } from '../users/types';
 
 export interface ColorResponse {
   id: number;
@@ -97,4 +97,40 @@ export interface createApiProductDto {
 export interface AddImagesDto {
   colorIds: number[];
   files: File[];
+}
+
+export interface FeaturedProductResponse {
+  id: number;
+  productId: number;
+  colorId: number;
+  order: number;
+  product: {
+    id: number;
+    title: string;
+    slug: string;
+    productCode: string;
+    description: string;
+    variants: any[];
+    colorImages: Array<{
+      id: number;
+      url: string;
+      order: number;
+      color: {
+        id: number;
+        name: string;
+        hexCode: string;
+      };
+    }>;
+  };
+  color: {
+    id: number;
+    name: string;
+    hexCode: string;
+  };
+}
+
+export interface CreateFeaturedProductDto {
+  productId: number;
+  colorId: number;
+  order?: number;
 }
