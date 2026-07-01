@@ -24,6 +24,14 @@ export const endpoints = {
     delete: (id: number) => `/admin/categories/${id}`,
   },
 
+  blog: {
+    list: '/blog',
+    adminList: '/admin/blog',
+    create: '/admin/blog',
+    update: (id: number) => `/admin/blog/${id}`,
+    delete: (id: number) => `/admin/blog/${id}`,
+  },
+
   products: {
     colorList: '/products/color',
     sizeList: '/products/size',

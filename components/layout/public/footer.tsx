@@ -23,6 +23,9 @@ export default function Footer() {
         <div className="flex flex-col gap-5">
           <span className="text-sm font-semibold">لینک های مفید</span>
           <ul className="flex flex-col gap-4 text-sm">
+            <AnimateLink href="/blog">
+              <li>مقالات</li>
+            </AnimateLink>
             <AnimateLink href="">
               <li>درباره ما</li>
             </AnimateLink>

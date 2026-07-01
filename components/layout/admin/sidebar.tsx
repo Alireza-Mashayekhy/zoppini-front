@@ -1,6 +1,6 @@
 'use client';
 
-import { Boxes, Grid2X2, Star, User } from 'lucide-react';
+import { Boxes, Grid2X2, Newspaper, Star, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -34,6 +34,11 @@ const items = [
     link: '/admin/products',
     icon: Boxes,
     name: 'محصولات',
+  },
+  {
+    link: '/admin/blog',
+    icon: Newspaper,
+    name: 'بلاگ',
   },
   { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
   { icon: Star, name: 'محصولات پیشنهاد استایل', link: '/admin/style' },

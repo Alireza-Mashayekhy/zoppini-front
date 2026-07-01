@@ -58,7 +58,7 @@ export default function Menu({
     return (
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value={String(category.id)}>
-          <AccordionTrigger className="text-sm border border-transparent hover:border-black rounded-none hover:no-underline px-4">
+          <AccordionTrigger className="h-[38px]! py-2 text-sm border border-transparent hover:border-black rounded-none hover:no-underline px-4">
             {category.name}
           </AccordionTrigger>
           <AccordionContent>
@@ -97,7 +97,14 @@ export default function Menu({
         <div className="flex justify-center border-b border-border py-2">
           <Logo />
         </div>
-        <div className="p-4 overflow-y-auto h-[calc(100%-80px)]">
+        <div className="p-4 overflow-y-auto h-[calc(100%-80px)] space-y-1">
+          {/* <Link
+            href="/blog"
+            className="block px-4 py-2 text-sm border border-transparent hover:border-black rounded-none decoration-transparent"
+            onClick={() => setOpen(false)}
+          >
+            مقالات
+          </Link> */}
           {tree.length === 0 ? (
             <p className="text-center text-gray-500">دسته‌بندی وجود ندارد</p>
           ) : (
