@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Heart,
-  LayoutDashboard,
-  Settings,
-  ShoppingBag,
-  User,
-} from 'lucide-react';
+import { Flag, Heart, LayoutDashboard, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -17,7 +11,7 @@ const menuItems = [
   { icon: ShoppingBag, label: 'سفارشات', href: '/dashboard/orders' },
   { icon: User, label: 'پروفایل', href: '/dashboard/profile' },
   { icon: Heart, label: 'علاقه‌مندی‌ها', href: '/dashboard/wishlist' },
-  { icon: Settings, label: 'تنظیمات', href: '/dashboard/settings' },
+  { icon: Flag, label: 'آدرس ها', href: '/dashboard/addresses' },
 ];
 
 interface SidebarContentProps {
@@ -38,8 +32,10 @@ export default function SidebarContent({ onItemClick }: SidebarContentProps) {
             onClick={onItemClick}
             className={cn(
               'flex items-center gap-3 px-4 py-3 border border-transparent text-sm transition-all duration-200',
-              'hover:border-black!',
-              isActive ? 'bg-black text-background font-medium' : 'text-black',
+              'hover:border-gray-800!',
+              isActive
+                ? 'bg-gray-800 text-background font-medium'
+                : 'text-black',
             )}
           >
             <item.icon className="w-5 h-5" strokeWidth={1.5} />

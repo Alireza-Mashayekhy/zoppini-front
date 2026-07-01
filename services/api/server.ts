@@ -17,13 +17,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 async function refreshToken() {
   const cookieStore = await cookies();
 
-  const response = await fetch(`${BASE_URL}/auth/refresh`, {
+  const response = await fetch(`${BASE_URL}auth/refresh`, {
     method: 'POST',
     headers: {
       Cookie: cookieStore.toString(),
     },
   });
-
   return response.ok;
 }
 
@@ -69,6 +68,7 @@ export async function serverFetch<T>(
         cache: options.cache ?? 'no-store',
         next: options.next,
       });
+      console.log(res, options.method);
     } else {
       throw new Error('UNAUTHORIZED');
     }

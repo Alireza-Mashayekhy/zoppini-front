@@ -1,6 +1,5 @@
 // components/layout/public/header.tsx
 import Logo from '@/components/shared/logo';
-import { getMe } from '@/services/features/auth/server.api';
 import { getAllCategories } from '@/services/features/categories/server.api';
 
 import AuthButton from './auth-button';
@@ -10,14 +9,6 @@ import Search from './search';
 
 export default async function Header() {
   const categories = await getAllCategories();
-
-  let user = null;
-  try {
-    const response = await getMe();
-    user = response?.data || null;
-  } catch {
-    user = null;
-  }
 
   return (
     <>
@@ -32,7 +23,7 @@ export default async function Header() {
           <div className="flex items-center justify-end gap-2">
             <Search />
             <Cart />
-            <AuthButton user={user} />
+            <AuthButton />
           </div>
         </div>
       </div>

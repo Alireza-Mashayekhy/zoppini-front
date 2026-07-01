@@ -48,7 +48,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <NextTopLoader color="#2299DD" showSpinner={false} />
+      <NextTopLoader color="#1E2939" showSpinner={false} />
       <PWAModal />
       <Toaster theme="light" richColors position="top-right" />
 

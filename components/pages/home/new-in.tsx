@@ -2,9 +2,12 @@
 
 import 'keen-slider/keen-slider.min.css';
 
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useKeenSlider } from 'keen-slider/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
@@ -16,6 +19,7 @@ export default function NewIn({
   products: FeaturedProductResponse[];
 }) {
   const [loaded, setLoaded] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   const [sliderRef, instanceRef] = useKeenSlider({
     loop: true,
@@ -37,8 +41,30 @@ export default function NewIn({
     },
   });
 
+  useGSAP(() => {
+    if (!sectionRef.current) return;
+
+    gsap.to(sectionRef.current, {
+      ease: 'none',
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: 'top 52px',
+        end: '+=500',
+        scrub: 0.5,
+        pin: true,
+      },
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
+
   return (
-    <div>
+    <div
+      ref={sectionRef}
+      className="h-[calc(100vh-52px)] w-full overflow-hidden relative"
+    >
       <LuxuryTitle className="p-10">New In</LuxuryTitle>
       <div ref={sliderRef} className="keen-slider group">
         {products.map(product => {

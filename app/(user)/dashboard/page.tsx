@@ -1,8 +1,12 @@
-// app/panel/page.tsx
+'use client';
+
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { StatsCard } from '@/components/dashboard/stats-card';
+import { useOrders } from '@/services/features/orders/hooks';
 
 export default function DashboardPage() {
+  const { data: orders, isLoading } = useOrders();
+
   return (
     <div className="space-y-4">
       <div>
@@ -16,16 +20,19 @@ export default function DashboardPage() {
 
       {/* کارت‌های آمار */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatsCard label="کل سفارشات" value="۱۲" />
-        <StatsCard label="در انتظار پرداخت" value="۳" />
-        <StatsCard label="ارسال شده" value="۷" />
-        <StatsCard label="تحویل شده" value="۲" />
+        <StatsCard label="کل سفارشات" value={orders?.stats?.total ?? 0} />
+        <StatsCard
+          label="سفارشات فعال"
+          value={orders?.stats?.inProgress ?? 0}
+        />
+        <StatsCard label="ارسال شده" value={orders?.stats?.delivered ?? 0} />
+        <StatsCard label="تحویل شده" value={orders?.stats?.cancelled ?? 0} />
       </div>
 
       {/* سفارشات اخیر */}
       <div className="bg-white border border-border p-6">
         <h2 className="text-lg font-light tracking-wide mb-4">سفارشات اخیر</h2>
-        <RecentOrders />
+        <RecentOrders orders={orders?.data} isLoading={isLoading} />
       </div>
     </div>
   );

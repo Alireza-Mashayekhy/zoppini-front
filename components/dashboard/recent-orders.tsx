@@ -1,5 +1,7 @@
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
+import { OrderStatus } from '@/services/features/orders/type';
 
+import { Skeleton } from '../ui/skeleton';
 import {
   Table,
   TableBody,
@@ -9,31 +11,33 @@ import {
   TableRow,
 } from '../ui/table';
 
-const orders = [
-  {
-    id: 1,
-    product: 'کت و شلوار مجلسی',
-    price: 12_500_000,
-    status: 'ارسال شده',
+const statusMap: Record<OrderStatus, { label: string; color: string }> = {
+  pending: {
+    label: 'در انتظار پرداخت',
+    color: 'bg-yellow-100 text-yellow-800',
   },
-  {
-    id: 2,
-    product: 'تی‌شرت مردانه',
-    price: 1_200_000,
-    status: 'در انتظار پرداخت',
-  },
-  { id: 3, product: 'شلوار کتان', price: 2_800_000, status: 'تحویل شده' },
-  { id: 4, product: 'کفش چرم', price: 4_500_000, status: 'در حال آماده‌سازی' },
-];
-
-const statusStyles: Record<string, string> = {
-  'ارسال شده': 'text-[#D4A373] bg-[#FBF7F0] border border-[#D4A373]',
-  'در انتظار پرداخت': 'text-[#8A8580] bg-[#F5F0EB]',
-  'تحویل شده': 'text-[#1A1A1A] bg-[#E8DCCC]',
-  'در حال آماده‌سازی': 'text-[#D4A373] bg-[#FBF7F0] border border-[#D4A373]',
+  paid: { label: 'پرداخت شده', color: 'bg-blue-100 text-blue-800' },
+  shipped: { label: 'ارسال شده', color: 'bg-purple-100 text-purple-800' },
+  delivered: { label: 'تحویل شده', color: 'bg-green-100 text-green-800' },
+  cancelled: { label: 'لغو شده', color: 'bg-red-100 text-red-800' },
 };
 
-export function RecentOrders() {
+export function RecentOrders({
+  orders,
+  isLoading,
+}: {
+  orders: any;
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
   return (
     <Table dir="rtl">
       <TableHeader>
@@ -44,22 +48,26 @@ export function RecentOrders() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {orders.map((ord: any) => (
-          <TableRow key={ord.id}>
-            <TableCell className="text-center">{ord.id}</TableCell>
-            <TableCell>{ord.price}</TableCell>
-            <TableCell align="left">
-              <span
-                className={cn(
-                  'text-xs px-3 py-1 rounded-full',
-                  statusStyles[ord.status] || 'text-[#8A8580] bg-[#F5F0EB]',
-                )}
-              >
-                {ord.status}
-              </span>
-            </TableCell>
-          </TableRow>
-        ))}
+        {orders?.map((ord: any) => {
+          const status = statusMap[ord.status as OrderStatus];
+
+          return (
+            <TableRow key={ord.id}>
+              <TableCell className="text-center">{ord.id}</TableCell>
+              <TableCell>{formatPrice(ord.finalPrice)} تومان</TableCell>
+              <TableCell align="left">
+                <span
+                  className={cn(
+                    'text-xs px-2 py-0.5 rounded-full',
+                    status.color,
+                  )}
+                >
+                  {status.label}
+                </span>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

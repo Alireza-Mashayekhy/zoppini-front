@@ -68,4 +68,24 @@ export const endpoints = {
     add: '/wishlist',
     remove: (productId: number) => `/wishlist/${productId}`,
   },
+
+  order: {
+    create: '/orders',
+    list: '/orders',
+    get: (orderId: number) => `/orders/${orderId}`,
+    cancel: (orderId: number) => `/orders/${orderId}/cancel`,
+  },
+
+  addresses: {
+    list: '/addresses',
+    create: '/addresses',
+    update: (addressId: number) => `/addresses/${addressId}`,
+    delete: (addressId: number) => `/addresses/${addressId}`,
+    setDefault: (addressId: number) => `/addresses/${addressId}/default`,
+  },
+
+  locations: {
+    province: '/locations/provinces',
+    cities: (provinceId: number) => `/locations/provinces/${provinceId}/cities`,
+  },
 };

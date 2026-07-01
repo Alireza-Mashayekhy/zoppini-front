@@ -3,12 +3,14 @@ export interface ApiListResponse<T> {
   message: string;
   data: T[];
   pagination: PaginationMeta;
+  stats: any;
 }
 
 export interface ApiSingleResponse<T> {
   status: number;
   message: string;
   data: T;
+  stats: any;
 }
 
 export interface PaginationMeta {

@@ -1,7 +1,6 @@
 import Image from 'next/image';
 
 import AnimateLink from '@/components/shared/animate-link';
-import { Button } from '@/components/ui/button';
 
 export default function Footer() {
   return (
@@ -55,13 +54,21 @@ export default function Footer() {
             </AnimateLink>
           </ul>
         </div>
-        <div className="flex flex-col gap-5 max-w-72">
+        {/* <div className="flex flex-col gap-5 max-w-72">
           <span className="text-sm font-semibold">خبرنامه</span>
           <p className="text-sm">
             از آخرین اخبار ما مطلع شوید، خلاقیت‌های جدید ما را کشف کنید و از
             امتیازات ویژه ما بهره‌مند شوید.
           </p>
           <Button>عضویت</Button>
+        </div> */}
+        <div className="flex flex-col gap-5 max-w-72">
+          <span className="text-sm font-semibold">درباره ما</span>
+          <p className="text-sm">
+            لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ لورم
+            ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ لورم ایپسوم متن
+            ساختگی با تولید سادگی نامفهوم از صنعت چاپ
+          </p>
         </div>
       </div>
       <div className="flex flex-col sm:flex-row justify-between items-center gap-10">

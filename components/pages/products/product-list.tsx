@@ -196,7 +196,7 @@ export default function ProductList({
             {activeFilterCount > 0 && (
               <Badge
                 variant="default"
-                className="mr-1 w-5 h-5 flex items-center justify-center rounded-full bg-black text-background"
+                className="mr-1 w-5 h-5 flex items-center justify-center rounded-full bg-gray-800 text-background"
               >
                 {activeFilterCount}
               </Badge>

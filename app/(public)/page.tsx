@@ -1,4 +1,5 @@
 import CategoriesSection from '@/components/pages/home/category-section';
+import EndVideo from '@/components/pages/home/end-video';
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
@@ -31,11 +32,7 @@ export default async function HomePage() {
       <CategoriesSection categories={HomeCategories?.data} />
       {/* <SaleSection /> */}
       <SuggestedStyle products={StyleProducts?.data} />
-      <div className="h-screen">
-        <video muted loop autoPlay className="w-full h-full object-cover">
-          <source src="/home/end.mp4" type="video/mp4" />
-        </video>
-      </div>
+      <EndVideo />
       <div className="py-10 flex justify-center">
         <video
           muted

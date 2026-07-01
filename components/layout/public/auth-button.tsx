@@ -19,12 +19,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useLogout } from '@/services/features/auth/hooks';
-import { UserResponse } from '@/services/features/users/types';
+import { useLogout, useMe } from '@/services/features/auth/hooks';
 
-export default function AuthButton({ user }: { user: UserResponse | null }) {
+export default function AuthButton() {
   const router = useRouter();
   const logout = useLogout();
+
+  const { data: user } = useMe();
 
   const handleLogout = async () => {
     await logout.mutateAsync();
@@ -32,7 +33,7 @@ export default function AuthButton({ user }: { user: UserResponse | null }) {
   };
 
   // اگر کاربر لاگین کرده باشد
-  if (user) {
+  if (user?.data) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
