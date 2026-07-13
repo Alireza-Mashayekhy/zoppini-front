@@ -1,7 +1,8 @@
 import { serverFetch } from '@/services/api/server';
+import { ApiSingleResponse } from '@/services/api/types';
 
 import { UserResponse } from '../users/types';
 
 export async function getMe() {
-  return serverFetch<UserResponse>('auth/me');
+  return serverFetch<ApiSingleResponse<UserResponse>>('auth/me');
 }

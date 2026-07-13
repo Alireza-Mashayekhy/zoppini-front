@@ -89,7 +89,7 @@ export default function CategoriesModal({
         name: selectedData.name,
         description: selectedData.description,
         slug: selectedData.slug,
-        parentId: selectedData.parentId || '',
+        parentId: selectedData.parentId ? String(selectedData.parentId) : null,
         isInHeroSection: selectedData.isInHeroSection,
         isInHome: selectedData.isInHome,
       });

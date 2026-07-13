@@ -61,7 +61,7 @@ export default function BlogModal({
     isFeatured: z.boolean(),
   });
 
-  const methods = useForm<createBlogPostDto>({
+  const methods = useForm({
     defaultValues: {
       title: '',
       slug: '',

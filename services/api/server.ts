@@ -1,7 +1,5 @@
 import { cookies } from 'next/headers';
 
-import { ApiResponse } from './types';
-
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface ServerRequestOptions {
@@ -29,7 +27,7 @@ async function refreshToken() {
 export async function serverFetch<T>(
   url: string,
   options: ServerRequestOptions = {},
-): Promise<ApiResponse<T>> {
+): Promise<T> {
   const cookieStore = await cookies();
 
   const isFormData = options.body instanceof FormData;

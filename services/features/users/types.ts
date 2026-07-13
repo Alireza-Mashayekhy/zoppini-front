@@ -4,7 +4,7 @@ export interface UserResponse {
   phone: string;
   email?: string;
   birthDate?: string;
-  role?: string;
+  roles?: string[];
 }
 
 export interface UsersListResponse {

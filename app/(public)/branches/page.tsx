@@ -1,6 +1,16 @@
+'use client';
 import { Mail, MapPin, Phone } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
-import BranchesMap from '@/components/pages/branches/branches-map';
+const BranchesMap = dynamic(
+  () => import('@/components/pages/branches/branches-map'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full bg-gray-100 animate-pulse rounded-xl" />
+    ),
+  },
+);
 
 export default function BranchesPage() {
   return (

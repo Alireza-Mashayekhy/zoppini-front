@@ -1,5 +1,5 @@
 import { serverFetch } from '@/services/api/server';
-import { ApiListResponse } from '@/services/api/types';
+import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { CategoriesResponse } from './types';
 
@@ -26,10 +26,8 @@ export async function getHomeCategories() {
 }
 
 export async function getCategoryBySlug(slug: string) {
-  const response = await serverFetch<{
-    id: number;
-    name: string;
-    slug: string;
-  }>(`categories/slug/${slug}`);
+  const response = await serverFetch<ApiSingleResponse<CategoriesResponse>>(
+    `categories/slug/${slug}`,
+  );
   return response;
 }

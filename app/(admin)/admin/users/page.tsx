@@ -69,7 +69,7 @@ export default function Users() {
                 <TableCell>{user.fullName}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>{user.birthDate}</TableCell>
-                <TableCell>{user.roles.map((role: string) => role)}</TableCell>
+                <TableCell>{user.roles?.map((role: string) => role)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

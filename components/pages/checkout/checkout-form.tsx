@@ -15,7 +15,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAddresses } from '@/services/features/addresses/hooks';
 import { useCartList } from '@/services/features/cart/hooks';
 import { useCreateOrder } from '@/services/features/orders/hooks';
-import { ShippingMethod } from '@/services/features/orders/type';
+import {
+  CreateOrderDto,
+  ShippingMethod,
+} from '@/services/features/orders/type';
 
 import OrderSummary from './order-summary';
 
@@ -24,8 +27,6 @@ const checkoutSchema = z.object({
   shippingMethod: z.enum(['post', 'courier', 'tibax']),
   note: z.string().optional(),
 });
-
-type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutForm() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function CheckoutForm() {
     0,
   );
 
-  const methods = useForm<CheckoutFormData>({
+  const methods = useForm({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       addressId: 0,
@@ -104,14 +105,14 @@ export default function CheckoutForm() {
 
   const finalPrice = totalPrice + shippingCost;
 
-  const onSubmit = async (data: CheckoutFormData) => {
+  const onSubmit = async (data: any) => {
     if (cartItems.length === 0) {
       toast.error('سبد خرید شما خالی است');
       return;
     }
 
     try {
-      const orderData = {
+      const orderData: CreateOrderDto = {
         addressId: data.addressId,
         shippingMethod: data.shippingMethod,
         note: data.note,

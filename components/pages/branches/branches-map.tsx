@@ -17,7 +17,12 @@ const fixLeafletIcons = () => {
   });
 };
 
-const locations = [
+const locations: {
+  id: string;
+  name: string;
+  address: string;
+  coords: [number, number];
+}[] = [
   {
     id: 'tehran',
     name: 'دفتر مرکزی زوپینی (تهران)',
@@ -37,6 +42,7 @@ export default function BranchesMap({ location }: { location: number }) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     fixLeafletIcons();
   }, []);
