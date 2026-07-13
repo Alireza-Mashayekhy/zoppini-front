@@ -10,7 +10,10 @@ interface ServerRequestOptions {
   next?: NextFetchRequestConfig;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3000/api/';
 
 async function refreshToken() {
   const cookieStore = await cookies();
