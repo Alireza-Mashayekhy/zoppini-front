@@ -25,6 +25,7 @@
     "jose": "^6.2.3",
     "js-cookie": "^3.0.8",
     "keen-slider": "^6.8.6",
+    "leaflet": "^1.9.4",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
@@ -38,6 +39,7 @@
     "react-dom": "19.2.4",
     "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.76.1",
+    "react-leaflet": "^5.0.0",
     "react-multi-date-picker": "^4.5.2",
     "shadcn": "^4.8.2",
     "sonner": "^2.0.7",
@@ -51,6 +53,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/js-cookie": "^3.0.6",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

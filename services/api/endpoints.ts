@@ -96,4 +96,9 @@ export const endpoints = {
     province: '/locations/provinces',
     cities: (provinceId: number) => `/locations/provinces/${provinceId}/cities`,
   },
+
+  b2b: {
+    list: '/admin/b2b',
+    create: '/b2b',
+  },
 };

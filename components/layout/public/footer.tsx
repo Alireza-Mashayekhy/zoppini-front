@@ -26,16 +26,16 @@ export default function Footer() {
             <AnimateLink href="/blog">
               <li>مقالات</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/about-us">
               <li>درباره ما</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/contact">
               <li>تماس با ما</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/shopping_guide">
               <li>راهنمای خرید</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/club/club.pdf">
               <li>باشگاه مشتریان</li>
             </AnimateLink>
           </ul>
@@ -43,16 +43,16 @@ export default function Footer() {
         <div className="flex flex-col gap-5">
           <span className="text-sm font-semibold">راهنما</span>
           <ul className="flex flex-col gap-4 text-sm">
-            <AnimateLink href="">
+            <AnimateLink href="/branches">
               <li>آدرس شعب</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/frequently-asked-questions">
               <li>سوالات متداول</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/return-and-exchange-conditions">
               <li>شرایط مرجوع</li>
             </AnimateLink>
-            <AnimateLink href="">
+            <AnimateLink href="/events">
               <li>رویداد ها</li>
             </AnimateLink>
           </ul>
