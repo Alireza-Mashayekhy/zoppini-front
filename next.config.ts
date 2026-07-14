@@ -1,3 +1,4 @@
+// next.config.js
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -15,6 +16,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  trailingSlash: false,
+  distDir: '.next',
 };
 
 export default nextConfig;
