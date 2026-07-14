@@ -1,4 +1,6 @@
 // app/products/[categorySlug]/page.tsx
+import { Metadata } from 'next';
+
 import ProductList from '@/components/pages/products/product-list';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
@@ -15,6 +17,63 @@ interface ProductsCategoryPageProps {
   }>;
 }
 
+// تولید متا دیتا بر اساس اطلاعات دسته‌بندی
+export async function generateMetadata({
+  params,
+}: ProductsCategoryPageProps): Promise<Metadata> {
+  const { categorySlug } = await params;
+
+  try {
+    const category = await getCategoryBySlug(categorySlug);
+    const categoryData = category?.data;
+
+    if (!categoryData) {
+      return {
+        title: 'دسته‌بندی یافت نشد - زوپینی',
+        description: 'دسته‌بندی مورد نظر شما یافت نشد.',
+      };
+    }
+
+    // حذف تگ‌های HTML از توضیحات (اگر داشته باشد)
+    const cleanDescription = categoryData.description
+      ? categoryData.description.replace(/<[^>]+>/g, '').slice(0, 160)
+      : `مشاهده محصولات دسته ${categoryData.name} در زوپینی`;
+
+    const imageUrl = categoryData.image
+      ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${categoryData.image}`
+      : undefined;
+
+    return {
+      title: `قیمت و خرید انواع ${categoryData.name} - زوپینی`,
+      description: cleanDescription,
+      keywords: `خرید ${categoryData.name}, محصولات ${categoryData.name}, ${categoryData.name} مردانه, زوپینی`,
+      openGraph: {
+        title: categoryData.name,
+        description: cleanDescription,
+        images: imageUrl ? [{ url: imageUrl }] : [],
+        type: 'website',
+        siteName: 'زوپینی',
+        locale: 'fa_IR',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: categoryData.name,
+        description: cleanDescription,
+        images: imageUrl ? [imageUrl] : [],
+      },
+      alternates: {
+        canonical: `/products/${categoryData.slug}`,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      title: 'دسته‌بندی یافت نشد | زوپینی',
+      description: 'دسته‌بندی مورد نظر شما یافت نشد.',
+    };
+  }
+}
+
 export default async function ProductsCategoryPage({
   params,
   searchParams,
@@ -24,8 +83,6 @@ export default async function ProductsCategoryPage({
 
   // ۱. دریافت اطلاعات دسته‌بندی
   const category = await getCategoryBySlug(categorySlug);
-
-  console.log(category);
 
   // ۲. ساخت پارامترهای query برای دریافت محصولات
   const queryParams = {

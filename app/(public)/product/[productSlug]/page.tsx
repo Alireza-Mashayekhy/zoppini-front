@@ -20,7 +20,7 @@ export async function generateMetadata({
 
     if (!productData) {
       return {
-        title: 'محصول یافت نشد | زوپینی',
+        title: 'محصول یافت نشد - زوپینی',
         description: 'محصول مورد نظر شما یافت نشد.',
       };
     }
@@ -36,7 +36,7 @@ export async function generateMetadata({
       : undefined;
 
     return {
-      title: `${productData.title} | زوپینی`,
+      title: `${productData.title} - زوپینی`,
       description: cleanDescription,
       keywords: productData.title?.split(' ').slice(0, 5).join(', ') || '',
       openGraph: {
@@ -60,7 +60,7 @@ export async function generateMetadata({
   } catch (error) {
     console.log(error);
     return {
-      title: 'محصول یافت نشد | زوپینی',
+      title: 'محصول یافت نشد - زوپینی',
       description: 'محصول مورد نظر شما یافت نشد.',
     };
   }
