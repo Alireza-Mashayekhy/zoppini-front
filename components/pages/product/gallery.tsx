@@ -67,7 +67,7 @@ export default function ProductGallery({
           msOverflowStyle: 'none',
         }}
       >
-        {displayImages.map((img, index) => (
+        {displayImages?.map((img, index) => (
           <div
             key={img.id || index}
             className="w-full flex-shrink-0 snap-start h-full"

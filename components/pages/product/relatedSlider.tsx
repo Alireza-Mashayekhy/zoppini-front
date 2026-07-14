@@ -52,7 +52,7 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
     setIsMounted(true);
   }, []);
 
-  if (products.length === 0) {
+  if (products?.length === 0) {
     return null;
   }
 
@@ -78,7 +78,7 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
 
       <div className="relative group">
         <div ref={sliderRef} className="keen-slider">
-          {products.map(product => (
+          {products?.map(product => (
             <div
               key={product.id}
               className="keen-slider__slide"
