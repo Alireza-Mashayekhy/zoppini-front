@@ -21,34 +21,36 @@ export default function AdminB2BPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-light">درخواست‌های فروش سازمانی</h1>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>نام</TableHead>
-            <TableHead>سازمان</TableHead>
-            <TableHead>موضوع</TableHead>
-            <TableHead>تاریخ</TableHead>
-            <TableHead>عملیات</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data?.data?.map(item => (
-            <TableRow key={item.id}>
-              <TableCell>{item.fullName}</TableCell>
-              <TableCell>{item.companyName}</TableCell>
-              <TableCell>{item.subject}</TableCell>
-              <TableCell>
-                {new Date(item.createdAt).toLocaleDateString('fa-IR')}
-              </TableCell>
-              <TableCell>
-                <Button variant="destructive" size="sm">
-                  حذف
-                </Button>
-              </TableCell>
+      <div className="bg-white rounded-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>نام</TableHead>
+              <TableHead>سازمان</TableHead>
+              <TableHead>موضوع</TableHead>
+              <TableHead>تاریخ</TableHead>
+              <TableHead>عملیات</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {data?.data?.map(item => (
+              <TableRow key={item.id}>
+                <TableCell>{item.fullName}</TableCell>
+                <TableCell>{item.companyName}</TableCell>
+                <TableCell>{item.subject}</TableCell>
+                <TableCell>
+                  {new Date(item.createdAt).toLocaleDateString('fa-IR')}
+                </TableCell>
+                <TableCell>
+                  <Button variant="destructive" size="sm">
+                    حذف
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

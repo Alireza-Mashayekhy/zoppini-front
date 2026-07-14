@@ -39,7 +39,9 @@ export default function Users() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <Button size="lg">افزودن</Button>
+        <Button size="lg" variant="dark">
+          افزودن
+        </Button>
         <Input
           placeholder="جستجو"
           value={search}
