@@ -288,7 +288,7 @@ export default function ProductCreateModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" variant="dark">
-          {isEdit ? 'ویرایش' : 'افزودن'}
+          افزودن
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">

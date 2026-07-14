@@ -108,7 +108,12 @@ export default function Products() {
           categories={categoriesList?.data || []}
           selectedData={selectedProduct}
           open={openModal}
-          onOpenChange={setOpenModal}
+          onOpenChange={open => {
+            setOpenModal(open);
+            if (!open) {
+              setSelectedProduct(null);
+            }
+          }}
           colorsData={colorsData?.data || []}
           sizeData={sizeData?.data || []}
         />
