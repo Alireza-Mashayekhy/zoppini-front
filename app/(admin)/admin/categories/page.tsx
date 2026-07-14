@@ -60,6 +60,7 @@ export default function Users() {
   const { data } = useAdminCategoriesList({
     all: true,
     search: debouncedSearch,
+    page: page,
   });
 
   const handleEdit = (cat: CategoriesResponse) => {
