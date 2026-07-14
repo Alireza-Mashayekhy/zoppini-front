@@ -8,22 +8,17 @@ import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
 import { useAddToCart } from '@/services/features/cart/hooks';
-import { ProductsResponse } from '@/services/features/products/type';
+import { ProductResponse } from '@/services/features/products/type';
 import { useCartStore } from '@/store/cart.store';
 
 import ProductInfo from './description';
 import RelatedSlider from './relatedSlider';
 import WishlistButton from './wishlist-button';
 
-interface ContentProps {
-  product: ProductsResponse;
-  relatedProducts: ProductsResponse[];
-}
-
 export default function ProductContent({
   products,
 }: {
-  products: ContentProps;
+  products: ProductResponse;
 }) {
   const product = products.product;
 

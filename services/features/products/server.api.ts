@@ -1,7 +1,11 @@
 import { serverFetch } from '@/services/api/server';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
-import { FeaturedProductResponse, ProductsResponse } from './type';
+import {
+  FeaturedProductResponse,
+  ProductResponse,
+  ProductsResponse,
+} from './type';
 
 interface GetProductsParams {
   page?: number;
@@ -36,7 +40,7 @@ export async function getProducts(params: GetProductsParams = {}) {
 }
 
 export async function getProduct(slug: string) {
-  return serverFetch<ApiSingleResponse<ProductsResponse>>(`products/${slug}`);
+  return serverFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
 }
 
 export async function getFeaturedProducts() {

@@ -66,6 +66,11 @@ export interface ProductsResponse {
   colorImages: ColorImageResponse[];
 }
 
+export interface ProductResponse {
+  product: ProductsResponse;
+  relatedProducts: ProductsResponse[];
+}
+
 export interface createProductDto {
   id?: string;
   image: File;
