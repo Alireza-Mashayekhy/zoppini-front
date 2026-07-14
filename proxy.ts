@@ -20,18 +20,37 @@ export default function middleware(request: NextRequest) {
   }
 
   try {
-    let role;
+    let roleArray: string[] = [];
     if (token) {
       const payload = decodeJwt(token);
-      role = payload?.role as string | undefined;
+      const roles = payload?.roles as string[] | string | undefined;
+
+      if (Array.isArray(roles)) {
+        roleArray = roles;
+      } else if (typeof roles === 'string') {
+        roleArray = [roles];
+      }
     }
 
-    if (!role) {
+    if (roleArray.length === 0 && !refreshToken) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if (pathname.startsWith('/admin') && !['admin', 'editor'].includes(role)) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (
+      pathname === '/login' ||
+      pathname === '/login-with-pass' ||
+      pathname === '/sign-up' ||
+      pathname === '/forgot-pass'
+    ) {
+      return NextResponse.redirect(new URL('/home', request.url));
+    }
+
+    if (pathname.startsWith('/admin')) {
+      const allowedRoles = ['admin'];
+      const hasAccess = roleArray.some(role => allowedRoles.includes(role));
+      if (!hasAccess) {
+        return NextResponse.redirect(new URL('/panel', request.url));
+      }
     }
 
     return NextResponse.next();
