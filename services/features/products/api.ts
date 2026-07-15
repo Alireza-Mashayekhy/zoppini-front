@@ -147,10 +147,12 @@ export async function updateSuggestedProducts(
   return data;
 }
 
-export const getFeaturedProducts = async (): Promise<
-  ApiListResponse<FeaturedProductResponse>
-> => {
-  const { data } = await api.get(endpoints.products.featured);
+export const getFeaturedProducts = async (query: {
+  all?: boolean;
+}): Promise<ApiListResponse<FeaturedProductResponse>> => {
+  const { data } = await api.get(endpoints.products.featured, {
+    params: query,
+  });
   return data;
 };
 

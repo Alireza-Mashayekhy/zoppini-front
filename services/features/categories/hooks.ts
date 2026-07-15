@@ -22,7 +22,8 @@ export const useCategoriesList = (query: {
 export const useAdminCategoriesList = (query: {
   page?: number;
   search?: string;
-  all: boolean;
+  all?: boolean;
+  limit?: number;
 }) => {
   return useQuery({
     queryKey: ['categories', { ...query }],

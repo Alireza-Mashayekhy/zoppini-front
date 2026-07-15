@@ -75,6 +75,7 @@ export const useAdminProducsList = (query: {
   page?: number;
   search?: string;
   all: boolean;
+  limit?: number;
 }) => {
   return useQuery({
     queryKey: ['products', { ...query }],
@@ -143,10 +144,10 @@ export const useUpdateSuggestedProducts = () => {
   });
 };
 
-export const useFeaturedProducts = () => {
+export const useFeaturedProducts = (query: { all?: boolean }) => {
   return useQuery({
-    queryKey: ['featured-products'],
-    queryFn: getFeaturedProducts,
+    queryKey: ['featured-products', { ...query }],
+    queryFn: () => getFeaturedProducts(query),
     staleTime: 5 * 60 * 1000,
   });
 };

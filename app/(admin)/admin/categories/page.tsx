@@ -58,9 +58,9 @@ export default function Users() {
   const deleteMutation = useDeleteCategory();
 
   const { data } = useAdminCategoriesList({
-    all: true,
     search: debouncedSearch,
     page: page,
+    limit: 15,
   });
 
   const handleEdit = (cat: CategoriesResponse) => {

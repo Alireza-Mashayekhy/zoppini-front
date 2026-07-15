@@ -24,6 +24,7 @@ export const useAdminBlogList = (query: {
   page?: number;
   search?: string;
   all?: boolean;
+  limit?: number;
 }) => {
   return useQuery({
     queryKey: ['blog', { ...query }],

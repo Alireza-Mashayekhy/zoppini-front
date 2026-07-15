@@ -58,8 +58,9 @@ export default function AdminBlogPage() {
   const deleteMutation = useDeleteBlogPost();
 
   const { data } = useAdminBlogList({
-    all: true,
     search: debouncedSearch,
+    limit: 15,
+    page,
   });
 
   const handleEdit = (post: BlogPostResponse) => {
@@ -121,9 +122,7 @@ export default function AdminBlogPage() {
                 <TableCell>
                   {post.coverImage && (
                     <Image
-                      src={
-                        process.env.NEXT_PUBLIC_IMAGE_URL + post.coverImage
-                      }
+                      src={process.env.NEXT_PUBLIC_IMAGE_URL + post.coverImage}
                       width={40}
                       height={25}
                       alt={post.title}
@@ -138,9 +137,7 @@ export default function AdminBlogPage() {
                     {post.isPublished && (
                       <Badge variant="default">منتشر شده</Badge>
                     )}
-                    {post.isFeatured && (
-                      <Badge variant="secondary">ویژه</Badge>
-                    )}
+                    {post.isFeatured && <Badge variant="secondary">ویژه</Badge>}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">

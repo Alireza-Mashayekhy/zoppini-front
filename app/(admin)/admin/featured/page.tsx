@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { ProductSearchSelect } from '@/components/admin/product-search-select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +42,9 @@ import { useAdminProducsList } from '@/services/features/products/hooks';
 
 export default function FeaturedManagement() {
   const { data: featuredItems, isLoading: isLoadingFeatured } =
-    useFeaturedProducts();
+    useFeaturedProducts({
+      all: true,
+    });
   const { data: productsData } = useAdminProducsList({ all: true });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -144,21 +147,11 @@ export default function FeaturedManagement() {
             <div className="space-y-4 py-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">محصول</label>
-                <Select
+                <ProductSearchSelect
                   value={selectedProductId}
                   onValueChange={setSelectedProductId}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="انتخاب محصول..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map(product => (
-                      <SelectItem key={product.id} value={String(product.id)}>
-                        {product.title} ({product.productCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="انتخاب محصول..."
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">رنگ</label>

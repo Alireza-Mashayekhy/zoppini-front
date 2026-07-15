@@ -69,6 +69,8 @@ export default function Products() {
   const { data: productsList } = useAdminProducsList({
     all: true,
     search: debouncedSearch,
+    page: page,
+    limit: 15,
   });
   const { data: colorsData } = useAdminColorsList();
   const { data: sizeData } = useAdminSizeList();
