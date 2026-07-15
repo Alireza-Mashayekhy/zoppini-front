@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { BlogPostResponse } from '@/services/features/blog/types';
 
 export default function BlogContent({ post }: { post: BlogPostResponse }) {
+  console.log(post);
   const formattedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString('fa-IR')
     : null;
@@ -25,12 +26,6 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
         <h1 className="text-3xl font-light">{post.title}</h1>
         <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
           {formattedDate && <span>{formattedDate}</span>}
-          {post.author?.fullName && (
-            <>
-              <span>·</span>
-              <span>{post.author.fullName}</span>
-            </>
-          )}
         </div>
         {post.excerpt && (
           <p className="mt-4 text-lg text-muted-foreground">{post.excerpt}</p>

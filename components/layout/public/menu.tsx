@@ -108,7 +108,7 @@ export default function Menu({
         <div className="flex justify-center border-b border-border py-2">
           <Logo />
         </div>
-        <div className="p-4 overflow-y-auto h-[calc(100%-80px)] space-y-1">
+        <div className="p-4 overflow-y-auto scrollbar-thin h-[calc(100%-80px)] space-y-1">
           {/* <Link
             href="/blog"
             className="block px-4 py-2 text-sm border border-transparent hover:border-black rounded-none decoration-transparent"
