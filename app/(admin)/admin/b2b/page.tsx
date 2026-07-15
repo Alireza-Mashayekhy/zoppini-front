@@ -1,12 +1,16 @@
 // app/admin/b2b/page.tsx
 'use client';
 
+import { useState } from 'react';
+
+import CustomPagination from '@/components/shared/custom-pagination';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -14,7 +18,9 @@ import {
 import { useRequestList } from '@/services/features/b2b/hooks';
 
 export default function AdminB2BPage() {
-  const { data, isLoading } = useRequestList({ all: true });
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading } = useRequestList({ page, limit: 15 });
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
@@ -49,6 +55,17 @@ export default function AdminB2BPage() {
               </TableRow>
             ))}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={6}>
+                <CustomPagination
+                  totalPages={data?.pagination?.totalPages ?? 1}
+                  currentPage={page}
+                  onPageChange={setPage}
+                />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
         </Table>
       </div>
     </div>

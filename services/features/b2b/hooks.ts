@@ -9,6 +9,7 @@ export const useRequestList = (query: {
   page?: number;
   search?: string;
   all?: boolean;
+  limit?: number;
 }) => {
   return useQuery({
     queryKey: ['b2b-requests', query],

@@ -41,7 +41,7 @@ import { useAdminProducsList } from '@/services/features/products/hooks';
 
 export default function StyleManagement() {
   const { data: styleItems, isLoading: isLoadingStyle } = useStyleProducts();
-  const { data: productsData } = useAdminProducsList({ all: true });
+  const { data: productsData } = useAdminProducsList({ all: true, limit: 100 });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string>('');

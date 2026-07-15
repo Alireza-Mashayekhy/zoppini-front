@@ -45,7 +45,7 @@ export default function FeaturedManagement() {
     useFeaturedProducts({
       all: true,
     });
-  const { data: productsData } = useAdminProducsList({ all: true });
+  const { data: productsData } = useAdminProducsList({ all: true, limit: 100 });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string>('');
