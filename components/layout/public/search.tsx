@@ -137,7 +137,7 @@ export default function Search() {
                     <ProductCard
                       key={product.id}
                       image={product.image}
-                      price={product.variants[0].price}
+                      price={product?.variants?.[0]?.price}
                       slug={product.slug}
                       title={product.title}
                     />

@@ -29,7 +29,7 @@ export default function ProductCard({
           {title}
         </span>
         <span className="text-sm whitespace-nowrap">
-          {parseInt(price.toString()).toLocaleString()} تومان
+          {parseInt(price?.toString()).toLocaleString()} تومان
         </span>
       </div>
     </Link>
