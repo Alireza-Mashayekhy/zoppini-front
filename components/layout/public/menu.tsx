@@ -22,7 +22,18 @@ function buildCategoryTree(
   parentId: number | null = null,
 ): CategoryNode[] {
   return categories
-    .filter(cat => cat.parentId === parentId)
+    .filter(cat => {
+      // اگر parentId برابر با id خودش باشد، آن را به‌عنوان ریشه در نظر بگیر
+      const effectiveParentId = cat.parentId === cat.id ? null : cat.parentId;
+      const catParentId =
+        effectiveParentId !== null && effectiveParentId !== undefined
+          ? Number(effectiveParentId)
+          : null;
+      if (parentId === null) {
+        return catParentId === null;
+      }
+      return catParentId === parentId;
+    })
     .map(cat => ({
       ...cat,
       children: buildCategoryTree(categories, cat.id),
