@@ -1,0 +1,13 @@
+User-Agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /login
+Disallow: /sign-up
+Disallow: /forgot-pass
+Disallow: /checkout
+Disallow: /panel/
+Disallow: /_next/
+
+Sitemap: https://zoppinico.com/sitemap.xml
