@@ -1,5 +1,30 @@
 import { PackageX, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'شرایط مرجوع و تعویض - زوپینی',
+  description:
+    ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
+  openGraph: {
+    title: 'شرایط مرجوع و تعویض - زوپینی',
+    description:
+      ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
+    images: [{ url: '/og-image.jpg' }],
+    type: 'website',
+    siteName: 'زوپینی',
+    locale: 'fa_IR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'شرایط مرجوع و تعویض - زوپینی',
+    description:
+      ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
+  },
+  alternates: {
+    canonical: '/contact',
+  },
+};
 
 export default function ReturnPolicyPage() {
   return (

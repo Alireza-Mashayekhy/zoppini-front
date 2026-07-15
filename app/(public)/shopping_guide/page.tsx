@@ -1,6 +1,31 @@
 // app/guide/page.tsx
+import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'راهنمای خرید - زوپینی',
+  description:
+    'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
+  openGraph: {
+    title: 'راهنمای خرید - زوپینی',
+    description:
+      'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
+    images: [{ url: '/og-image.jpg' }],
+    type: 'website',
+    siteName: 'زوپینی',
+    locale: 'fa_IR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'راهنمای خرید - زوپینی',
+    description:
+      'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
+  },
+  alternates: {
+    canonical: '/contact',
+  },
+};
 
 export default function GuidePage() {
   return (

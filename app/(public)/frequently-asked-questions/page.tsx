@@ -1,4 +1,29 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'سوالات متداول - زوپینی',
+  description:
+    'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
+  openGraph: {
+    title: 'سوالات متداول - زوپینی',
+    description:
+      'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
+    images: [{ url: '/og-image.jpg' }],
+    type: 'website',
+    siteName: 'زوپینی',
+    locale: 'fa_IR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'سوالات متداول زوپینی',
+    description:
+      'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
+  },
+  alternates: {
+    canonical: '/frequently-asked-questions',
+  },
+};
 
 export default function FAQPage() {
   return (

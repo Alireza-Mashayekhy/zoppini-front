@@ -1,4 +1,29 @@
+import { Metadata } from 'next';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'رویداد ها - زوپینی',
+  description:
+    'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
+  openGraph: {
+    title: 'رویداد ها - زوپینی',
+    description:
+      'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
+    images: [{ url: '/og-image.jpg' }],
+    type: 'website',
+    siteName: 'زوپینی',
+    locale: 'fa_IR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'رویداد ها - زوپینی',
+    description:
+      'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
+  },
+  alternates: {
+    canonical: '/contact',
+  },
+};
 
 export default function EventsPage() {
   return (

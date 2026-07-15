@@ -1,4 +1,14 @@
+import { Metadata } from 'next';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'درباره ما - زوپینی',
+  description:
+    'برند زوپینی فعالیت خود را از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه با کیفیت و متفاوت آغاز کرد.طی بیش از دو دهه همواره کوشیده ایم فراتر از یک تولید کننده باشیم ،',
+  alternates: {
+    canonical: '/about-us',
+  },
+};
 
 export default function AboutPage() {
   return (

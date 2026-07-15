@@ -1,6 +1,30 @@
+import { Metadata } from 'next';
 import Image from 'next/image';
 
 import B2bSaleForm from '@/components/pages/b2b-sale/b2b-sale-form';
+
+export const metadata: Metadata = {
+  title: 'فروش سازمانی - زوپینی',
+  description:
+    'فروش سازمانی پوشاک مردانه به صورت عمده با قیمت همکاری ویژه. ارائه گیفت کارت و شرایط خرید آسان برای سازمان‌ها و شرکت‌ها.',
+  openGraph: {
+    title: 'فروش سازمانی زوپینی',
+    description:
+      'فروش سازمانی پوشاک مردانه به صورت عمده با قیمت همکاری ویژه. ارائه گیفت کارت و شرایط خرید آسان برای سازمان‌ها و شرکت‌ها',
+    images: [{ url: '/b2b/banner.webp' }],
+    type: 'website',
+    siteName: 'زوپینی',
+    locale: 'fa_IR',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'فروش سازمانی زوپینی',
+    description: 'آدرس و شماره تماس فروشگاه زوپینی',
+  },
+  alternates: {
+    canonical: '/b2bsale',
+  },
+};
 
 export default function B2bSalePage() {
   return (
