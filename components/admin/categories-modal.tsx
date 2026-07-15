@@ -145,7 +145,9 @@ export default function CategoriesModal({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger>
-          <Button size="lg">{isEdit ? 'ویرایش' : 'افزودن'}</Button>
+          <Button size="lg" variant="dark">
+            افزودن
+          </Button>
         </DialogTrigger>
         <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
           <DialogHeader className="h-fit">

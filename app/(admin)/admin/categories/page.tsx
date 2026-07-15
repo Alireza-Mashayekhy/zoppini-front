@@ -88,7 +88,12 @@ export default function Users() {
           categories={data?.data || []}
           selectedData={selectedCategory}
           open={openModal}
-          onOpenChange={setOpenModal}
+          onOpenChange={open => {
+            setOpenModal(open);
+            if (!open) {
+              setSelectedCategory(null);
+            }
+          }}
         />
         <Input
           placeholder="جستجو"
