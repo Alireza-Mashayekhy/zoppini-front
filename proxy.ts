@@ -7,11 +7,7 @@ export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // (Optional) redundant because matcher already restricts, but keep for safety
-  if (
-    !pathname.startsWith('/admin') &&
-    !pathname.startsWith('/dashboard') &&
-    !pathname.startsWith('/panel')
-  ) {
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
 
@@ -49,7 +45,7 @@ export default function middleware(request: NextRequest) {
       const allowedRoles = ['admin'];
       const hasAccess = roleArray.some(role => allowedRoles.includes(role));
       if (!hasAccess) {
-        return NextResponse.redirect(new URL('/panel', request.url));
+        return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     }
 
@@ -60,5 +56,5 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/panel/:path*'], // add '/dashboard' if needed
+  matcher: ['/admin/:path*', '/dashboard/:path*'], // add '/dashboard' if needed
 };

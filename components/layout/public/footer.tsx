@@ -35,7 +35,7 @@ export default function Footer() {
             <AnimateLink href="/shopping_guide">
               <li>راهنمای خرید</li>
             </AnimateLink>
-            <AnimateLink href="/club/club.pdf">
+            <AnimateLink href="/club/club.pdf" download>
               <li>باشگاه مشتریان</li>
             </AnimateLink>
           </ul>
@@ -54,6 +54,9 @@ export default function Footer() {
             </AnimateLink>
             <AnimateLink href="/events">
               <li>رویداد ها</li>
+            </AnimateLink>
+            <AnimateLink href="/b2bsale">
+              <li>فروش سازمانی</li>
             </AnimateLink>
           </ul>
         </div>
