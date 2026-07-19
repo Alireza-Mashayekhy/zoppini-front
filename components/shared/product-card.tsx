@@ -22,7 +22,7 @@ export default function ProductCard({
           fill
           alt={title}
           className="object-cover"
-        />
+	/>
       </div>
       <div className="flex justify-between items-center px-5 pt-3 pb-12">
         <span className=" overflow-hidden text-ellipsis line-clamp-1">
