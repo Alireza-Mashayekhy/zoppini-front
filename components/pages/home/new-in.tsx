@@ -25,17 +25,12 @@ export default function NewIn({
     loop: true,
     mode: 'free',
     rtl: true,
-    breakpoints: {
-      '(min-width: 640px)': {
-        slides: { perView: 3 },
-      },
-      '(min-width: 1024px)': {
-        slides: { perView: 4 },
-      },
-    },
+
     slides: {
-      perView: 2,
+      perView: 'auto',
+      spacing: 16,
     },
+
     created() {
       setLoaded(true);
     },
@@ -61,27 +56,37 @@ export default function NewIn({
   }, []);
 
   return (
-    <div
+    <section
       ref={sectionRef}
-      className="h-[calc(100vh-52px)] w-full overflow-hidden relative"
+      className="relative flex h-[calc(100vh-52px)] w-full flex-col overflow-hidden"
     >
-      <LuxuryTitle className="p-10">New In</LuxuryTitle>
-      <div ref={sliderRef} className="keen-slider group">
+      {/* عنوان */}
+      <div className="shrink-0">
+        <LuxuryTitle className="p-10">New In</LuxuryTitle>
+      </div>
+
+      {/* اسلایدر */}
+      <div ref={sliderRef} className="keen-slider group min-h-0 flex-1">
         {products.map(product => {
           const colorImage = product.product.colorImages?.find(
             img => img?.color?.id === product?.colorId,
           );
+
           const image = colorImage?.url || '';
 
-          // واریانت مربوط به رنگ
           const variant = product.product.variants?.find(
             v => v?.colorId === product?.colorId,
           );
+
           const price = variant?.price || 0;
 
           return (
-            <div key={product.id} className="keen-slider__slide number-slide1">
+            <div
+              key={product.id}
+              className="keen-slider__slide h-full! w-[calc(50%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
+            >
               <ProductCard
+                slider
                 image={image}
                 title={product.product.title}
                 price={price}
@@ -90,20 +95,21 @@ export default function NewIn({
             </div>
           );
         })}
+
         {loaded && (
           <>
             <ChevronLeft
               onClick={() => instanceRef.current?.prev()}
-              className={`absolute top-1/2 left-5 size-8 -translate-y-1/2 transition-all opacity-0 group-hover:opacity-100`}
+              className="absolute left-5 top-1/2 z-10 size-8 -translate-y-1/2 cursor-pointer opacity-0 transition-all group-hover:opacity-100"
             />
 
             <ChevronRight
               onClick={() => instanceRef.current?.next()}
-              className={`absolute top-1/2 right-5 size-8 -translate-y-1/2 transition-all opacity-0 group-hover:opacity-100`}
+              className="absolute right-5 top-1/2 z-10 size-8 -translate-y-1/2 cursor-pointer opacity-0 transition-all group-hover:opacity-100"
             />
           </>
         )}
       </div>
-    </div>
+    </section>
   );
 }
