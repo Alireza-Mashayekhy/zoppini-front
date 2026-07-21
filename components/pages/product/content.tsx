@@ -22,6 +22,37 @@ export default function ProductContent({
 }) {
   const product = products.product;
 
+  // ==================== ساخت لیست رنگ‌ها با لینک ====================
+  // ۱. رنگ‌های خود محصول (برای نمایش در گالری و انتخاب)
+  const selfColors =
+    product.colorImages?.map(v => ({
+      color: v.color,
+      productSlug: product.slug, // لینک به خود محصول
+      url: v.url,
+    })) || [];
+
+  // ۲. رنگ‌های محصولات هم‌رنگ
+  const sameColorColors =
+    product.sameColorProducts?.flatMap(
+      p =>
+        p.colorImages?.map(v => ({
+          color: v.color,
+          productSlug: p.slug,
+          url: v.url,
+        })) || [],
+    ) || [];
+
+  // ۳. ادغام و حذف تکراری‌ها (بر اساس id رنگ)
+  const colorMap = new Map<number, { color: any; productSlug: string }>();
+  [...selfColors, ...sameColorColors].forEach(item => {
+    if (!colorMap.has(item.color.id)) {
+      colorMap.set(item.color.id, item);
+    }
+  });
+  const colorLinks = Array.from(colorMap.values());
+  // ========================================================
+  console.log(colorLinks);
+
   const defaultColorId = product.variants?.[0]?.color?.id;
   const [selectedColorId, setSelectedColorId] = useState<number | undefined>(
     defaultColorId,
@@ -38,7 +69,6 @@ export default function ProductContent({
   const { openCart } = useCartStore();
 
   const handleAddToCart = () => {
-    // پیدا کردن واریانت بر اساس رنگ و سایز انتخاب‌شده
     const variant = product.variants?.find(
       v => v.color.id === activeColorId && v.size.id === selectedSizeId,
     );
@@ -66,17 +96,19 @@ export default function ProductContent({
     <div className="pt-[52px] flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="order-1 md:order-2">
-          <ProductGallery product={product} selectedColorId={activeColorId} />
+          <ProductGallery product={product} colorImages={product.colorImages} />
         </div>
 
         <div className="order-2 md:order-1 px-4 md:px-0 md:pt-5 flex flex-col gap-10 justify-between w-full md:w-1/2 mx-auto">
           <div>
             <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
 
+            {/* ارسال colorLinks به کامپوننت ProductColors */}
             <ProductColors
-              product={product}
+              colorLinks={colorLinks}
               selectedColorId={activeColorId}
               onColorSelect={setSelectedColorId}
+              currentSlug={product.slug} // برای تشخیص رنگ‌های خود محصول
             />
 
             <ProductSizes

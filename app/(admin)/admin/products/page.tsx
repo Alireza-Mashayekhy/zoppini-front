@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import AddImagesModal from '@/components/admin/product/add-images-modal';
 import ProductCreateModal from '@/components/admin/product/create-modal';
+import SameColorProductsModal from '@/components/admin/product/same-color-modal';
 import SuggestedProductsModal from '@/components/admin/product/suggested-modal';
 import CustomPagination from '@/components/shared/custom-pagination';
 import {
@@ -56,6 +57,7 @@ export default function Products() {
   const [openSuggestedModal, setOpenSuggestedModal] = useState(false);
   const [isDeleteModal, setDeleteModal] = useState(false);
   const [deleteCatId, setDeleteCatId] = useState<number | null>(null);
+  const [openSameColorModal, setOpenSameColorModal] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -88,6 +90,11 @@ export default function Products() {
   const handleSuggested = (product: ProductsResponse) => {
     setSelectedProduct(product);
     setOpenSuggestedModal(true);
+  };
+
+  const handleSameColor = (product: ProductsResponse) => {
+    setSelectedProduct(product);
+    setOpenSameColorModal(true);
   };
 
   const deleteProduct = async () => {
@@ -130,6 +137,13 @@ export default function Products() {
           open={openSuggestedModal}
           onOpenChange={setOpenSuggestedModal}
         />
+
+        <SameColorProductsModal
+          selectedData={selectedProduct}
+          open={openSameColorModal}
+          onOpenChange={setOpenSameColorModal}
+        />
+
         <Input
           placeholder="جستجو"
           value={search}
@@ -177,6 +191,11 @@ export default function Products() {
                         onClick={() => handleSuggested(product)}
                       >
                         محصولات پیشنهادی
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleSameColor(product)}
+                      >
+                        محصولات هم‌رنگ
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
