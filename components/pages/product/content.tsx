@@ -8,7 +8,10 @@ import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
 import { useAddToCart } from '@/services/features/cart/hooks';
-import { ProductResponse } from '@/services/features/products/type';
+import {
+  ColorResponse,
+  ProductResponse,
+} from '@/services/features/products/type';
 import { useCartStore } from '@/store/cart.store';
 
 import ProductInfo from './description';
@@ -43,7 +46,10 @@ export default function ProductContent({
     ) || [];
 
   // ۳. ادغام و حذف تکراری‌ها (بر اساس id رنگ)
-  const colorMap = new Map<number, { color: any; productSlug: string }>();
+  const colorMap = new Map<
+    number,
+    { color: ColorResponse; productSlug: string; url: string }
+  >();
   [...selfColors, ...sameColorColors].forEach(item => {
     if (!colorMap.has(item.color.id)) {
       colorMap.set(item.color.id, item);
