@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import CategoriesModal from '@/components/admin/categories-modal';
-import CustomPagination from '@/components/shared/custom-pagination';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +29,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -43,7 +41,7 @@ import {
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 export default function Users() {
-  const [page, setPage] = useState(1);
+  // const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] =
     useState<CategoriesResponse | null>(null);
@@ -59,8 +57,7 @@ export default function Users() {
 
   const { data } = useAdminCategoriesList({
     search: debouncedSearch,
-    page: page,
-    limit: 15,
+    all: true,
   });
 
   const handleEdit = (cat: CategoriesResponse) => {
@@ -100,7 +97,7 @@ export default function Users() {
           value={search}
           onChange={e => {
             setSearch(e.target.value);
-            setPage(1);
+            // setPage(1);
           }}
           className="bg-white w-96"
         />
@@ -157,7 +154,7 @@ export default function Users() {
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter>
+          {/* <TableFooter>
             <TableRow>
               <TableCell colSpan={6}>
                 <CustomPagination
@@ -167,7 +164,7 @@ export default function Users() {
                 />
               </TableCell>
             </TableRow>
-          </TableFooter>
+          </TableFooter> */}
         </Table>
       </div>
       <AlertDialog open={isDeleteModal} onOpenChange={setDeleteModal}>

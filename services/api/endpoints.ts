@@ -50,6 +50,8 @@ export const endpoints = {
     deleteColorImage: (id: number) => `/admin/products/images/${id}`,
     suggestedProducts: (productId: number) =>
       `/admin/products/${productId}/suggested-products`,
+    sameColorProducts: (productId: number) =>
+      `/admin/products/${productId}/same-color-products`,
 
     featured: '/featured',
     adminFeatured: '/admin/featured',

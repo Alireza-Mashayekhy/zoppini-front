@@ -10,6 +10,7 @@ import { RHFImageUploader } from '@/components/form/rhf-image-uploader';
 import RHFInput from '@/components/form/rhf-input';
 import RHFMultiSelect from '@/components/form/rhf-multiselect';
 import RHFPriceInput from '@/components/form/rhf-price-input';
+import RHFSelect from '@/components/form/rhf-select'; // <-- اضافه شد
 import { RHFTextEditor } from '@/components/form/rhf-text-editor';
 import {
   Dialog,
@@ -35,8 +36,12 @@ import { Button } from '../../ui/button';
 import CreateColorModal from './create-color-modal';
 import CreateSizeModal from './create-size-modal';
 
-// نشان دادن فیلد SKU (اختیاری)
 const SHOW_SKU = true;
+
+// ==================== نوع جدید برای فرم ====================
+type FormValues = Omit<createProductDto, 'colorId'> & {
+  colorId: string; // در فرم به صورت رشته (تک‌انتخاب)
+};
 
 export default function ProductCreateModal({
   categories,
@@ -84,7 +89,7 @@ export default function ProductCreateModal({
 
   const isEdit = !!selectedData;
 
-  // شمای اعتبارسنجی (بدون price)
+  // ==================== شمای اعتبارسنجی ====================
   const schema = z.object({
     title: z.string().nonempty('این فیلد اجباری است'),
     image: selectedData
@@ -101,11 +106,12 @@ export default function ProductCreateModal({
     slug: z.string().nonempty('این فیلد اجباری است'),
     productCode: z.string().nonempty('این فیلد اجباری است'),
     categories: z.array(z.string()).nonempty('این فیلد اجباری است'),
-    colorId: z.array(z.string()).nonempty('این فیلد اجباری است'),
+    colorId: z.string().nonempty('این فیلد اجباری است'),
     sizeId: z.array(z.string()).nonempty('این فیلد اجباری است'),
   });
 
-  const methods = useForm<createProductDto>({
+  // ==================== استفاده از useForm با نوع جدید ====================
+  const methods = useForm<FormValues>({
     defaultValues: {
       title: '',
       image: undefined,
@@ -114,7 +120,7 @@ export default function ProductCreateModal({
       slug: '',
       productCode: '',
       categories: [],
-      colorId: [],
+      colorId: '',
       sizeId: [],
     },
     resolver: zodResolver(schema),
@@ -127,49 +133,51 @@ export default function ProductCreateModal({
     watch,
   } = methods;
 
-  // به‌روزرسانی لیست واریانت‌ها با تغییر رنگ یا سایز
   const colorId = watch('colorId');
   const sizeId = watch('sizeId');
-
   const variantsRef = useRef(variants);
 
   useEffect(() => {
     variantsRef.current = variants;
   }, [variants]);
 
+  // ==================== تولید واریانت‌ها با یک رنگ ثابت ====================
   useEffect(() => {
-    if (!colorId.length || !sizeId.length) {
+    if (!colorId || !sizeId.length) {
       setVariants([]);
       return;
     }
 
     const newVariants: typeof variants = [];
-    for (const cId of colorId) {
-      for (const sId of sizeId) {
-        const existing = variantsRef.current.find(
-          v => v.colorId === cId && v.sizeId === sId,
-        );
-        newVariants.push({
-          colorId: cId,
-          sizeId: sId,
-          price: existing?.price || 0,
-          stock: existing?.stock || 0,
-          sku: existing?.sku || '',
-        });
-      }
+    for (const sId of sizeId) {
+      const existing = variantsRef.current.find(
+        v => v.colorId === colorId && v.sizeId === sId,
+      );
+      newVariants.push({
+        colorId,
+        sizeId: sId,
+        price: existing?.price || 0,
+        stock: existing?.stock || 0,
+        sku: existing?.sku || '',
+      });
     }
     setVariants(newVariants);
   }, [colorId, sizeId]);
 
-  // مقداردهی اولیه در حالت ویرایش
+  // ==================== مقداردهی اولیه در حالت ویرایش ====================
   useEffect(() => {
     if (selectedData) {
+      // گرفتن رنگ‌های منحصربه‌فرد از واریانت‌ها
       const uniqueColorIds = [
         ...new Set(selectedData.variants?.map(v => String(v.color?.id)) || []),
       ];
       const uniqueSizeIds = [
         ...new Set(selectedData.variants?.map(v => String(v.size?.id)) || []),
       ];
+
+      // تنظیم مقدار colorId به اولین رنگ (یا رشته خالی)
+      const firstColorId = uniqueColorIds.length > 0 ? uniqueColorIds[0] : '';
+
       reset({
         title: selectedData.title,
         description: selectedData.description || '',
@@ -177,10 +185,10 @@ export default function ProductCreateModal({
         slug: selectedData.slug,
         productCode: selectedData.productCode,
         categories: selectedData.categories?.map(c => String(c.id)) || [],
-        colorId: uniqueColorIds,
+        colorId: firstColorId, // <-- مقداردهی صحیح
         sizeId: uniqueSizeIds,
       });
-      // تنظیم واریانت‌ها
+
       setVariants(
         selectedData.variants?.map(v => ({
           colorId: String(v.color?.id),
@@ -199,15 +207,15 @@ export default function ProductCreateModal({
         slug: '',
         productCode: '',
         categories: [],
-        colorId: [],
+        colorId: '',
         sizeId: [],
       });
       setVariants([]);
     }
   }, [selectedData, reset]);
 
-  // تابع ارسال فرم
-  const onSubmit = async (data: any) => {
+  // ==================== ارسال فرم ====================
+  const onSubmit = async (data: FormValues) => {
     try {
       const {
         title,
@@ -218,6 +226,7 @@ export default function ProductCreateModal({
         categories,
       } = data;
 
+      // ساخت payload واریانت‌ها
       const variantsPayload = variants.map(v => ({
         colorId: Number(v.colorId),
         sizeId: Number(v.sizeId),
@@ -237,8 +246,6 @@ export default function ProductCreateModal({
         toast.error('مقادیر رنگ یا سایز نامعتبر است');
         return;
       }
-
-      console.log(variantsPayload);
 
       const formData = new FormData();
       formData.append('productCode', productCode);
@@ -265,12 +272,14 @@ export default function ProductCreateModal({
       onOpenChange(false);
       reset();
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success(isEdit ? 'محصول ویرایش شد' : 'محصول ایجاد شد');
     } catch (error) {
       console.log(error);
+      toast.error('خطا در ثبت محصول');
     }
   };
 
-  // به‌روزرسانی یک واریانت خاص (وقتی کاربر قیمت/موجودی را تغییر می‌دهد)
+  // ==================== به‌روزرسانی یک واریانت ====================
   const updateVariant = (
     index: number,
     field: 'price' | 'stock' | 'sku',
@@ -284,6 +293,7 @@ export default function ProductCreateModal({
     setVariants(updated);
   };
 
+  // ==================== رندر ====================
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -302,13 +312,22 @@ export default function ProductCreateModal({
             <RHFInput name="productCode" label="کد محصول" />
             <RHFInput name="slug" label="اسلاگ" />
 
+            {/* استفاده از RHFSelect به جای select معمولی */}
             <div className="flex gap-2 items-end">
-              <RHFMultiSelect name="colorId" label="رنگ" items={colorItems} />
+              <RHFSelect
+                name="colorId"
+                label="رنگ"
+                items={colorItems}
+                placeholder="انتخاب رنگ..."
+                className="w-full"
+              />
               <CreateColorModal
                 open={isCreateColorOpen}
                 onOpenChange={setCreateColorModal}
               />
             </div>
+
+            {/* انتخاب سایز (چندانتخابی) */}
             <div className="flex gap-2 items-end">
               <RHFMultiSelect name="sizeId" label="سایز" items={sizeItems} />
               <CreateSizeModal
@@ -316,6 +335,8 @@ export default function ProductCreateModal({
                 onOpenChange={setCreateSizeModal}
               />
             </div>
+
+            {/* دسته‌بندی‌ها */}
             <RHFMultiSelect
               name="categories"
               label="دسته بندی ها"

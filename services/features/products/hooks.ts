@@ -21,6 +21,7 @@ import {
   getStyleProducts,
   productsList,
   siezList,
+  updateSameColorProducts,
   updateSuggestedProducts,
 } from './api';
 import {
@@ -214,6 +215,28 @@ export const useDeleteStyleProduct = () => {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'خطا در حذف محصول ویژه');
+    },
+  });
+};
+
+export const useUpdateSameColorProducts = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      productIds,
+    }: {
+      productId: number;
+      productIds: number[];
+    }) => updateSameColorProducts(productId, productIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('محصولات هم‌رنگ با موفقیت به‌روزرسانی شدند');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message || 'خطا در به‌روزرسانی محصولات هم‌رنگ',
+      );
     },
   });
 };

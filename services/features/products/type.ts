@@ -64,6 +64,7 @@ export interface ProductsResponse {
   variants: VariantResponse[];
   comments: CommentResponse[];
   colorImages: ColorImageResponse[];
+  sameColorProducts: ProductsResponse[];
 }
 
 export interface ProductResponse {

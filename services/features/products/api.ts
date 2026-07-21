@@ -186,3 +186,12 @@ export const deleteStyleProduct = async (id: number): Promise<void> => {
   const url = endpoints.products.removeStyle(id);
   await api.delete(url);
 };
+
+export async function updateSameColorProducts(
+  id: number,
+  productIds: number[],
+) {
+  const url = endpoints.products.sameColorProducts(id);
+  const { data } = await api.patch(url, { productIds });
+  return data;
+}
