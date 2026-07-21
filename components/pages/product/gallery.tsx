@@ -5,23 +5,25 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
-import { ProductsResponse } from '@/services/features/products/type';
+import {
+  ColorImageResponse,
+  ProductsResponse,
+} from '@/services/features/products/type';
 
 interface ProductGalleryProps {
   product: ProductsResponse;
-  selectedColorId?: number;
+  colorImages: ColorImageResponse[];
 }
 
 export default function ProductGallery({
   product,
-  selectedColorId,
+  colorImages,
 }: ProductGalleryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // فیلتر تصاویر بر اساس رنگ انتخاب‌شده
-  const images =
-    product.colorImages?.filter(img => img.color?.id === selectedColorId) || [];
+  const images = colorImages;
   const displayImages =
     images.length > 0 ? images : [{ url: product.image, id: 0 }];
 
