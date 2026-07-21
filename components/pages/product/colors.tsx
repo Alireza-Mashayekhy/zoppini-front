@@ -53,20 +53,7 @@ export default function ProductColors({
   )?.color.name;
 
   const MAX_VISIBLE_COLORS = 6;
-  const visibleColors = uniqueColors.slice(0, MAX_VISIBLE_COLORS);
   const remainingColors = uniqueColors.length - MAX_VISIBLE_COLORS;
-
-  const handleColorClick = (colorId: number, productSlug: string) => {
-    // اگر رنگ مربوط به خود محصول است، فقط انتخاب شود
-    if (productSlug === currentSlug) {
-      if (onColorSelect) {
-        onColorSelect(colorId);
-        setLocalSelectedColorId(colorId);
-      }
-      // از لینک شدن جلوگیری نمی‌کنیم چون از Link استفاده می‌کنیم و با جلوگیری از پیش‌فرض، لینک نمی‌شود
-    }
-    // اگر مربوط به محصول دیگر است، لینک به صفحه‌ی آن محصول می‌رود (رفتار پیش‌فرض Link)
-  };
 
   return (
     <div className="flex flex-col gap-2 mt-6 pb-3 border-b">
