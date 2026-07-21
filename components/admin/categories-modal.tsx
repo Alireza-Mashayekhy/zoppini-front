@@ -24,7 +24,6 @@ import {
 import FormProvider from '../form/form-provider';
 import { RHFImageUploader } from '../form/rhf-image-uploader';
 import RHFInput from '../form/rhf-input';
-import RHFMultiSelect from '../form/rhf-multiselect';
 import RHFSelect from '../form/rhf-select';
 import RHFSwitch from '../form/rhf-switch';
 import { RHFTextEditor } from '../form/rhf-text-editor';
@@ -162,11 +161,6 @@ export default function CategoriesModal({
               <RHFInput label="نام دسته بندی" name="name" isRequired />
               <RHFInput label="نامک" name="slug" isRequired />
               <RHFSelect label="دسته بندی مادر" name="parentId" items={items} />
-              <RHFMultiSelect
-                name="categories"
-                label="دسته بندی مادر"
-                items={items}
-              />
               <span />
 
               <RHFSwitch name="isInHeroSection" label="نمایش در هیرو سکشن" />

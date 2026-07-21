@@ -6,6 +6,7 @@ interface ProductProps {
   title: string;
   price: number;
   slug: string;
+  slider?: boolean;
 }
 
 export default function ProductCard({
@@ -13,24 +14,41 @@ export default function ProductCard({
   title,
   price,
   slug,
+  slider,
 }: ProductProps) {
+  console.log(price);
   return (
-    <Link href={`/product/${slug}`}>
-      <div className="relative w-full aspect-9/16">
-        <Image
-          src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
-          fill
-          alt={title}
-          className="object-cover"
-        />
-      </div>
-      <div className="flex justify-between items-center px-5 pt-3 pb-12">
-        <span className=" overflow-hidden text-ellipsis line-clamp-1">
+    <Link href={`/product/${slug}`} className="flex h-full min-h-0 flex-col">
+      {/* تصویر */}
+      {slider ? (
+        <div className="relative min-h-0 flex-1">
+          <Image
+            src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
+            fill
+            alt={title}
+            className="object-cover"
+          />
+        </div>
+      ) : (
+        <div className="relative w-full aspect-9/16">
+          <Image
+            src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
+            fill
+            alt={title}
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      {/* اطلاعات محصول */}
+      <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-12 pt-3">
+        <span className="line-clamp-1 overflow-hidden text-ellipsis">
           {title}
         </span>
-        <span className="text-sm whitespace-nowrap">
-          {parseInt(price?.toString()).toLocaleString()} تومان
-        </span>
+
+        {/* <span className="whitespace-nowrap text-sm">
+          {parseInt(price.toString()).toLocaleString()} تومان
+        </span> */}
       </div>
     </Link>
   );
