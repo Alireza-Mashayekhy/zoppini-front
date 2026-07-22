@@ -9,6 +9,8 @@ export interface CategoriesResponse {
   parentId: number | null;
   isInHeroSection: boolean;
   isInHome: boolean;
+  orderInHome: number;
+  orderInHero: number;
 }
 
 export interface createCategoryDto {
@@ -20,4 +22,6 @@ export interface createCategoryDto {
   parentId: string | null;
   isInHeroSection: boolean;
   isInHome: boolean;
+  orderInHome?: number | null | undefined; // تغییر
+  orderInHero?: number | null | undefined; // تغییر
 }

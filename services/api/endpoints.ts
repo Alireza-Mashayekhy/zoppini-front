@@ -52,6 +52,10 @@ export const endpoints = {
       `/admin/products/${productId}/suggested-products`,
     sameColorProducts: (productId: number) =>
       `/admin/products/${productId}/same-color-products`,
+    updateColor: (id: number) => `/admin/products/color/${id}`,
+    deleteColor: (id: number) => `/admin/products/color/${id}`,
+    updateSize: (id: number) => `/admin/products/size/${id}`,
+    deleteSize: (id: number) => `/admin/products/size/${id}`,
 
     featured: '/featured',
     adminFeatured: '/admin/featured',

@@ -45,9 +45,16 @@ export async function productsList(query: {
 }
 
 // admin
-export async function adminColorsList() {
+export async function adminColorsList(query?: {
+  page?: number;
+  search?: string;
+  all?: boolean;
+}) {
   const { data } = await api.get<ApiListResponse<ColorResponse>>(
     endpoints.products.adminColorList,
+    {
+      params: query,
+    },
   );
 
   return data;
@@ -62,9 +69,16 @@ export async function createColor(formData: CreateColorDto) {
   return data;
 }
 
-export async function adminSizeList() {
+export async function adminSizeList(query?: {
+  page?: number;
+  search?: string;
+  all?: boolean;
+}) {
   const { data } = await api.get<ApiListResponse<SizeResponse>>(
     endpoints.products.adminSizeList,
+    {
+      params: query,
+    },
   );
 
   return data;
@@ -193,5 +207,35 @@ export async function updateSameColorProducts(
 ) {
   const url = endpoints.products.sameColorProducts(id);
   const { data } = await api.patch(url, { productIds });
+  return data;
+}
+
+export async function updateColor(
+  id: number,
+  data: { name?: string; hexCode?: string },
+) {
+  const { data: response } = await api.patch(
+    endpoints.products.updateColor(id),
+    data,
+  );
+  return response;
+}
+
+export async function deleteColor(id: number) {
+  const { data } = await api.delete(endpoints.products.deleteColor(id));
+  return data;
+}
+
+// ========== مدیریت سایزها ==========
+export async function updateSize(id: number, data: { name?: string }) {
+  const { data: response } = await api.patch(
+    endpoints.products.updateSize(id),
+    data,
+  );
+  return response;
+}
+
+export async function deleteSize(id: number) {
+  const { data } = await api.delete(endpoints.products.deleteSize(id));
   return data;
 }

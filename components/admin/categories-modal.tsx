@@ -1,3 +1,5 @@
+'use client';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -46,23 +48,61 @@ export default function CategoriesModal({
 
   const isEdit = !!selectedData;
 
-  const schema = z.object({
-    name: z.string().nonempty('این فیلد اجباری است'),
-    image: selectedData
-      ? z.any().optional()
-      : z
-          .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
-          .refine(file => file.size <= 5 * 1024 * 102, `حداکثر حجم 5MB`)
-          .refine(
-            file => ['image/webp'].includes(file.type),
-            'فقط فرمت‌ webp مجازند',
-          ),
-    description: z.string().nonempty('این فیلد اجباری است'),
-    slug: z.string().nonempty('این فیلد اجباری است'),
-    parentId: z.string().nullable(),
-    isInHeroSection: z.boolean(),
-    isInHome: z.boolean(),
-  });
+  // شمای اعتبارسنجی با فیلدهای order
+  const schema = z
+    .object({
+      name: z.string().nonempty('این فیلد اجباری است'),
+      image: selectedData
+        ? z.any().optional()
+        : z
+            .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
+            .refine(file => file.size <= 5 * 1024 * 102, `حداکثر حجم 5MB`)
+            .refine(
+              file => ['image/webp'].includes(file.type),
+              'فقط فرمت‌ webp مجازند',
+            ),
+      description: z.string().nonempty('این فیلد اجباری است'),
+      slug: z.string().nonempty('این فیلد اجباری است'),
+      parentId: z.string().nullable(),
+      isInHeroSection: z.boolean(),
+      isInHome: z.boolean(),
+      orderInHome: z.preprocess(
+        val => (val === '' ? null : val), // اگر خالی بود null
+        z.coerce.number().nullable().optional(), // تبدیل به عدد
+      ),
+      orderInHero: z.preprocess(
+        val => (val === '' ? null : val),
+        z.coerce.number().nullable().optional(),
+      ),
+    })
+    .superRefine((data, ctx) => {
+      // اگر isInHome فعال باشد، orderInHome اجباری است
+      if (
+        data.isInHome &&
+        (data.orderInHome === null ||
+          data.orderInHome === undefined ||
+          data.orderInHome < 1)
+      ) {
+        ctx.addIssue({
+          path: ['orderInHome'],
+          message: 'وارد کردن ترتیب در صفحه اصلی اجباری است',
+          code: 'custom',
+        });
+      }
+      // اگر isInHeroSection فعال باشد، orderInHero اجباری است
+      if (
+        data.isInHeroSection &&
+        (data.orderInHero === null ||
+          data.orderInHero === undefined ||
+          data.orderInHero < 1)
+      ) {
+        ctx.addIssue({
+          path: ['orderInHero'],
+          message: 'وارد کردن ترتیب در هیرو سکشن اجباری است',
+          code: 'custom',
+        });
+      }
+    });
 
   const methods = useForm<createCategoryDto>({
     defaultValues: {
@@ -73,6 +113,8 @@ export default function CategoriesModal({
       parentId: '',
       isInHeroSection: false,
       isInHome: false,
+      orderInHome: null,
+      orderInHero: null,
     },
     resolver: zodResolver(schema),
   });
@@ -81,7 +123,12 @@ export default function CategoriesModal({
     reset,
     setValue,
     formState: { errors },
+    watch,
   } = methods;
+
+  // مشاهده مقادیر سوییچ‌ها برای نمایش شرطی فیلدهای order
+  const isInHome = watch('isInHome');
+  const isInHeroSection = watch('isInHeroSection');
 
   useEffect(() => {
     if (selectedData) {
@@ -92,6 +139,8 @@ export default function CategoriesModal({
         parentId: selectedData.parentId ? String(selectedData.parentId) : null,
         isInHeroSection: selectedData.isInHeroSection,
         isInHome: selectedData.isInHome,
+        orderInHome: selectedData.orderInHome ?? null,
+        orderInHero: selectedData.orderInHero ?? null,
       });
     } else {
       reset({
@@ -102,6 +151,8 @@ export default function CategoriesModal({
         parentId: '',
         isInHeroSection: false,
         isInHome: false,
+        orderInHome: null,
+        orderInHero: null,
       });
     }
   }, [selectedData, reset]);
@@ -118,6 +169,15 @@ export default function CategoriesModal({
       formData.append('isInHeroSection', data.isInHeroSection.toString());
       formData.append('isInHome', data.isInHome.toString());
       if (data.parentId) formData.append('parentId', data.parentId);
+
+      // اضافه کردن orderها (اگر مقدار دارند)
+      if (data.orderInHome && data.orderInHome > 0) {
+        formData.append('orderInHome', data.orderInHome.toString());
+      }
+      if (data.orderInHero && data.orderInHero > 0) {
+        formData.append('orderInHero', data.orderInHero.toString());
+      }
+
       if (isEdit && selectedData.id) {
         await updateCategoryMutation.mutateAsync({
           id: selectedData.id,
@@ -133,6 +193,7 @@ export default function CategoriesModal({
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (error) {
       console.log(error);
+      toast.error('خطا در ثبت دسته‌بندی');
     }
   };
 
@@ -142,69 +203,91 @@ export default function CategoriesModal({
   ];
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogTrigger>
-          <Button size="lg" variant="dark">
-            افزودن
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
-          <DialogHeader className="h-fit">
-            <DialogTitle>
-              {isEdit ? 'ویرایش دسته بندی' : 'افزودن دسته بندی'}
-            </DialogTitle>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger>
+        <Button size="lg" variant="dark">
+          افزودن
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
+        <DialogHeader className="h-fit">
+          <DialogTitle>
+            {isEdit ? 'ویرایش دسته بندی' : 'افزودن دسته بندی'}
+          </DialogTitle>
+        </DialogHeader>
 
-          <FormProvider methods={methods} onSubmit={onSubmit}>
-            <div className="grid grid-cols-2 gap-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin px-4">
-              <RHFInput label="نام دسته بندی" name="name" isRequired />
-              <RHFInput label="نامک" name="slug" isRequired />
-              <RHFSelect label="دسته بندی مادر" name="parentId" items={items} />
-              <span />
+        <FormProvider methods={methods} onSubmit={onSubmit}>
+          <div className="grid grid-cols-2 gap-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin px-4">
+            <RHFInput label="نام دسته بندی" name="name" isRequired />
+            <RHFInput label="نامک" name="slug" isRequired />
+            <RHFSelect label="دسته بندی مادر" name="parentId" items={items} />
+            <span />
 
-              <RHFSwitch name="isInHeroSection" label="نمایش در هیرو سکشن" />
-              <RHFSwitch name="isInHome" label="نمایش در صفحه اصلی" />
-
-              <RHFTextEditor
-                name="description"
-                label="توضیحات"
-                setValue={methods.setValue}
-                error={methods.formState.errors.description}
-                placeholder="توضیحات محصول را اینجا بنویسید..."
-                className="col-span-2"
-              />
-
-              <RHFImageUploader
-                name="image"
-                label="تصویر دسته‌بندی"
-                setValue={setValue}
-                error={errors.image}
-                maxSize={5 * 1024 * 1024}
-                accept="image/webp"
-                aspectRatio={1}
-                className="col-span-2"
-                defaultValue={
-                  selectedData?.image
-                    ? process.env.NEXT_PUBLIC_IMAGE_URL + selectedData.image
-                    : null
-                }
-              />
-              <Button
-                type="submit"
-                loading={
-                  createCategoryMutation.isPending ||
-                  updateCategoryMutation.isPending
-                }
-                size="lg"
-                className="w-full col-span-2"
-              >
-                ثبت دسته بندی{' '}
-              </Button>
+            <div className="col-span-2 grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <RHFSwitch name="isInHeroSection" label="نمایش در هیرو سکشن" />
+                {isInHeroSection && (
+                  <RHFInput
+                    name="orderInHero"
+                    label="ترتیب در هیرو سکشن"
+                    type="number"
+                    isRequired
+                    placeholder="عدد وارد کنید..."
+                  />
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <RHFSwitch name="isInHome" label="نمایش در صفحه اصلی" />
+                {isInHome && (
+                  <RHFInput
+                    name="orderInHome"
+                    label="ترتیب در صفحه اصلی"
+                    type="number"
+                    isRequired
+                    placeholder="عدد وارد کنید..."
+                  />
+                )}
+              </div>
             </div>
-          </FormProvider>
-        </DialogContent>
-      </Dialog>
-    </>
+
+            <RHFTextEditor
+              name="description"
+              label="توضیحات"
+              setValue={methods.setValue}
+              error={methods.formState.errors.description}
+              placeholder="توضیحات محصول را اینجا بنویسید..."
+              className="col-span-2"
+            />
+
+            <RHFImageUploader
+              name="image"
+              label="تصویر دسته‌بندی"
+              setValue={setValue}
+              error={errors.image}
+              maxSize={5 * 1024 * 1024}
+              accept="image/webp"
+              aspectRatio={1}
+              className="col-span-2"
+              defaultValue={
+                selectedData?.image
+                  ? process.env.NEXT_PUBLIC_IMAGE_URL + selectedData.image
+                  : null
+              }
+            />
+            <Button
+              type="submit"
+              loading={
+                createCategoryMutation.isPending ||
+                updateCategoryMutation.isPending
+              }
+              size="lg"
+              className="w-full col-span-2"
+            >
+              ثبت دسته بندی
+            </Button>
+          </div>
+        </FormProvider>
+      </DialogContent>
+    </Dialog>
   );
 }
