@@ -1,4 +1,3 @@
-// components/pages/product/gallery.tsx
 'use client';
 
 import Image from 'next/image';
@@ -15,6 +14,47 @@ interface ProductGalleryProps {
   colorImages: ColorImageResponse[];
 }
 
+// کامپوننت تصویر با قابلیت زوم
+function ZoomableImage({ src, alt }: { src: string; alt: string }) {
+  const [zoom, setZoom] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const imageRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setPosition({ x, y });
+  };
+
+  return (
+    <div
+      ref={imageRef}
+      className="relative w-full h-full overflow-hidden cursor-zoom-in"
+      onMouseEnter={() => setZoom(true)}
+      onMouseLeave={() => setZoom(false)}
+      onMouseMove={handleMouseMove}
+    >
+      <div
+        className="relative w-full h-full transition-transform duration-200"
+        style={{
+          transform: zoom ? 'scale(2.5)' : 'scale(1)',
+          transformOrigin: `${position.x}% ${position.y}%`,
+        }}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          draggable={false}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function ProductGallery({
   product,
   colorImages,
@@ -22,7 +62,6 @@ export default function ProductGallery({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // فیلتر تصاویر بر اساس رنگ انتخاب‌شده
   const images = colorImages;
   const displayImages =
     images.length > 0 ? images : [{ url: product.image, id: 0 }];
@@ -44,7 +83,6 @@ export default function ProductGallery({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [displayImages.length]);
 
-  // اسکرول به تصویر مشخص
   const scrollTo = (index: number) => {
     if (scrollRef.current) {
       const { clientHeight } = scrollRef.current;
@@ -62,27 +100,22 @@ export default function ProductGallery({
         ref={scrollRef}
         className={cn(
           'flex flex-col overflow-y-auto scroll-smooth snap-y snap-mandatory h-full',
-          'scrollbar-hide', // مخفی کردن اسکرول‌بار
+          'scrollbar-hide',
         )}
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
         }}
       >
-        {displayImages?.map((img, index) => (
+        {displayImages.map((img, index) => (
           <div
             key={img.id || index}
             className="w-full flex-shrink-0 snap-start h-full"
           >
-            <div className="relative w-full h-full bg-gray-100">
-              <Image
-                src={process.env.NEXT_PUBLIC_IMAGE_URL + img.url}
-                alt={product.title}
-                fill
-                className="object-cover"
-                draggable={false}
-              />
-            </div>
+            <ZoomableImage
+              src={process.env.NEXT_PUBLIC_IMAGE_URL + img.url}
+              alt={product.title}
+            />
           </div>
         ))}
       </div>

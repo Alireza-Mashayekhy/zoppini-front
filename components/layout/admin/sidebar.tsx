@@ -1,6 +1,15 @@
 'use client';
 
-import { Boxes, Briefcase, Grid2X2, Newspaper, Star, User } from 'lucide-react';
+import {
+  Boxes,
+  Briefcase,
+  Grid2X2,
+  Newspaper,
+  Palette,
+  Ruler,
+  Star,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -43,6 +52,8 @@ const items = [
   { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
   { icon: Star, name: 'محصولات پیشنهاد استایل', link: '/admin/style' },
   { icon: Briefcase, name: 'درخواست های سازمانی', link: '/admin/b2b' },
+  { name: 'رنگ‌ها', link: '/admin/colors', icon: Palette }, // اضافه شد
+  { name: 'سایزها', link: '/admin/sizes', icon: Ruler }, // اضافه شد
 ];
 
 export default function AdminSidebar() {

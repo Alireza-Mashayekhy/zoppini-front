@@ -1,4 +1,3 @@
-// components/pages/product/content.tsx
 'use client';
 
 import { useState } from 'react';
@@ -25,39 +24,62 @@ export default function ProductContent({
 }) {
   const product = products.product;
 
-  // ==================== ساخت لیست رنگ‌ها با لینک ====================
-  // ۱. رنگ‌های خود محصول (برای نمایش در گالری و انتخاب)
+  // ==================== استخراج رنگ‌ها از variants ====================
+  // ۱. رنگ‌های خود محصول
   const selfColors =
-    product.colorImages?.map(v => ({
+    product.variants?.map(v => ({
       color: v.color,
-      productSlug: product.slug, // لینک به خود محصول
-      url: v.url,
+      productSlug: product.slug,
     })) || [];
 
   // ۲. رنگ‌های محصولات هم‌رنگ
   const sameColorColors =
     product.sameColorProducts?.flatMap(
       p =>
-        p.colorImages?.map(v => ({
+        p.variants?.map(v => ({
           color: v.color,
           productSlug: p.slug,
-          url: v.url,
         })) || [],
     ) || [];
 
   // ۳. ادغام و حذف تکراری‌ها (بر اساس id رنگ)
   const colorMap = new Map<
     number,
-    { color: ColorResponse; productSlug: string; url: string }
+    { color: ColorResponse; productSlug: string }
   >();
   [...selfColors, ...sameColorColors].forEach(item => {
     if (!colorMap.has(item.color.id)) {
       colorMap.set(item.color.id, item);
     }
   });
-  const colorLinks = Array.from(colorMap.values());
-  // ========================================================
-  console.log(colorLinks);
+
+  // ۴. اضافه کردن URL تصویر برای هر رنگ
+  const colorLinks = Array.from(colorMap.values()).map(item => {
+    let imageUrl = '';
+    if (item.productSlug === product.slug) {
+      // برای خود محصول: از colorImages خود محصول استفاده کن
+      const colorImage = product.colorImages?.find(
+        img => img.color?.id === item.color.id,
+      );
+      imageUrl = colorImage?.url || '';
+    } else {
+      // برای محصول هم‌رنگ: از colorImages آن محصول استفاده کن
+      const sameProduct = product.sameColorProducts?.find(
+        p => p.slug === item.productSlug,
+      );
+      if (sameProduct) {
+        const colorImage = sameProduct.colorImages?.find(
+          img => img.color?.id === item.color.id,
+        );
+        imageUrl = colorImage?.url || '';
+      }
+    }
+    return {
+      ...item,
+      url: imageUrl,
+    };
+  });
+  // ================================================================
 
   const defaultColorId = product.variants?.[0]?.color?.id;
   const [selectedColorId, setSelectedColorId] = useState<number | undefined>(
@@ -78,12 +100,10 @@ export default function ProductContent({
     const variant = product.variants?.find(
       v => v.color.id === activeColorId && v.size.id === selectedSizeId,
     );
-
     if (!variant) {
       toast.error('لطفاً رنگ و سایز را انتخاب کنید');
       return;
     }
-
     addToCart.mutate(
       { variantId: variant.id, quantity: 1 },
       {
@@ -109,12 +129,11 @@ export default function ProductContent({
           <div>
             <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
 
-            {/* ارسال colorLinks به کامپوننت ProductColors */}
             <ProductColors
               colorLinks={colorLinks}
               selectedColorId={activeColorId}
               onColorSelect={setSelectedColorId}
-              currentSlug={product.slug} // برای تشخیص رنگ‌های خود محصول
+              currentSlug={product.slug}
             />
 
             <ProductSizes

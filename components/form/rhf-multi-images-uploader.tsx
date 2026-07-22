@@ -1,4 +1,3 @@
-// components/form/rhf-multi-image-uploader.tsx
 import { UploadCloud, X } from 'lucide-react';
 import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
@@ -26,6 +25,8 @@ interface RHFMultiImageUploaderProps<T extends FieldValues> {
   setValue: UseFormSetValue<T>;
   error?: { message?: string };
   colorOptions: { text: string; value: string }[];
+  defaultColorId?: number;
+  onColorChange?: (colorId: number) => void;
   className?: string;
 }
 
@@ -35,14 +36,19 @@ export function RHFMultiImageUploader<T extends FieldValues>({
   setValue,
   error,
   colorOptions,
+  defaultColorId,
+  onColorChange,
   className,
 }: RHFMultiImageUploaderProps<T>) {
   const [items, setItems] = useState<ImageItem[]>([]);
+  const [selectedColorId, setSelectedColorId] = useState<number>(
+    defaultColorId || Number(colorOptions[0]?.value) || 0,
+  );
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const newItems = acceptedFiles.map(file => ({
-        colorId: Number(colorOptions[0]?.value) || 0,
+        colorId: selectedColorId,
         file,
         preview: URL.createObjectURL(file),
       }));
@@ -50,7 +56,7 @@ export function RHFMultiImageUploader<T extends FieldValues>({
       setItems(updatedItems);
       setValue(name, updatedItems as any, { shouldValidate: true });
     },
-    [items, colorOptions, name, setValue],
+    [items, selectedColorId, name, setValue],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -65,12 +71,10 @@ export function RHFMultiImageUploader<T extends FieldValues>({
     setValue(name, updatedItems as any, { shouldValidate: true });
   };
 
-  const updateColor = (index: number, colorId: string) => {
-    const updatedItems = items.map((item, i) =>
-      i === index ? { ...item, colorId: Number(colorId) } : item,
-    );
-    setItems(updatedItems);
-    setValue(name, updatedItems as any, { shouldValidate: true });
+  const handleColorChange = (value: string) => {
+    const colorId = Number(value);
+    setSelectedColorId(colorId);
+    if (onColorChange) onColorChange(colorId);
   };
 
   return (
@@ -79,6 +83,29 @@ export function RHFMultiImageUploader<T extends FieldValues>({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
         </label>
+      )}
+
+      {/* انتخاب رنگ برای عکس‌های جدید */}
+      {colorOptions.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">رنگ برای عکس‌های جدید:</span>
+          <Select
+            value={selectedColorId.toString()}
+            onValueChange={handleColorChange}
+            disabled
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="انتخاب رنگ" />
+            </SelectTrigger>
+            <SelectContent>
+              {colorOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.text}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
 
       <div
@@ -122,21 +149,12 @@ export function RHFMultiImageUploader<T extends FieldValues>({
                   className="rounded-md object-contain"
                 />
               </div>
-              <Select
-                value={item.colorId.toString()}
-                onValueChange={value => updateColor(index, value)}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="انتخاب رنگ" />
-                </SelectTrigger>
-                <SelectContent>
-                  {colorOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.text}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* نمایش رنگ انتخاب‌شده برای هر عکس (فقط نمایشی) */}
+              <div className="mt-2 text-xs text-gray-500">
+                رنگ:{' '}
+                {colorOptions.find(c => Number(c.value) === item.colorId)
+                  ?.text || 'نامشخص'}
+              </div>
             </div>
           ))}
         </div>

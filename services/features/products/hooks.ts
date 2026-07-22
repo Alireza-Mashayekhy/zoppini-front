@@ -12,16 +12,20 @@ import {
   createProduct,
   createSize,
   createStyleProduct,
+  deleteColor,
   deleteFeaturedProduct,
   deleteImage,
   deleteProduct,
+  deleteSize,
   deleteStyleProduct,
   editProduct,
   getFeaturedProducts,
   getStyleProducts,
   productsList,
   siezList,
+  updateColor,
   updateSameColorProducts,
+  updateSize,
   updateSuggestedProducts,
 } from './api';
 import {
@@ -58,17 +62,27 @@ export const useProducsList = (query: {
 
 //admin
 
-export const useAdminColorsList = () => {
+export const useAdminColorsList = (query?: {
+  page?: number;
+  search?: string;
+  all: boolean;
+  limit?: number;
+}) => {
   return useQuery({
     queryKey: ['colors'],
-    queryFn: () => adminColorsList(),
+    queryFn: () => adminColorsList(query),
   });
 };
 
-export const useAdminSizeList = () => {
+export const useAdminSizeList = (query?: {
+  page?: number;
+  search?: string;
+  all: boolean;
+  limit?: number;
+}) => {
   return useQuery({
     queryKey: ['sizes'],
-    queryFn: () => adminSizeList(),
+    queryFn: () => adminSizeList(query),
   });
 };
 
@@ -240,3 +254,66 @@ export const useUpdateSameColorProducts = () => {
     },
   });
 };
+
+export function useUpdateColor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { name?: string; hexCode?: string };
+    }) => updateColor(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['colors'] });
+      toast.success('رنگ با موفقیت ویرایش شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در ویرایش رنگ');
+    },
+  });
+}
+
+export function useDeleteColor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteColor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['colors'] });
+      toast.success('رنگ با موفقیت حذف شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف رنگ');
+    },
+  });
+}
+
+export function useUpdateSize() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { name?: string } }) =>
+      updateSize(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sizes'] });
+      toast.success('سایز با موفقیت ویرایش شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در ویرایش سایز');
+    },
+  });
+}
+
+export function useDeleteSize() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteSize(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sizes'] });
+      toast.success('سایز با موفقیت حذف شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف سایز');
+    },
+  });
+}
