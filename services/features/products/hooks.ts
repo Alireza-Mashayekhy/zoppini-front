@@ -20,6 +20,7 @@ import {
   deleteStyleProduct,
   editProduct,
   getFeaturedProducts,
+  getProductById,
   getStyleProducts,
   productsList,
   siezList,
@@ -98,6 +99,14 @@ export const useAdminProducsList = (query: {
   });
 };
 
+export const useProductById = (id: string) => {
+  return useQuery({
+    queryKey: ['product', id],
+    queryFn: () => getProductById(id),
+    enabled: !!id,
+  });
+};
+
 export function useCreateColor() {
   return useMutation({
     mutationFn: (formData: CreateColorDto) => createColor(formData),
@@ -130,15 +139,31 @@ export function useDeleteProduct() {
 }
 
 export function useAddImages() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: FormData }) =>
       addImages(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در افزودن تصاویر');
+    },
   });
 }
 
 export function useDeleteImage() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteImage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف تصویر');
+    },
   });
 }
 

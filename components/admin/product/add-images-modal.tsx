@@ -5,6 +5,7 @@ import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { RHFMultiImageUploader } from '@/components/form/rhf-multi-images-uploader';
@@ -17,6 +18,7 @@ import {
 import {
   useAddImages,
   useDeleteImage,
+  useProductById,
 } from '@/services/features/products/hooks';
 import {
   ColorResponse,
@@ -40,9 +42,15 @@ export default function AddImagesModal({
   const addImagesMutation = useAddImages();
   const deleteImageMutation = useDeleteImage();
 
+  // ======== دریافت داده‌های به‌روز محصول ========
+  const { data: freshProduct } = useProductById(selectedData?.slug || '');
+
+  // استفاده از داده‌های تازه‌شده یا داده‌های قبلی
+  const productData = freshProduct?.data?.product || selectedData;
+
   // ======== استخراج رنگ‌های موجود در محصول ========
   const productColorIds =
-    selectedData?.variants
+    productData?.variants
       ?.map(v => v.color?.id)
       .filter((id, index, self) => id && self.indexOf(id) === index) || [];
 
@@ -75,15 +83,17 @@ export default function AddImagesModal({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedColorId(productColors[0].id);
     }
-  }, [selectedData, productColors]);
+  }, [productData, productColors]);
 
   // ======== حذف تصویر ========
   const handleDeleteImage = async (imageId: number) => {
     if (confirm('آیا از حذف این تصویر مطمئن هستید؟')) {
       try {
         await deleteImageMutation.mutateAsync(imageId);
+        toast.success('تصویر با موفقیت حذف شد');
       } catch (error) {
         console.error(error);
+        toast.error('خطا در حذف تصویر');
       }
     }
   };
@@ -105,14 +115,16 @@ export default function AddImagesModal({
         formData.append('colorIds', JSON.stringify(colorIds));
 
         await addImagesMutation.mutateAsync({
-          id: selectedData?.id || 0,
+          id: productData?.id || 0,
           data: formData,
         });
 
         methods.reset({ images: [] });
-        onOpenChange(false);
+        toast.success('تصاویر با موفقیت اضافه شدند');
+        // مودال باز می‌ماند و داده‌ها با `useProductById` به‌روز می‌شوند
       } catch (error) {
         console.error(error);
+        toast.error('خطا در افزودن تصاویر');
       }
     },
     errors => {
@@ -130,50 +142,49 @@ export default function AddImagesModal({
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <div className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto px-2">
             {/* لیست عکس‌های موجود */}
-            {selectedData?.colorImages &&
-              selectedData.colorImages.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">
-                    عکس‌های موجود ({selectedData.colorImages.length})
-                  </h3>
-                  <div className="grid grid-cols-4 gap-2">
-                    {selectedData.colorImages.map(image => (
-                      <div
-                        key={image.id}
-                        className="relative border rounded-lg p-1 group"
-                      >
-                        <div className="relative h-24 w-full">
-                          <Image
-                            src={process.env.NEXT_PUBLIC_IMAGE_URL + image.url}
-                            alt={'Product image'}
-                            fill
-                            className="rounded-md object-contain"
-                          />
-                        </div>
-                        <div className="flex items-center justify-between mt-1 px-1">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: image.color?.hexCode }}
-                            />
-                            <span className="text-xs text-gray-500 truncate">
-                              {image.color?.name || 'بدون رنگ'}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteImage(image.id)}
-                            className="p-1 text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                            disabled={deleteImageMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+            {productData?.colorImages && productData.colorImages.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium mb-2">
+                  عکس‌های موجود ({productData.colorImages.length})
+                </h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {productData.colorImages.map(image => (
+                    <div
+                      key={image.id}
+                      className="relative border rounded-lg p-1 group"
+                    >
+                      <div className="relative h-24 w-full">
+                        <Image
+                          src={process.env.NEXT_PUBLIC_IMAGE_URL + image.url}
+                          alt={'Product image'}
+                          fill
+                          className="rounded-md object-contain"
+                        />
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex items-center justify-between mt-1 px-1">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: image.color?.hexCode }}
+                          />
+                          <span className="text-xs text-gray-500 truncate">
+                            {image.color?.name || 'بدون رنگ'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteImage(image.id)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                          disabled={deleteImageMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {/* آپلود عکس‌های جدید */}
             <div>
