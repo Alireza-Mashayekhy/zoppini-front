@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { CategoriesResponse } from '@/services/features/categories/types';
 
@@ -27,7 +28,8 @@ export default function CategoriesSection({
         />
       </div>
       {categories.slice(0, 4).map(category => (
-        <div
+        <Link
+          href={'/products/' + category.slug}
           key={category.name}
           className="aspect-square relative my-1 mx-0.5 group bg-gray-300"
         >
@@ -41,7 +43,7 @@ export default function CategoriesSection({
           <div className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all">
             {category.name}
           </div>
-        </div>
+        </Link>
       ))}
       <div className="relative col-span-2 aspect-square">
         <video muted loop autoPlay className="w-full h-full object-cover">
@@ -54,7 +56,8 @@ export default function CategoriesSection({
         </video>
       </div>
       {categories.slice(4, 8).map(category => (
-        <div
+        <Link
+          href={'/products/' + category.slug}
           key={category.name}
           className="aspect-square relative my-1 mx-0.5 group bg-gray-300"
         >
@@ -67,7 +70,7 @@ export default function CategoriesSection({
           <div className="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-all">
             {category.name}
           </div>
-        </div>
+        </Link>
       ))}
     </section>
   );

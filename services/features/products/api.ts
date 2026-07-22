@@ -108,6 +108,16 @@ export async function adminProductsList(query: {
   return data;
 }
 
+export async function getProductById(id: string) {
+  const { data } = await api.get<
+    ApiSingleResponse<{
+      product: ProductsResponse;
+      relatedProducts: ProductsResponse[];
+    }>
+  >(endpoints.products.adminGetById(id));
+  return data;
+}
+
 export async function createProduct(formData: FormData) {
   const { data } = await api.post<ApiSingleResponse<ProductsResponse>>(
     endpoints.products.create,

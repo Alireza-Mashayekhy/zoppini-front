@@ -43,6 +43,7 @@ export const endpoints = {
     createSize: '/admin/products/size',
     create: '/admin/products',
     adminList: '/admin/products',
+    adminGetById: (id: string) => `/admin/products/${id}`,
     edit: (productId: number) => `/admin/products/${productId}`,
     delete: (productId: number) => `/admin/products/${productId}`,
     addColorImage: (productId: number) =>
