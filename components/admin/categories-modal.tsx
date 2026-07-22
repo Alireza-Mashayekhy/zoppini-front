@@ -67,8 +67,8 @@ export default function CategoriesModal({
       isInHeroSection: z.boolean(),
       isInHome: z.boolean(),
       orderInHome: z.preprocess(
-        val => (val === '' ? null : val), // اگر خالی بود null
-        z.coerce.number().nullable().optional(), // تبدیل به عدد
+        val => (val === '' ? null : val),
+        z.coerce.number().nullable().optional(),
       ),
       orderInHero: z.preprocess(
         val => (val === '' ? null : val),
@@ -104,7 +104,7 @@ export default function CategoriesModal({
       }
     });
 
-  const methods = useForm<createCategoryDto>({
+  const methods = useForm({
     defaultValues: {
       name: '',
       image: undefined,

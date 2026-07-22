@@ -174,11 +174,7 @@ export default function ColorsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={handleDelete}
-              loading={deleteMutation.isPending}
-            >
+            <AlertDialogAction variant="destructive" onClick={handleDelete}>
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
