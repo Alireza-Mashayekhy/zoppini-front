@@ -130,15 +130,31 @@ export function useDeleteProduct() {
 }
 
 export function useAddImages() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: FormData }) =>
       addImages(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('تصاویر با موفقیت اضافه شدند');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در افزودن تصاویر');
+    },
   });
 }
 
 export function useDeleteImage() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => deleteImage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('تصویر با موفقیت حذف شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در حذف تصویر');
+    },
   });
 }
 
