@@ -108,4 +108,8 @@ export const endpoints = {
     list: '/admin/b2b',
     create: '/b2b',
   },
+
+  payment: {
+    start: '/payment/start',
+  },
 };
