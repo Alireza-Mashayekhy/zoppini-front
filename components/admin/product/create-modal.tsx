@@ -62,6 +62,7 @@ export default function ProductCreateModal({
   const [isCreateSizeOpen, setCreateSizeModal] = useState(false);
   const [variants, setVariants] = useState<
     {
+      id?: number;
       colorId: string;
       sizeId: string;
       price: number;
@@ -69,7 +70,9 @@ export default function ProductCreateModal({
       sku?: string;
     }[]
   >([]);
-
+  const variantDataMapRef = useRef<
+    Map<string, { price: number; stock: number; sku: string }>
+  >(new Map());
   const queryClient = useQueryClient();
   const createProductMutation = useCreateProduct();
   const editProductMutation = useEditProduct();
@@ -141,6 +144,18 @@ export default function ProductCreateModal({
     variantsRef.current = variants;
   }, [variants]);
 
+  useEffect(() => {
+    const map = variantDataMapRef.current;
+    for (const v of variants) {
+      const key = `${v.colorId}|${v.sizeId}`;
+      map.set(key, {
+        price: v.price,
+        stock: v.stock,
+        sku: v.sku || '',
+      });
+    }
+  }, [variants]);
+
   // ==================== تولید واریانت‌ها با یک رنگ ثابت ====================
   useEffect(() => {
     if (!colorId || !sizeId.length) {
@@ -148,19 +163,22 @@ export default function ProductCreateModal({
       return;
     }
 
+    const currentVariants = variantsRef.current; // واریانت‌های فعلی (با هر رنگی)
     const newVariants: typeof variants = [];
+
     for (const sId of sizeId) {
-      const existing = variantsRef.current.find(
-        v => v.colorId === colorId && v.sizeId === sId,
-      );
+      const existing = currentVariants.find(v => v.sizeId === sId);
+
       newVariants.push({
+        id: existing?.id,
         colorId,
         sizeId: sId,
-        price: existing?.price || 0,
-        stock: existing?.stock || 0,
-        sku: existing?.sku || '',
+        price: existing?.price ?? 0,
+        stock: existing?.stock ?? 0,
+        sku: existing?.sku ?? '',
       });
     }
+
     setVariants(newVariants);
   }, [colorId, sizeId]);
 
@@ -191,6 +209,7 @@ export default function ProductCreateModal({
 
       setVariants(
         selectedData.variants?.map(v => ({
+          id: v.id, // مهم
           colorId: String(v.color?.id),
           sizeId: String(v.size?.id),
           price: Number(v.price),
@@ -228,6 +247,7 @@ export default function ProductCreateModal({
 
       // ساخت payload واریانت‌ها
       const variantsPayload = variants.map(v => ({
+        id: v.id,
         colorId: Number(v.colorId),
         sizeId: Number(v.sizeId),
         price: Number(v.price),

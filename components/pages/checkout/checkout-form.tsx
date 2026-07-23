@@ -118,9 +118,10 @@ export default function CheckoutForm() {
         note: data.note,
         discount: 0,
       };
-      await createOrder.mutateAsync(orderData);
+      const result = await createOrder.mutateAsync(orderData);
       toast.success('سفارش با موفقیت ثبت شد');
-      router.push('/dashboard/orders');
+      // هدایت به صفحه انتخاب درگاه
+      router.push(`/checkout/payment?orderId=${result?.data.id}`);
     } catch (error: any) {
       toast.error(error?.message || 'خطا در ثبت سفارش');
     }
