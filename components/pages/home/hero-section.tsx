@@ -1,124 +1,90 @@
 'use client';
 
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import { CategoriesResponse } from '@/services/features/categories/types';
 
-gsap.registerPlugin(ScrollTrigger);
+interface HeroSectionProps {
+  categories: CategoriesResponse[];
+
+  // ref مربوط به لیست دسته بندی ها
+  categoriesRef: React.RefObject<HTMLDivElement | null>;
+}
 
 export default function HeroSection({
   categories,
-}: {
-  categories: CategoriesResponse[];
-}) {
+  categoriesRef,
+}: HeroSectionProps) {
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
-  const productsRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLDivElement>(null);
+
   const [isPlaying1, setIsPlaying1] = useState(false);
   const [isPlaying2, setIsPlaying2] = useState(false);
 
-  // تنظیمات اولیه ویدیو
   useEffect(() => {
     const prepareVideo = (video: HTMLVideoElement | null) => {
       if (!video) return;
+
       const onCanPlay = () => {
         video.currentTime = 0;
         video.pause();
+
         video.removeEventListener('canplaythrough', onCanPlay);
       };
+
       video.addEventListener('canplaythrough', onCanPlay);
+
       video.load();
+
+      return () => {
+        video.removeEventListener('canplaythrough', onCanPlay);
+      };
     };
 
-    prepareVideo(video1Ref.current);
-    prepareVideo(video2Ref.current);
-  }, []);
-
-  useGSAP(() => {
-    if (!productsRef.current) return;
-
-    // تایم‌لاین انیمیشن که توسط اسکرول کنترل می‌شود
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=1000', // تا زمانی که بخش ناپدید شود
-        scrub: 0.5, // انیمیشن نرم به همراه اسکرول
-        pin: true, // محتوای اصلی در جای خود ثابت می‌ماند
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: self => {
-          // اگر اسکرول به انتها رسید، می‌توانید سکشن بعدی را صدا بزنید
-          if (self.progress === 1) {
-            const nextSection = sectionRef.current?.nextElementSibling;
-            if (nextSection) {
-              nextSection.scrollIntoView({ behavior: 'smooth' });
-            }
-          }
-          // اگر اسکرول به ابتدا برگشت، می‌توانید سکشن قبلی را صدا بزنید
-          if (self.progress === 0 && self.direction === -1) {
-            const prevSection = sectionRef.current?.previousElementSibling;
-            if (prevSection) {
-              prevSection.scrollIntoView({ behavior: 'smooth' });
-            }
-          }
-        },
-      },
-    });
-
-    // انیمیشن حرکت لیست از پایین به بالا
-    tl.from(productsRef.current, {
-      yPercent: 120,
-      duration: 1,
-      ease: 'power2.out',
-    });
-
-    // می‌توانید انیمیشن‌های بیشتری را در اینجا به تایم‌لاین اضافه کنید
+    const cleanupVideo1 = prepareVideo(video1Ref.current);
+    const cleanupVideo2 = prepareVideo(video2Ref.current);
 
     return () => {
-      // کشتن تمام ScrollTrigger ها هنگام unmount
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      cleanupVideo1?.();
+      cleanupVideo2?.();
     };
   }, []);
 
   const handleMouseEnter = (
     active: HTMLVideoElement | null,
     other: HTMLVideoElement | null,
-    setActivePlaying: (val: boolean) => void,
-    setOtherPlaying: (val: boolean) => void,
+    setActivePlaying: (value: boolean) => void,
+    setOtherPlaying: (value: boolean) => void,
   ) => {
     if (!active) return;
+
     if (other && !other.paused) {
       other.pause();
       setOtherPlaying(false);
     }
+
     if (active.paused) {
-      active.play().catch(e => console.warn(e));
+      active.play().catch(error => {
+        console.warn('Video play error:', error);
+      });
+
       setActivePlaying(true);
     }
   };
 
-  const onPlay1 = () => setIsPlaying1(true);
-  const onPause1 = () => setIsPlaying1(false);
-  const onPlay2 = () => setIsPlaying2(true);
-  const onPause2 = () => setIsPlaying2(false);
-
   return (
-    <div ref={sectionRef} className="relative h-screen overflow-hidden">
-      <div className="grid grid-cols-1 sm:grid-cols-2 h-full">
-        {/* ویدیو راست */}
+    <section className="relative h-full overflow-hidden">
+      {/* Videos */}
+      <div className="grid h-full grid-cols-1 sm:grid-cols-2">
+        {/* Video 1 */}
         <div className="relative h-full overflow-hidden bg-black">
           <video
             ref={video1Ref}
             muted
             loop
             playsInline
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
                 video1Ref.current,
@@ -127,24 +93,27 @@ export default function HeroSection({
                 setIsPlaying2,
               )
             }
-            onPlay={onPlay1}
-            onPause={onPause1}
+            onPlay={() => setIsPlaying1(true)}
+            onPause={() => setIsPlaying1(false)}
           >
             <source src="/home/hero_section_1.mp4" type="video/mp4" />
           </video>
+
           <div
-            className={`absolute inset-0 pointer-events-none transition-all ${!isPlaying1 ? 'bg-black/70' : 'bg-black/0'}`}
+            className={`pointer-events-none absolute inset-0 transition-all duration-500 ${
+              !isPlaying1 ? 'bg-black/70' : 'bg-black/0'
+            }`}
           />
         </div>
 
-        {/* ویدیو چپ */}
+        {/* Video 2 */}
         <div className="relative h-full overflow-hidden bg-black">
           <video
             ref={video2Ref}
             muted
             loop
             playsInline
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
                 video2Ref.current,
@@ -153,42 +122,48 @@ export default function HeroSection({
                 setIsPlaying1,
               )
             }
-            onPlay={onPlay2}
-            onPause={onPause2}
+            onPlay={() => setIsPlaying2(true)}
+            onPause={() => setIsPlaying2(false)}
           >
             <source src="/home/hero_section_2.mp4" type="video/mp4" />
           </video>
+
           <div
-            className={`absolute inset-0 pointer-events-none transition-all ${!isPlaying2 ? 'bg-black/70' : 'bg-black/0'}`}
+            className={`pointer-events-none absolute inset-0 transition-all duration-500 ${
+              !isPlaying2 ? 'bg-black/70' : 'bg-black/0'
+            }`}
           />
         </div>
       </div>
 
-      {/* عنوان مرکزی */}
-      <h1 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-5xl text-shadow-lg z-10">
+      {/* Logo */}
+      <h1 className="text-shadow-lg absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-5xl text-white">
         Zoppini
       </h1>
 
-      {/* لیست محصولات */}
+      {/* Hero Categories */}
       <div
-        ref={productsRef}
-        className="absolute bottom-0 right-0 m-6 z-20 text-white font-sans flex flex-col gap-2 text-right"
+        ref={categoriesRef}
+        className="absolute bottom-0 right-0 z-20 m-6 flex flex-col gap-2 text-right font-sans text-white"
       >
-        {categories.map((product, idx) => (
+        {categories.map(category => (
           <Link
-            href={`/products/${product.slug}`}
-            key={idx}
-            className="relative inline-block overflow-hidden py-1 text-xl font-semibold text-shadow-lg rounded-lg group"
+            href={`/products/${category.slug}`}
+            key={category.id}
+            className="group relative inline-block overflow-hidden rounded-lg py-1 text-xl font-semibold text-shadow-lg"
           >
-            <span className="block transition-transform duration-300 group-hover:translate-y-[-110%]">
-              {product.name}
+            {/* متن اصلی */}
+            <span className="block transition-transform duration-300 group-hover:-translate-y-[110%]">
+              {category.name}
             </span>
-            <span className="absolute inset-0 block transition-transform duration-300 translate-y-full group-hover:translate-y-0">
-              {product.name}
+
+            {/* متن دوم برای hover */}
+            <span className="absolute inset-0 block translate-y-full transition-transform duration-300 group-hover:translate-y-0">
+              {category.name}
             </span>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
