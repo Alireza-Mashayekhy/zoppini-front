@@ -1,7 +1,6 @@
 import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
-import HeroSection from '@/components/pages/home/hero-section';
-import NewIn from '@/components/pages/home/new-in';
+import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 import { ApiListResponse } from '@/services/api/types';
 import {
@@ -18,27 +17,38 @@ import { FeaturedProductResponse } from '@/services/features/products/type';
 export default async function HomePage() {
   const HeroSectionCategories: ApiListResponse<CategoriesResponse> =
     await getHeroSectionCategories();
+
   const HomeCategories: ApiListResponse<CategoriesResponse> =
     await getHomeCategories();
+
   const FeaturedProducts: ApiListResponse<FeaturedProductResponse> =
     await getFeaturedProducts();
+
   const StyleProducts: ApiListResponse<FeaturedProductResponse> =
     await getStyleProducts();
 
   return (
     <div>
-      <HeroSection categories={HeroSectionCategories?.data} />
-      <NewIn products={FeaturedProducts?.data} />
-      <CategoriesSection categories={HomeCategories?.data} />
-      {/* <SaleSection /> */}
-      <SuggestedStyle products={StyleProducts?.data} />
+      {/* Hero → New In Transition */}
+      <HeroNewInTransition
+        categories={HeroSectionCategories?.data ?? []}
+        products={FeaturedProducts?.data ?? []}
+      />
+
+      {/* اسکرول عادی بعد از New In */}
+      <CategoriesSection categories={HomeCategories?.data ?? []} />
+
+      <SuggestedStyle products={StyleProducts?.data ?? []} />
+
       <EndVideo />
-      <div className="py-10 flex justify-center">
+
+      <div className="flex justify-center py-10">
         <video
           muted
           loop
           autoPlay
-          className="w-full max-w-[500px] aspect-square object-cover"
+          playsInline
+          className="aspect-square w-full max-w-[500px] object-cover"
         >
           <source
             src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"
