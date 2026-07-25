@@ -54,19 +54,13 @@ export default function NewIn({ products }: NewInProps) {
             variant => variant?.colorId === product?.colorId,
           );
 
+          console.log(product.product.variants, product?.colorId);
           const price = variant?.price || 0;
 
           return (
             <div
               key={product.id}
-              className="
-                keen-slider__slide
-                h-full!
-                w-[calc(50%-8px)]!
-                shrink-0
-                sm:w-[calc(33.333%-11px)]!
-                lg:w-[calc(25%-12px)]!
-              "
+              className="keen-slider__slide h-full! w-[calc(50%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
             >
               <ProductCard
                 slider
@@ -85,16 +79,7 @@ export default function NewIn({ products }: NewInProps) {
             <button
               type="button"
               onClick={() => instanceRef.current?.prev()}
-              className="
-                absolute
-                left-5
-                top-1/2
-                z-10
-                -translate-y-1/2
-                opacity-0
-                transition-opacity
-                group-hover:opacity-100
-              "
+              className="absolute left-5 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <ChevronLeft className="size-8" />
             </button>
@@ -102,16 +87,7 @@ export default function NewIn({ products }: NewInProps) {
             <button
               type="button"
               onClick={() => instanceRef.current?.next()}
-              className="
-                absolute
-                right-5
-                top-1/2
-                z-10
-                -translate-y-1/2
-                opacity-0
-                transition-opacity
-                group-hover:opacity-100
-              "
+              className="absolute right-5 top-1/2 z-10 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100"
             >
               <ChevronRight className="size-8" />
             </button>
