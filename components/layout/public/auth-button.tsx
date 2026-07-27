@@ -38,7 +38,7 @@ export default function AuthButton() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
-            <User className="size-5" />
+            <User className="size-4 md:size-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center">
@@ -74,7 +74,7 @@ export default function AuthButton() {
   return (
     <Button variant="ghost" size="icon" asChild>
       <Link href="/login">
-        <User className="size-5" />
+        <User className="size-4 md:size-5" />
       </Link>
     </Button>
   );

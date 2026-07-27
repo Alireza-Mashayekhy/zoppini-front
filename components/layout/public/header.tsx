@@ -13,14 +13,14 @@ export default async function Header() {
   return (
     <>
       <div className="fixed top-0 left-0 w-screen z-20 bg-background backdrop-blur-2xl">
-        <div className="grid grid-cols-3 custom-container py-1 h-[52px] items-center">
+        <div className="grid grid-cols-3 custom-container py-1 h-13 items-center">
           <div className="flex">
             <Menu categories={categories?.data} />
           </div>
           <div className="flex justify-center items-center">
-            <Logo />
+            <Logo className="w-30 h-6.5 md:w-35 md:h-8.25" />
           </div>
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end md:gap-2">
             <Search />
             <Cart />
             <AuthButton />

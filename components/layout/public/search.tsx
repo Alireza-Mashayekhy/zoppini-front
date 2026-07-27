@@ -68,7 +68,7 @@ export default function Search() {
   return (
     <>
       <Button variant="ghost" size="icon" onClick={handleSearchClick}>
-        <SearchIcon className="size-5" />
+        <SearchIcon className="size-4 md:size-5" />
       </Button>
 
       <style>{`
@@ -115,7 +115,7 @@ export default function Search() {
 
           <div className="flex flex-col items-center w-full">
             <div className="relative w-full max-w-2xl">
-              <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"
