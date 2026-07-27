@@ -124,7 +124,7 @@ export default function CategoriesSection({
 
       <div
         ref={firstSectionRef}
-        className="relative z-0 grid w-full grid-cols-4 bg-white"
+        className="relative z-0 grid w-full grid-cols-2 sm:grid-cols-4 bg-white"
       >
         {/* تصویر اول */}
         <div className="relative col-span-2 aspect-square">
@@ -173,7 +173,7 @@ export default function CategoriesSection({
 
       <div
         ref={secondSectionRef}
-        className="absolute left-0 top-0 z-10 grid w-full grid-cols-4 bg-white"
+        className="absolute left-0 top-0 z-10 grid w-full grid-cols-2 sm:grid-cols-4 bg-white"
       >
         {/* ویدیو اول */}
         <div className="relative col-span-2 aspect-square">

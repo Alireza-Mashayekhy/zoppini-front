@@ -90,10 +90,10 @@ export default function SuggestedStyle({
           <div
             ref={trackRef}
             dir="rtl"
-            className="flex h-full w-max flex-row gap-0"
+            className="flex h-full w-max flex-row gap-0.5"
           >
             {/* ویدیو - راست‌ترین آیتم */}
-            <div className="h-full w-[66.666vw] shrink-0 sm:w-[40vw] lg:w-[28.57vw]">
+            <div className="h-full w-[98vw] shrink-0 sm:w-[40vw] lg:w-[28.57vw]">
               <video
                 muted
                 loop
@@ -117,7 +117,7 @@ export default function SuggestedStyle({
                 <Link
                   href={`/product/${product.product.slug}`}
                   key={product.id}
-                  className="flex h-full w-[66.666vw] shrink-0 flex-col sm:w-[40vw] lg:w-[28.57vw]"
+                  className="flex h-full w-[98vw] shrink-0 flex-col sm:w-[40vw] lg:w-[28.57vw]"
                 >
                   <div className="relative min-h-0 flex-1">
                     <Image

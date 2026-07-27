@@ -12,9 +12,11 @@ if (typeof window !== 'undefined') {
 export default function LuxuryTitle({
   children,
   className = '',
+  left,
 }: {
   children: React.ReactNode;
   className?: string;
+  left?: boolean;
 }) {
   const titleRef = useRef(null);
   const lineRef = useRef(null);
@@ -70,11 +72,11 @@ export default function LuxuryTitle({
     <div className={`relative ${className}`}>
       <h2
         ref={titleRef}
-        className="text-2xl font-semibold tracking-wide text-gray-800"
+        className={`text-2xl font-semibold tracking-wide text-gray-800 ${left ? ' text-left' : 'text-right'}`}
       >
         {children}
       </h2>
-      <div className="flex justify-start mt-2">
+      <div className={`flex mt-2 ${left ? 'justify-end' : 'justify-start'}`}>
         <div
           ref={lineRef}
           className="h-0.5 bg-linear-to-r from-amber-400 to-amber-600 rounded-full"

@@ -37,8 +37,10 @@ export default function NewIn({ products }: NewInProps) {
   return (
     <section className="relative flex h-full w-full flex-col overflow-hidden bg-white">
       {/* Title */}
-      <div className="shrink-0">
-        <LuxuryTitle className="p-10">New In</LuxuryTitle>
+      <div className="shrink-0 pt-5">
+        <LuxuryTitle className="p-10" left>
+          New In
+        </LuxuryTitle>
       </div>
 
       {/* Slider */}
@@ -60,7 +62,7 @@ export default function NewIn({ products }: NewInProps) {
           return (
             <div
               key={product.id}
-              className="keen-slider__slide h-full! w-[calc(50%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
+              className="keen-slider__slide h-full! w-[calc(80%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
             >
               <ProductCard
                 slider
