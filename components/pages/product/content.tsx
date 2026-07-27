@@ -112,7 +112,10 @@ export default function ProductContent({
           openCart();
         },
         onError: (error: any) => {
-          toast.error(error?.message || 'خطا در افزودن به سبد خرید');
+          console.log('errorrr', error?.message);
+          toast.error(
+            error?.response?.data?.message || 'خطا در افزودن به سبد خرید',
+          );
         },
       },
     );
@@ -121,7 +124,7 @@ export default function ProductContent({
   return (
     <div className="pt-[52px] flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="order-1 md:order-2">
+        <div className="order-1 md:order-2 flex justify-end">
           <ProductGallery product={product} colorImages={product.colorImages} />
         </div>
 

@@ -1,5 +1,6 @@
 'use client';
 import { SearchIcon, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import ProductCard from '@/components/shared/product-card';
@@ -16,6 +17,7 @@ export default function Search() {
   const closeTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   const debouncedQuery = useDebounce(query, 300); // 300ms تأخیر
+  const pathname = usePathname();
 
   const { data, isLoading } = useProducsList({
     search: debouncedQuery,
@@ -47,6 +49,24 @@ export default function Search() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isSearchOpen || isClosing) return;
+
+    setIsClosing(true);
+
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsSearchOpen(false);
+      setIsClosing(false);
+      setQuery('');
+    }, 500);
+
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, [pathname]);
+
   // Remove panel after exit animation ends
   useEffect(() => {
     if (isClosing && panelRef.current) {
@@ -68,7 +88,7 @@ export default function Search() {
   return (
     <>
       <Button variant="ghost" size="icon" onClick={handleSearchClick}>
-        <SearchIcon className="size-5" />
+        <SearchIcon className="size-4 md:size-5" />
       </Button>
 
       <style>{`
@@ -115,7 +135,7 @@ export default function Search() {
 
           <div className="flex flex-col items-center w-full">
             <div className="relative w-full max-w-2xl">
-              <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+              <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"

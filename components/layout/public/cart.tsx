@@ -62,7 +62,7 @@ export default function Cart() {
     <>
       {/* دکمه باز کردن سبد خرید */}
       <Button variant="ghost" size="icon" onClick={openCart}>
-        <ShoppingBag className="size-5" />
+        <ShoppingBag className="size-4 md:size-5" />
       </Button>
 
       {/* شیت سبد خرید */}

@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowDown } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
@@ -17,27 +18,37 @@ interface ProductGalleryProps {
 // کامپوننت تصویر با قابلیت زوم
 function ZoomableImage({ src, alt }: { src: string; alt: string }) {
   const [zoom, setZoom] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+
   const imageRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return;
+    if (!imageRef.current || !zoom) return;
+
     const rect = imageRef.current.getBoundingClientRect();
+
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+
     setPosition({ x, y });
+  };
+
+  const handleClick = () => {
+    setZoom(prev => !prev);
   };
 
   return (
     <div
       ref={imageRef}
-      className="relative w-full h-full overflow-hidden cursor-zoom-in"
-      onMouseEnter={() => setZoom(true)}
-      onMouseLeave={() => setZoom(false)}
+      className={cn(
+        'relative w-full h-full overflow-hidden',
+        zoom ? 'cursor-zoom-out' : 'cursor-zoom-in',
+      )}
+      onClick={handleClick}
       onMouseMove={handleMouseMove}
     >
       <div
-        className="relative w-full h-full transition-transform duration-200"
+        className="relative w-full h-full transition-transform duration-300 ease-out"
         style={{
           transform: zoom ? 'scale(2.5)' : 'scale(1)',
           transformOrigin: `${position.x}% ${position.y}%`,
@@ -94,7 +105,7 @@ export default function ProductGallery({
   };
 
   return (
-    <div className="relative w-full aspect-square select-none">
+    <div className="relative w-full md:w-auto md:h-[calc(100vh-70px)] aspect-13/16 select-none">
       {/* کانتینر اسکرول عمودی */}
       <div
         ref={scrollRef}
@@ -129,8 +140,8 @@ export default function ProductGallery({
               className={cn(
                 'w-2 h-2 rounded-full transition-all duration-300',
                 currentIndex === index
-                  ? 'bg-white w-4 h-2'
-                  : 'bg-white/50 hover:bg-white/70',
+                  ? 'bg-gray-800 w-4 h-2'
+                  : 'bg-gray-800/50 hover:bg-white/70',
               )}
               onClick={() => scrollTo(index)}
               aria-label={`رفتن به تصویر ${index + 1}`}
@@ -139,6 +150,11 @@ export default function ProductGallery({
         </div>
       )}
 
+      {displayImages.length > 1 && (
+        <div className="absolute bottom-4 right-4">
+          <ArrowDown />
+        </div>
+      )}
       {/* شمارنده تصاویر */}
       {displayImages.length > 1 && (
         <div className="absolute bottom-4 left-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
