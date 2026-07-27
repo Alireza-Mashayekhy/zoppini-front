@@ -8,6 +8,7 @@ import {
   CreateColorDto,
   CreateFeaturedProductDto,
   CreateSizeDto,
+  CreateStyleProductDto,
   FeaturedProductResponse,
   ProductsResponse,
   SizeResponse,
@@ -200,7 +201,7 @@ export const getStyleProducts = async (): Promise<
 };
 
 export const createStyleProduct = async (
-  dto: CreateFeaturedProductDto,
+  dto: CreateStyleProductDto,
 ): Promise<ApiSingleResponse<FeaturedProductResponse>> => {
   const { data } = await api.post(endpoints.products.adminStyle, dto);
   return data;

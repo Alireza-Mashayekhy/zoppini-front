@@ -110,6 +110,8 @@ export interface FeaturedProductResponse {
   productId: number;
   colorId: number;
   order: number;
+  faTitle: string;
+  enTitle: string;
   product: {
     id: number;
     title: string;
@@ -139,4 +141,11 @@ export interface CreateFeaturedProductDto {
   productId: number;
   colorId: number;
   order?: number;
+}
+
+export interface CreateStyleProductDto {
+  productId: number;
+  colorId: number;
+  faTitle: string;
+  enTitle: string;
 }

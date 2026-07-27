@@ -1,11 +1,16 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
 
 import { ProductSearchSelect } from '@/components/admin/product-search-select';
+import FormProvider from '@/components/form/form-provider';
+import RHFInput from '@/components/form/rhf-input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +44,14 @@ import {
 } from '@/services/features/products/hooks';
 import { useAdminProducsList } from '@/services/features/products/hooks';
 
+// ========== شمای اعتبارسنجی ==========
+const schema = z.object({
+  faTitle: z.string().min(1, 'عنوان فارسی اجباری است'),
+  enTitle: z.string().min(1, 'عنوان انگلیسی اجباری است'),
+});
+
+type FormValues = z.infer<typeof schema>;
+
 export default function StyleManagement() {
   const { data: styleItems, isLoading: isLoadingStyle } = useStyleProducts();
   const { data: productsData } = useAdminProducsList({ all: true, limit: 100 });
@@ -47,7 +60,6 @@ export default function StyleManagement() {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [selectedColorId, setSelectedColorId] = useState<string>('');
 
-  // State برای AlertDialog حذف
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
@@ -55,6 +67,17 @@ export default function StyleManagement() {
   const deleteMutation = useDeleteStyleProduct();
 
   const products = productsData?.data || [];
+
+  // ========== فرم ==========
+  const methods = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      faTitle: '',
+      enTitle: '',
+    },
+  });
+
+  const { reset, handleSubmit } = methods;
 
   // استخراج رنگ‌های موجود در محصول انتخاب‌شده
   const availableColors = useMemo(() => {
@@ -76,13 +99,14 @@ export default function StyleManagement() {
     return Array.from(colorMap.values());
   }, [selectedProductId, products]);
 
-  // وقتی محصول عوض می‌شود، رنگ انتخاب‌شده را ریست کن
+  // وقتی محصول عوض می‌شود، رنگ و فرم را ریست کن
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedColorId('');
-  }, [selectedProductId]);
+    reset({ faTitle: '', enTitle: '' });
+  }, [selectedProductId, reset]);
 
-  const handleAdd = async () => {
+  // ========== ارسال فرم ==========
+  const onSubmit = async (data: FormValues) => {
     if (!selectedProductId || !selectedColorId) {
       toast.error('لطفاً محصول و رنگ را انتخاب کنید');
       return;
@@ -91,10 +115,13 @@ export default function StyleManagement() {
     await createMutation.mutateAsync({
       productId: Number(selectedProductId),
       colorId: Number(selectedColorId),
+      faTitle: data.faTitle,
+      enTitle: data.enTitle,
     });
 
     setSelectedProductId('');
     setSelectedColorId('');
+    reset({ faTitle: '', enTitle: '' });
     setIsDialogOpen(false);
   };
 
@@ -140,64 +167,92 @@ export default function StyleManagement() {
             <DialogHeader>
               <DialogTitle>افزودن محصول استایل</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">محصول</label>
-                <ProductSearchSelect
-                  value={selectedProductId}
-                  onValueChange={setSelectedProductId}
-                  placeholder="انتخاب محصول..."
+
+            <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">محصول</label>
+                  <ProductSearchSelect
+                    value={selectedProductId}
+                    onValueChange={setSelectedProductId}
+                    placeholder="انتخاب محصول..."
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">رنگ</label>
+                  <Select
+                    value={selectedColorId}
+                    onValueChange={setSelectedColorId}
+                    disabled={
+                      !selectedProductId || availableColors.length === 0
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          !selectedProductId
+                            ? 'ابتدا محصول را انتخاب کنید'
+                            : availableColors.length === 0
+                              ? 'این محصول رنگی ندارد'
+                              : 'انتخاب رنگ...'
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableColors.map(color => (
+                        <SelectItem key={color.id} value={String(color.id)}>
+                          <span
+                            className="inline-block w-3 h-3 rounded-full mr-2"
+                            style={{ backgroundColor: color.hexCode }}
+                          />
+                          {color.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <RHFInput
+                  name="faTitle"
+                  label="عنوان فارسی"
+                  isRequired
+                  placeholder="مثال: جدیدترین کت‌های مردانه"
+                />
+
+                <RHFInput
+                  name="enTitle"
+                  label="عنوان انگلیسی"
+                  isRequired
+                  placeholder="Example: Latest Men's Coats"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">رنگ</label>
-                <Select
-                  value={selectedColorId}
-                  onValueChange={setSelectedColorId}
-                  disabled={!selectedProductId || availableColors.length === 0}
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    reset({ faTitle: '', enTitle: '' });
+                  }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        !selectedProductId
-                          ? 'ابتدا محصول را انتخاب کنید'
-                          : availableColors.length === 0
-                            ? 'این محصول رنگی ندارد'
-                            : 'انتخاب رنگ...'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableColors.map(color => (
-                      <SelectItem key={color.id} value={String(color.id)}>
-                        <span
-                          className="inline-block w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: color.hexCode }}
-                        />
-                        {color.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  انصراف
+                </Button>
+                <Button
+                  variant="dark"
+                  type="submit"
+                  loading={createMutation.isPending}
+                  disabled={!selectedProductId || !selectedColorId}
+                >
+                  افزودن
+                </Button>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                انصراف
-              </Button>
-              <Button
-                variant="dark"
-                onClick={handleAdd}
-                loading={createMutation.isPending}
-                disabled={!selectedProductId || !selectedColorId}
-              >
-                افزودن
-              </Button>
-            </div>
+            </FormProvider>
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* لیست محصولات استایل (بدون تغییر) */}
       {styleItems?.data && styleItems?.data.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           هیچ محصول استایل‌ای انتخاب نشده است.
@@ -209,12 +264,6 @@ export default function StyleManagement() {
               img => img?.color?.id === item?.colorId,
             );
             const image = colorImage?.url;
-
-            // واریانت مربوط به رنگ
-            const variant = item.product.variants?.find(
-              v => v?.colorId === item?.colorId,
-            );
-            const price = variant?.price || 0;
 
             return (
               <div
@@ -244,13 +293,10 @@ export default function StyleManagement() {
                 </div>
                 <div className="p-3">
                   <h3 className="text-sm font-medium line-clamp-2">
-                    {item.product.title}
+                    {item.faTitle} - {item.enTitle}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
                     کد: {item.product.productCode} | {item.color.name}
-                  </p>
-                  <p className="text-sm font-semibold mt-1">
-                    {price?.toLocaleString()} تومان
                   </p>
                 </div>
               </div>
