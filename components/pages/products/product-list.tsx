@@ -214,8 +214,8 @@ export default function ProductList({
               <SelectItem value="createdAt:desc">جدیدترین</SelectItem>
               <SelectItem value="title:asc">عنوان (صعودی)</SelectItem>
               <SelectItem value="title:desc">عنوان (نزولی)</SelectItem>
-              <SelectItem value="price:asc">گران ترین</SelectItem>
-              <SelectItem value="price:desc">ارزان ترین</SelectItem>
+              <SelectItem value="price:desc">گران ترین</SelectItem>
+              <SelectItem value="price:asc">ارزان ترین</SelectItem>
             </SelectContent>
           </Select>
         </div>
