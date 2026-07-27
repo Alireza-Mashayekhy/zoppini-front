@@ -42,6 +42,7 @@ export interface CommentResponse {
 export interface ColorImageResponse {
   id: number;
   url: string;
+  order: number;
   color: {
     hexCode: string;
     id: number;
@@ -119,16 +120,7 @@ export interface FeaturedProductResponse {
     productCode: string;
     description: string;
     variants: any[];
-    colorImages: Array<{
-      id: number;
-      url: string;
-      order: number;
-      color: {
-        id: number;
-        name: string;
-        hexCode: string;
-      };
-    }>;
+    colorImages: ProductColorImage[];
   };
   color: {
     id: number;
@@ -148,4 +140,15 @@ export interface CreateStyleProductDto {
   colorId: number;
   faTitle: string;
   enTitle: string;
+}
+
+export interface ProductColorImage {
+  id: number;
+  url: string;
+  order: number;
+  color: {
+    id: number;
+    name: string;
+    hexCode: string;
+  };
 }

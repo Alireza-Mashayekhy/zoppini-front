@@ -25,6 +25,7 @@ import {
   productsList,
   siezList,
   updateColor,
+  updateColorImagesOrder,
   updateSameColorProducts,
   updateSize,
   updateSuggestedProducts,
@@ -164,6 +165,28 @@ export function useDeleteImage() {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'خطا در حذف تصویر');
+    },
+  });
+}
+
+export function useUpdateColorImagesOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      orders,
+    }: {
+      productId: number;
+      orders: { id: number; order: number }[];
+    }) => updateColorImagesOrder(productId, orders),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['product', variables.productId],
+      });
+      toast.success('ترتیب تصاویر با موفقیت به‌روزرسانی شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در به‌روزرسانی ترتیب');
     },
   });
 }
