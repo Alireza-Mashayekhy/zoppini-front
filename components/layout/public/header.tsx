@@ -14,7 +14,7 @@ export default async function Header() {
     <>
       <div className="fixed top-0 left-0 w-screen z-20 bg-background backdrop-blur-2xl">
         <div className="grid grid-cols-3 custom-container py-1 h-13 items-center">
-          <div className="flex">
+          <div className="flex relative z-10">
             <Menu categories={categories?.data} />
           </div>
           <div className="flex justify-center items-center">
