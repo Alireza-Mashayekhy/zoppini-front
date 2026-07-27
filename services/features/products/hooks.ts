@@ -33,6 +33,7 @@ import {
   CreateColorDto,
   CreateFeaturedProductDto,
   CreateSizeDto,
+  CreateStyleProductDto,
 } from './type';
 
 export const useColorsList = () => {
@@ -231,7 +232,7 @@ export const useStyleProducts = () => {
 export const useCreateStyleProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateFeaturedProductDto) => createStyleProduct(dto),
+    mutationFn: (dto: CreateStyleProductDto) => createStyleProduct(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['style-products'] });
       toast.success('محصول با موفقیت به لیست استایل اضافه شد');

@@ -81,8 +81,8 @@ export default function SuggestedStyle({
       ref={sectionRef}
       className="relative h-[calc(100vh-52px)] w-full overflow-hidden bg-white"
     >
-      <div className="flex h-full w-full flex-col p-6">
-        <LuxuryTitle className="mb-6 shrink-0">پیشنهاد استایل</LuxuryTitle>
+      <div className="flex h-full w-full flex-col">
+        <LuxuryTitle className="mb-6 px-6 shrink-0">پیشنهاد استایل</LuxuryTitle>
 
         {/* viewport */}
         <div className="min-h-0 flex-1 overflow-hidden">
@@ -128,8 +128,9 @@ export default function SuggestedStyle({
                     />
                   </div>
 
-                  <div className="w-full shrink-0 bg-gray-800 p-4 text-center text-white">
-                    {product.product.title}
+                  <div className="w-full shrink-0 bg-gray-800 px-4 py-2 text-sm text-center items-center text-white flex flex-col">
+                    <span>{product.enTitle.toUpperCase()}</span>
+                    <span>{product.faTitle}</span>
                   </div>
                 </Link>
               );
