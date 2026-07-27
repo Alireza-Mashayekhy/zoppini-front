@@ -163,6 +163,17 @@ export async function deleteImage(id: number) {
   return data;
 }
 
+export async function updateColorImagesOrder(
+  productId: number,
+  orders: { id: number; order: number }[],
+) {
+  const { data } = await api.patch(
+    `/admin/products/${productId}/color-images/order`,
+    { orders },
+  );
+  return data;
+}
+
 export async function updateSuggestedProducts(
   id: number,
   suggestedIds: number[],
