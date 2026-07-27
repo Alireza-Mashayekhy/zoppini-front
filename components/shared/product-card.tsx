@@ -16,7 +16,6 @@ export default function ProductCard({
   slug,
   slider,
 }: ProductProps) {
-  console.log(price);
   return (
     <Link href={`/product/${slug}`} className="flex h-full min-h-0 flex-col">
       {/* تصویر */}
