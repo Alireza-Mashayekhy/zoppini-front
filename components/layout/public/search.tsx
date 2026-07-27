@@ -1,5 +1,6 @@
 'use client';
 import { SearchIcon, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import ProductCard from '@/components/shared/product-card';
@@ -16,6 +17,7 @@ export default function Search() {
   const closeTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   const debouncedQuery = useDebounce(query, 300); // 300ms تأخیر
+  const pathname = usePathname();
 
   const { data, isLoading } = useProducsList({
     search: debouncedQuery,
@@ -46,6 +48,24 @@ export default function Search() {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isSearchOpen || isClosing) return;
+
+    setIsClosing(true);
+
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsSearchOpen(false);
+      setIsClosing(false);
+      setQuery('');
+    }, 500);
+
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, [pathname]);
 
   // Remove panel after exit animation ends
   useEffect(() => {
