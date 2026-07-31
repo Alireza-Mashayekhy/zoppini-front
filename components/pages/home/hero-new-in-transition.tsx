@@ -78,6 +78,17 @@ export default function HeroNewInTransition({
         timeline.fromTo(
           newInRef.current,
           {
+            zIndex: 10,
+          },
+          {
+            zIndex: 30,
+            ease: 'none',
+          },
+        );
+
+        timeline.fromTo(
+          newInRef.current,
+          {
             yPercent: 100,
           },
           {
@@ -110,9 +121,12 @@ export default function HeroNewInTransition({
   );
 
   return (
-    <section ref={wrapperRef} className="relative sm:h-screen overflow-hidden">
+    <section
+      ref={wrapperRef}
+      className="relative min-h-screen sm:h-screen overflow-hidden"
+    >
       {/* Hero */}
-      <div className="relative sm:absolute inset-0 z-0 h-screen sm:h-auto">
+      <div className="relative sm:absolute inset-0 z-20 h-screen sm:h-auto">
         <HeroSection categories={categories} categoriesRef={categoriesRef} />
       </div>
 
