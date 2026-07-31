@@ -31,6 +31,8 @@ export default function HeroNewInTransition({
         return;
       }
 
+      const mm = gsap.matchMedia();
+
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: wrapperRef.current,
@@ -72,31 +74,45 @@ export default function HeroNewInTransition({
        *
        * New In جداگانه و آهسته تر
        */
-      timeline.fromTo(
-        newInRef.current,
-        {
-          yPercent: 100,
-        },
-        {
-          yPercent: 0,
+      mm.add('(min-width: 768px)', () => {
+        timeline.fromTo(
+          newInRef.current,
+          {
+            zIndex: 10,
+          },
+          {
+            zIndex: 30,
+            ease: 'none',
+          },
+        );
 
-          // افزایش این مقدار = حرکت آهسته تر
-          duration: 0.5,
+        timeline.fromTo(
+          newInRef.current,
+          {
+            yPercent: 100,
+          },
+          {
+            yPercent: 0,
 
-          ease: 'none',
-        },
-      );
+            // افزایش این مقدار = حرکت آهسته تر
+            duration: 0.5,
 
-      timeline.to(
-        {},
-        {
-          duration: 0.2,
-        },
-      );
+            ease: 'none',
+          },
+        );
+
+        timeline.to(
+          {},
+          {
+            duration: 0.2,
+          },
+        );
+      });
 
       return () => {
         timeline.scrollTrigger?.kill();
         timeline.kill();
+        mm.revert();
       };
     },
     {
@@ -105,14 +121,20 @@ export default function HeroNewInTransition({
   );
 
   return (
-    <section ref={wrapperRef} className="relative h-screen overflow-hidden">
+    <section
+      ref={wrapperRef}
+      className="relative min-h-screen sm:h-screen overflow-hidden"
+    >
       {/* Hero */}
-      <div className="absolute inset-0 z-0">
+      <div className="relative sm:absolute inset-0 z-20 h-screen sm:h-auto">
         <HeroSection categories={categories} categoriesRef={categoriesRef} />
       </div>
 
       {/* New In */}
-      <div ref={newInRef} className="absolute inset-0 z-10">
+      <div
+        ref={newInRef}
+        className="relative sm:absolute inset-0 z-10 h-[500px] sm:h-auto"
+      >
         <NewIn products={products} />
       </div>
     </section>

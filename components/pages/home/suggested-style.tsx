@@ -62,7 +62,7 @@ export default function SuggestedStyle({
       tl.to(
         {},
         {
-          duration: 0.2,
+          duration: 0.5,
         },
       );
 
@@ -82,7 +82,9 @@ export default function SuggestedStyle({
       className="relative h-[calc(100vh-52px)] w-full overflow-hidden bg-white"
     >
       <div className="flex h-full w-full flex-col">
-        <LuxuryTitle className="mb-6 px-6 shrink-0">پیشنهاد استایل</LuxuryTitle>
+        <LuxuryTitle className="mb-6 mt-4 sm:mt-0 px-6 shrink-0">
+          پیشنهاد استایل
+        </LuxuryTitle>
 
         {/* viewport */}
         <div className="min-h-0 flex-1 overflow-hidden">

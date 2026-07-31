@@ -48,7 +48,7 @@ export default async function HomePage() {
           loop
           autoPlay
           playsInline
-          className="aspect-square w-full max-w-[500px] object-cover"
+          className="aspect-square w-full max-w-[200px] sm:max-w-[500px] object-cover"
         >
           <source
             src="https://diorama.dam-broadcast.com/pm_11872_1348_1348692-h5jjxm7bx5-h265.mp4"

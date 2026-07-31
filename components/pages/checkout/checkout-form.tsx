@@ -177,47 +177,51 @@ export default function CheckoutForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 روش ارسال
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {availableMethods.includes(ShippingMethod.POST) && (
-                  <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      value={ShippingMethod.POST}
-                      {...methods.register('shippingMethod')}
-                    />
-                    <span>پست</span>
-                    <span className="text-xs text-gray-500">
-                      ({shippingCost.toLocaleString()} تومان)
-                    </span>
-                  </label>
-                )}
-                {availableMethods.includes(ShippingMethod.COURIER) && (
-                  <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      value={ShippingMethod.COURIER}
-                      {...methods.register('shippingMethod')}
-                    />
-                    <span>پیک</span>
-                    <span className="text-xs text-green-600">
-                      (هزینه با مشتری)
-                    </span>
-                  </label>
-                )}
-                {availableMethods.includes(ShippingMethod.TIBAX) && (
-                  <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      value={ShippingMethod.TIBAX}
-                      {...methods.register('shippingMethod')}
-                    />
-                    <span>تیباکس</span>
-                    <span className="text-xs text-green-600">
-                      (هزینه با مشتری)
-                    </span>
-                  </label>
-                )}
-              </div>
+              {selectedAddressId ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {availableMethods.includes(ShippingMethod.POST) && (
+                    <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        value={ShippingMethod.POST}
+                        {...methods.register('shippingMethod')}
+                      />
+                      <span>پست</span>
+                      <span className="text-xs text-gray-500">
+                        ({shippingCost.toLocaleString()} تومان)
+                      </span>
+                    </label>
+                  )}
+                  {availableMethods.includes(ShippingMethod.COURIER) && (
+                    <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        value={ShippingMethod.COURIER}
+                        {...methods.register('shippingMethod')}
+                      />
+                      <span>پیک</span>
+                      <span className="text-xs text-green-600">
+                        (هزینه با مشتری)
+                      </span>
+                    </label>
+                  )}
+                  {availableMethods.includes(ShippingMethod.TIBAX) && (
+                    <label className="flex items-center gap-2 p-3 border rounded-md cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        value={ShippingMethod.TIBAX}
+                        {...methods.register('shippingMethod')}
+                      />
+                      <span>تیباکس</span>
+                      <span className="text-xs text-green-600">
+                        (هزینه با مشتری)
+                      </span>
+                    </label>
+                  )}
+                </div>
+              ) : (
+                'لطفا ابتدا آدرس خود را انتخاب کنید'
+              )}
             </div>
 
             <div>
