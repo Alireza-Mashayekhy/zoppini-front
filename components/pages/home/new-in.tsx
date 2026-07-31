@@ -17,22 +17,52 @@ interface NewInProps {
 export default function NewIn({ products }: NewInProps) {
   const [loaded, setLoaded] = useState(false);
 
-  const [sliderRef, instanceRef] = useKeenSlider({
-    loop: true,
+  const [sliderRef, instanceRef] = useKeenSlider(
+    {
+      loop: true,
 
-    mode: 'free',
+      rtl: true,
 
-    rtl: true,
+      slides: {
+        perView: 'auto',
+        spacing: 16,
+      },
 
-    slides: {
-      perView: 'auto',
-      spacing: 16,
+      created() {
+        setLoaded(true);
+      },
     },
-
-    created() {
-      setLoaded(true);
-    },
-  });
+    [
+      slider => {
+        let timeout: any;
+        let mouseOver = false;
+        function clearNextTimeout() {
+          clearTimeout(timeout);
+        }
+        function nextTimeout() {
+          clearTimeout(timeout);
+          if (mouseOver) return;
+          timeout = setTimeout(() => {
+            slider.next();
+          }, 2000);
+        }
+        slider.on('created', () => {
+          slider.container.addEventListener('mouseover', () => {
+            mouseOver = true;
+            clearNextTimeout();
+          });
+          slider.container.addEventListener('mouseout', () => {
+            mouseOver = false;
+            nextTimeout();
+          });
+          nextTimeout();
+        });
+        slider.on('dragStarted', clearNextTimeout);
+        slider.on('animationEnded', nextTimeout);
+        slider.on('updated', nextTimeout);
+      },
+    ],
+  );
 
   return (
     <section className="relative flex h-full w-full flex-col overflow-hidden bg-white">
@@ -62,7 +92,7 @@ export default function NewIn({ products }: NewInProps) {
           return (
             <div
               key={product.id}
-              className="keen-slider__slide h-full! w-[calc(80%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
+              className="keen-slider__slide h-full! w-[calc(50%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
             >
               <ProductCard
                 slider

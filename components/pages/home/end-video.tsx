@@ -13,24 +13,32 @@ export default function EndVideo() {
   useGSAP(() => {
     if (!sectionRef.current) return;
 
-    gsap.to(sectionRef.current, {
-      ease: 'none',
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top 52px',
-        end: '+=500',
-        scrub: 0.5,
-        pin: true,
-      },
+    const mm = gsap.matchMedia();
+
+    mm.add('(min-width: 768px)', () => {
+      gsap.to(sectionRef.current, {
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 52px',
+          end: '+=500',
+          scrub: 0.5,
+          pin: true,
+        },
+      });
     });
 
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      mm.revert();
     };
   }, []);
 
   return (
-    <div ref={sectionRef} className="h-screen w-full overflow-hidden relative">
+    <div
+      ref={sectionRef}
+      className="aspect-16/12 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
+    >
       <video muted loop autoPlay className="w-full h-full object-cover">
         <source src="/home/end.mp4" type="video/mp4" />
       </video>

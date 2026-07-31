@@ -31,6 +31,8 @@ export default function HeroNewInTransition({
         return;
       }
 
+      const mm = gsap.matchMedia();
+
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: wrapperRef.current,
@@ -72,31 +74,34 @@ export default function HeroNewInTransition({
        *
        * New In جداگانه و آهسته تر
        */
-      timeline.fromTo(
-        newInRef.current,
-        {
-          yPercent: 100,
-        },
-        {
-          yPercent: 0,
+      mm.add('(min-width: 768px)', () => {
+        timeline.fromTo(
+          newInRef.current,
+          {
+            yPercent: 100,
+          },
+          {
+            yPercent: 0,
 
-          // افزایش این مقدار = حرکت آهسته تر
-          duration: 0.5,
+            // افزایش این مقدار = حرکت آهسته تر
+            duration: 0.5,
 
-          ease: 'none',
-        },
-      );
+            ease: 'none',
+          },
+        );
 
-      timeline.to(
-        {},
-        {
-          duration: 0.2,
-        },
-      );
+        timeline.to(
+          {},
+          {
+            duration: 0.2,
+          },
+        );
+      });
 
       return () => {
         timeline.scrollTrigger?.kill();
         timeline.kill();
+        mm.revert();
       };
     },
     {
@@ -105,14 +110,17 @@ export default function HeroNewInTransition({
   );
 
   return (
-    <section ref={wrapperRef} className="relative h-screen overflow-hidden">
+    <section ref={wrapperRef} className="relative sm:h-screen overflow-hidden">
       {/* Hero */}
-      <div className="absolute inset-0 z-0">
+      <div className="relative sm:absolute inset-0 z-0 h-screen sm:h-auto">
         <HeroSection categories={categories} categoriesRef={categoriesRef} />
       </div>
 
       {/* New In */}
-      <div ref={newInRef} className="absolute inset-0 z-10">
+      <div
+        ref={newInRef}
+        className="relative sm:absolute inset-0 z-10 h-[500px] sm:h-auto"
+      >
         <NewIn products={products} />
       </div>
     </section>

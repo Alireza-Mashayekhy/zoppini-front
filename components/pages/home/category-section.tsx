@@ -30,82 +30,57 @@ export default function CategoriesSection({
         return;
       }
 
-      const firstSection = firstSectionRef.current;
-      const secondSection = secondSectionRef.current;
-      /*
-       * ارتفاع واقعی بخش اول
-       */
-      const firstSectionHeight = firstSection.offsetHeight;
+      const mm = gsap.matchMedia();
 
-      /*
-       * بخش اول + transition بخش دوم
-       */
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: wrapperRef.current,
+      // فقط دسکتاپ
+      mm.add('(min-width: 768px)', () => {
+        const firstSection = firstSectionRef.current!;
+        const secondSection = secondSectionRef.current!;
 
-          start: `+=${firstSectionHeight} bottom`,
+        const firstSectionHeight = firstSection.offsetHeight;
 
-          /*
-           * ابتدا کاربر باید کل بخش اول را طی کند
-           * سپس بخش دوم بالا بیاید
-           */
-          end: `+=1600`,
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: wrapperRef.current,
 
-          scrub: 1,
+            start: `+=${firstSectionHeight} bottom`,
+            end: '+=1600',
 
-          pin: true,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
 
-          anticipatePin: 1,
+        // مکث قبل از ورود بخش دوم
+        tl.to({}, { duration: 0.5 });
 
-          invalidateOnRefresh: true,
-        },
+        // ورود بخش دوم از پایین
+        tl.fromTo(
+          secondSection,
+          {
+            yPercent: 100,
+          },
+          {
+            yPercent: 0,
+            duration: 1,
+            ease: 'none',
+          },
+        );
+
+        // مکث انتهایی
+        tl.to({}, { duration: 0.2 });
+
+        return () => {
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        };
       });
 
-      /*
-       * مرحله اول:
-       *
-       * بخش اول در viewport باقی می‌ماند.
-       *
-       * این فاصله زمانی باعث می‌شود کاربر بتواند
-       * تا پایین 4 دسته‌بندی اول اسکرول کند.
-       */
-      tl.to(
-        {},
-        {
-          duration: 0.5,
-        },
-      );
-
-      /*
-       * مرحله دوم:
-       *
-       * بخش دوم روی بخش اول می‌آید.
-       */
-      tl.fromTo(
-        secondSection,
-        {
-          yPercent: 100,
-        },
-        {
-          yPercent: 0,
-
-          duration: 1,
-
-          ease: 'none',
-        },
-      );
-
-      tl.to(
-        {},
-        {
-          duration: 0.2,
-        },
-      );
-
+      // cleanup matchMedia
       return () => {
-        tl.scrollTrigger?.kill();
-        tl.kill();
+        mm.revert();
       };
     },
     {
@@ -118,13 +93,13 @@ export default function CategoriesSection({
       ref={wrapperRef}
       className="relative w-full overflow-hidden bg-white"
     >
-      {/* ================================================= */}
+      {/* ============================================== */}
       {/* بخش اول */}
-      {/* ================================================= */}
+      {/* ============================================== */}
 
       <div
         ref={firstSectionRef}
-        className="relative z-0 grid w-full grid-cols-2 sm:grid-cols-4 bg-white"
+        className="relative z-0 grid w-full grid-cols-2 bg-white sm:grid-cols-4"
       >
         {/* تصویر اول */}
         <div className="relative col-span-2 aspect-square">
@@ -167,13 +142,13 @@ export default function CategoriesSection({
         ))}
       </div>
 
-      {/* ================================================= */}
+      {/* ============================================== */}
       {/* بخش دوم */}
-      {/* ================================================= */}
+      {/* ============================================== */}
 
       <div
         ref={secondSectionRef}
-        className="absolute left-0 top-0 z-10 grid w-full grid-cols-2 sm:grid-cols-4 bg-white"
+        className="relative grid w-full grid-cols-2 sm:grid-cols-4 bg-white sm:absolute sm:left-0 sm:top-0 sm:z-10"
       >
         {/* ویدیو اول */}
         <div className="relative col-span-2 aspect-square">
