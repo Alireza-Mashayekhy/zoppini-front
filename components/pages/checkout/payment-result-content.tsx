@@ -8,43 +8,55 @@ import { Button } from '@/components/ui/button';
 
 export default function PaymentResultContent() {
   const searchParams = useSearchParams();
+
   const status = searchParams.get('status');
   const orderId = searchParams.get('orderId');
 
   const isSuccess = status === 'success';
 
   return (
-    <div className="container max-w-md mx-auto py-20 text-center px-4">
+    <div className="container mx-auto max-w-md px-4 py-20 text-center">
       {isSuccess ? (
         <>
-          <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-4" />
+          <CheckCircle className="mx-auto mb-4 h-20 w-20 text-green-500" />
+
           <h1 className="text-2xl font-bold text-green-600">پرداخت موفق</h1>
-          <p className="text-gray-500 mt-2">
+
+          <p className="mt-2 text-gray-500">
             سفارش شما با موفقیت ثبت و پرداخت شد.
           </p>
+
           {orderId && (
-            <p className="text-sm text-gray-400 mt-1">شماره سفارش: {orderId}</p>
+            <p className="mt-1 text-sm text-gray-400">شماره سفارش: {orderId}</p>
           )}
-          <Link href={`/dashboard/orders/${orderId}`}>
+
+          <Link href={`/dashboard/orders`}>
             <Button variant="dark" className="mt-6">
-              مشاهده سفارش
+              مشاهده سفارشات
             </Button>
           </Link>
         </>
       ) : (
         <>
-          <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />
+          <XCircle className="mx-auto mb-4 h-20 w-20 text-red-500" />
+
           <h1 className="text-2xl font-bold text-red-600">پرداخت ناموفق</h1>
-          <p className="text-gray-500 mt-2">
+
+          <p className="mt-2 text-gray-500">
             متأسفانه پرداخت شما با خطا مواجه شد.
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+
+          <p className="mt-1 text-sm text-gray-400">
             لطفاً مجدداً تلاش کنید یا با پشتیبانی تماس بگیرید.
           </p>
-          <div className="flex gap-2 justify-center mt-6 flex-wrap">
-            <Link href={`/checkout/payment?orderId=${orderId}`}>
-              <Button variant="outline">تلاش مجدد</Button>
-            </Link>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {orderId && (
+              <Link href={`/checkout/payment?orderId=${orderId}`}>
+                <Button variant="outline">تلاش مجدد</Button>
+              </Link>
+            )}
+
             <Link href="/dashboard/orders">
               <Button variant="dark">مشاهده سفارشات</Button>
             </Link>

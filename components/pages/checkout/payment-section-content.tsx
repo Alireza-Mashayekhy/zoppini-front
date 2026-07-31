@@ -24,29 +24,43 @@ export default function PaymentSelectionContent() {
       router.push('/dashboard/orders');
       return;
     }
+
     if (!selectedGateway) {
       toast.error('لطفاً یک درگاه پرداخت انتخاب کنید');
       return;
     }
 
     mutate(
-      { orderId: Number(orderId), gateway: selectedGateway },
       {
-        onSuccess: data => {
-          // ارسال فرم POST به درگاه
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = data.payUrl;
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'RefId';
-          input.value = data.refId;
-          form.appendChild(input);
-          document.body.appendChild(form);
-          form.submit();
+        orderId: Number(orderId),
+        gateway: selectedGateway,
+      },
+      {
+        onSuccess: response => {
+          const payment = response.data;
+
+          if (!payment?.payUrl) {
+            toast.error('آدرس پرداخت دریافت نشد');
+            return;
+          }
+
+          // زرین‌پال: انتقال مستقیم به URL
+          if (selectedGateway === PaymentGateway.ZARINPAL) {
+            window.location.href = payment.payUrl;
+            return;
+          }
+
+          // سایر درگاه‌ها
+          // بسته به نوع درگاه باید روش redirect مخصوص خودشان استفاده شود.
+          window.location.href = payment.payUrl;
         },
+
         onError: (error: any) => {
-          toast.error(error?.message || 'خطا در شروع پرداخت');
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              'خطا در شروع پرداخت',
+          );
         },
       },
     );
