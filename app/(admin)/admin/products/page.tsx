@@ -66,7 +66,6 @@ export default function Products() {
   const deleteMutation = useDeleteProduct();
   const { data: categoriesList } = useAdminCategoriesList({
     all: true,
-    search: debouncedSearch,
   });
   const { data: productsList } = useAdminProducsList({
     all: true,

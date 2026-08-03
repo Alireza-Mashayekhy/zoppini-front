@@ -32,9 +32,9 @@ export default function SidebarContent({ onItemClick }: SidebarContentProps) {
             onClick={onItemClick}
             className={cn(
               'flex items-center gap-3 px-4 py-3 border border-transparent text-sm transition-all duration-200',
-              'hover:border-gray-800!',
+              'hover:border-primary!',
               isActive
-                ? 'bg-gray-800 text-background font-medium'
+                ? 'bg-primary text-background font-medium'
                 : 'text-black',
             )}
           >

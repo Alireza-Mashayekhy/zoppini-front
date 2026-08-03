@@ -102,7 +102,7 @@ export default function CategoriesSection({
         className="relative z-0 grid w-full grid-cols-2 bg-white sm:grid-cols-4"
       >
         {/* تصویر اول */}
-        <div className="relative col-span-2 aspect-square">
+        <div className="relative col-span-2 aspect-square hidden sm:block">
           <Image
             src="/home/category_1.jpg"
             fill
@@ -151,7 +151,7 @@ export default function CategoriesSection({
         className="relative grid w-full grid-cols-2 sm:grid-cols-4 bg-white sm:absolute sm:left-0 sm:top-0 sm:z-10"
       >
         {/* ویدیو اول */}
-        <div className="relative col-span-2 aspect-square">
+        <div className="relative col-span-2 aspect-square hidden sm:block">
           <video
             muted
             loop

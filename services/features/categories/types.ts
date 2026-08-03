@@ -11,6 +11,7 @@ export interface CategoriesResponse {
   isInHome: boolean;
   orderInHome: number;
   orderInHero: number;
+  isActive: boolean;
 }
 
 export interface createCategoryDto {
@@ -24,4 +25,5 @@ export interface createCategoryDto {
   isInHome: boolean;
   orderInHome?: number | null | undefined; // تغییر
   orderInHero?: number | null | undefined; // تغییر
+  isActive?: boolean;
 }

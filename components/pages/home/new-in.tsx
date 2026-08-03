@@ -86,7 +86,6 @@ export default function NewIn({ products }: NewInProps) {
             variant => variant?.colorId === product?.colorId,
           );
 
-          console.log(product.product.variants, product?.colorId);
           const price = variant?.price || 0;
 
           return (
