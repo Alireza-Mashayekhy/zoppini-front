@@ -64,7 +64,7 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
           'w-5! h-5! transition-colors',
           isInWishlist
             ? 'fill-red-500 text-red-500'
-            : 'fill-none text-gray-800 ',
+            : 'fill-none text-primary ',
         )}
       />
     </Button>

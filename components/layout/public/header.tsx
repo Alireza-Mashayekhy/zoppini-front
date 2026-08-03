@@ -10,6 +10,8 @@ import Search from './search';
 export default async function Header() {
   const categories = await getAllCategories();
 
+  console.log(categories.data.filter(category => category.id === 100));
+
   return (
     <>
       <div className="fixed top-0 left-0 w-screen z-20 bg-background backdrop-blur-2xl">

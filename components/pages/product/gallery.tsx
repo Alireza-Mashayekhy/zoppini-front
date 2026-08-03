@@ -140,8 +140,8 @@ export default function ProductGallery({
               className={cn(
                 'w-2 h-2 rounded-full transition-all duration-300',
                 currentIndex === index
-                  ? 'bg-gray-800 w-4 h-2'
-                  : 'bg-gray-800/50 hover:bg-white/70',
+                  ? 'bg-primary w-4 h-2'
+                  : 'bg-primary/50 hover:bg-white/70',
               )}
               onClick={() => scrollTo(index)}
               aria-label={`رفتن به تصویر ${index + 1}`}

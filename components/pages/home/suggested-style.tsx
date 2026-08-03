@@ -130,7 +130,7 @@ export default function SuggestedStyle({
                     />
                   </div>
 
-                  <div className="w-full shrink-0 bg-gray-800 px-4 py-2 text-sm text-center items-center text-white flex flex-col">
+                  <div className="w-full shrink-0 bg-primary px-4 py-2 text-sm text-center items-center text-white flex flex-col">
                     <span>{product.enTitle.toUpperCase()}</span>
                     <span>{product.faTitle}</span>
                   </div>

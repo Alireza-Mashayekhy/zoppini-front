@@ -44,7 +44,7 @@ export default function ContactContent() {
                 <Phone className="w-4 h-4 text-[#D4A373]" />
                 <span>۰۲۱-۶۶۷۴۵۵۲۱</span>
                 <span className="text-gray-400 mx-1">|</span>
-                <span>۰۹۱۹۴۱۳۱۳۱۶</span>
+                <span>09352715016</span>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <Mail className="w-4 h-4 text-[#D4A373]" />

@@ -93,6 +93,14 @@ export default function HeroSection({
                 setIsPlaying2,
               )
             }
+            onTouchStart={() =>
+              handleMouseEnter(
+                video1Ref.current,
+                video2Ref.current,
+                setIsPlaying1,
+                setIsPlaying2,
+              )
+            }
             onPlay={() => setIsPlaying1(true)}
             onPause={() => setIsPlaying1(false)}
           >
@@ -115,6 +123,14 @@ export default function HeroSection({
             playsInline
             className="h-full w-full object-cover"
             onMouseEnter={() =>
+              handleMouseEnter(
+                video2Ref.current,
+                video1Ref.current,
+                setIsPlaying2,
+                setIsPlaying1,
+              )
+            }
+            onTouchStart={() =>
               handleMouseEnter(
                 video2Ref.current,
                 video1Ref.current,

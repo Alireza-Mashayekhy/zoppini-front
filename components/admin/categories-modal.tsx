@@ -66,6 +66,7 @@ export default function CategoriesModal({
       parentId: z.string().nullable(),
       isInHeroSection: z.boolean(),
       isInHome: z.boolean(),
+      isActive: z.boolean(),
       orderInHome: z.preprocess(
         val => (val === '' ? null : val),
         z.coerce.number().nullable().optional(),
@@ -115,6 +116,7 @@ export default function CategoriesModal({
       isInHome: false,
       orderInHome: null,
       orderInHero: null,
+      isActive: true,
     },
     resolver: zodResolver(schema),
   });
@@ -141,6 +143,7 @@ export default function CategoriesModal({
         isInHome: selectedData.isInHome,
         orderInHome: selectedData.orderInHome ?? null,
         orderInHero: selectedData.orderInHero ?? null,
+        isActive: selectedData.isActive,
       });
     } else {
       reset({
@@ -153,6 +156,7 @@ export default function CategoriesModal({
         isInHome: false,
         orderInHome: null,
         orderInHero: null,
+        isActive: true,
       });
     }
   }, [selectedData, reset]);
@@ -168,6 +172,7 @@ export default function CategoriesModal({
       formData.append('slug', data.slug);
       formData.append('isInHeroSection', data.isInHeroSection.toString());
       formData.append('isInHome', data.isInHome.toString());
+      formData.append('isActive', data.isActive?.toString() ?? 'true');
       if (data.parentId) formData.append('parentId', data.parentId);
 
       // اضافه کردن orderها (اگر مقدار دارند)
@@ -221,9 +226,11 @@ export default function CategoriesModal({
             <RHFInput label="نام دسته بندی" name="name" isRequired />
             <RHFInput label="نامک" name="slug" isRequired />
             <RHFSelect label="دسته بندی مادر" name="parentId" items={items} />
-            <span />
+            <div className="flex flex-col justify-end gap-2">
+              <RHFSwitch name="isActive" label="فعال بودن دسته‌بندی" />
+            </div>
 
-            <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div className="col-span-2 grid grid-cols-2 gap-4 mt-4">
               <div className="flex flex-col gap-2">
                 <RHFSwitch name="isInHeroSection" label="نمایش در هیرو سکشن" />
                 {isInHeroSection && (

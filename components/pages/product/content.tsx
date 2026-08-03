@@ -149,7 +149,7 @@ export default function ProductContent({
               <button
                 onClick={handleAddToCart}
                 disabled={addToCart.isPending}
-                className="w-full text-sm border flex items-center justify-between h-[50px] px-5 bg-gray-800 text-background disabled:opacity-60"
+                className="w-full text-sm border flex items-center justify-between h-[50px] px-5 bg-primary text-background disabled:opacity-60"
               >
                 {addToCart.isPending
                   ? 'در حال افزودن...'

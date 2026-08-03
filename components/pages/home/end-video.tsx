@@ -37,7 +37,7 @@ export default function EndVideo() {
   return (
     <div
       ref={sectionRef}
-      className="aspect-16/12 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
+      className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
     >
       <video muted loop autoPlay className="w-full h-full object-cover">
         <source src="/home/end.mp4" type="video/mp4" />
