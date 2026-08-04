@@ -21,10 +21,11 @@ import {
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
 import { useAdminProducsList } from '@/services/features/products/hooks';
+import { ProductsResponse } from '@/services/features/products/type';
 
 interface ProductSearchSelectProps {
   value: string;
-  onValueChange: (value: string) => void;
+  onValueChange: (value: ProductsResponse) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -49,7 +50,7 @@ export function ProductSearchSelect({
   const products = data?.data || [];
 
   const handleSelect = (productId: string) => {
-    onValueChange(productId);
+    onValueChange(products.filter(p => p.id.toString() === productId)[0]);
     setOpen(false);
     setSearch('');
   };

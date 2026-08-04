@@ -3,7 +3,7 @@
 
 import { Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ProductSearchSelect } from '@/components/admin/product-search-select';
@@ -25,31 +25,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatPrice } from '@/lib/utils';
 import {
   useCreateFeaturedProduct,
   useDeleteFeaturedProduct,
   useFeaturedProducts,
 } from '@/services/features/products/hooks';
-import { useAdminProducsList } from '@/services/features/products/hooks';
+import { ProductsResponse } from '@/services/features/products/type';
 
 export default function FeaturedManagement() {
   const { data: featuredItems, isLoading: isLoadingFeatured } =
     useFeaturedProducts({
       all: true,
     });
-  const { data: productsData } = useAdminProducsList({ all: true, limit: 100 });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string>('');
-  const [selectedColorId, setSelectedColorId] = useState<string>('');
+  const [selectedProductId, setSelectedProductId] =
+    useState<ProductsResponse | null>(null);
 
   // State برای AlertDialog حذف
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -58,47 +51,25 @@ export default function FeaturedManagement() {
   const createMutation = useCreateFeaturedProduct();
   const deleteMutation = useDeleteFeaturedProduct();
 
-  const products = productsData?.data || [];
-
-  // استخراج رنگ‌های موجود در محصول انتخاب‌شده
-  const availableColors = useMemo(() => {
-    if (!selectedProductId) return [];
-
-    const product = products.find(p => String(p.id) === selectedProductId);
-    if (!product || !product.variants) return [];
-
-    const colorMap = new Map<
-      number,
-      { id: number; name: string; hexCode: string }
-    >();
-    product.variants.forEach(variant => {
-      if (variant.color && !colorMap.has(variant.color.id)) {
-        colorMap.set(variant.color.id, variant.color);
-      }
-    });
-
-    return Array.from(colorMap.values());
-  }, [selectedProductId, products]);
-
-  // وقتی محصول عوض می‌شود، رنگ انتخاب‌شده را ریست کن
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedColorId('');
-  }, [selectedProductId]);
-
   const handleAdd = async () => {
-    if (!selectedProductId || !selectedColorId) {
-      toast.error('لطفاً محصول و رنگ را انتخاب کنید');
+    if (!selectedProductId) {
+      toast.error('لطفاً محصول را انتخاب کنید');
+      return;
+    }
+
+    const colorId = selectedProductId?.variants?.[0]?.color?.id;
+
+    if (!colorId) {
+      toast.error('برای این محصول رنگی یافت نشد');
       return;
     }
 
     await createMutation.mutateAsync({
-      productId: Number(selectedProductId),
-      colorId: Number(selectedColorId),
+      productId: Number(selectedProductId?.id),
+      colorId,
     });
 
-    setSelectedProductId('');
-    setSelectedColorId('');
+    setSelectedProductId(null);
     setIsDialogOpen(false);
   };
 
@@ -148,41 +119,10 @@ export default function FeaturedManagement() {
               <div className="space-y-1">
                 <label className="text-sm font-medium">محصول</label>
                 <ProductSearchSelect
-                  value={selectedProductId}
+                  value={selectedProductId?.id.toString() || ''}
                   onValueChange={setSelectedProductId}
                   placeholder="انتخاب محصول..."
                 />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">رنگ</label>
-                <Select
-                  value={selectedColorId}
-                  onValueChange={setSelectedColorId}
-                  disabled={!selectedProductId || availableColors.length === 0}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        !selectedProductId
-                          ? 'ابتدا محصول را انتخاب کنید'
-                          : availableColors.length === 0
-                            ? 'این محصول رنگی ندارد'
-                            : 'انتخاب رنگ...'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableColors.map(color => (
-                      <SelectItem key={color.id} value={String(color.id)}>
-                        <span
-                          className="inline-block w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: color.hexCode }}
-                        />
-                        {color.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -193,7 +133,7 @@ export default function FeaturedManagement() {
                 variant="dark"
                 onClick={handleAdd}
                 loading={createMutation.isPending}
-                disabled={!selectedProductId || !selectedColorId}
+                disabled={!selectedProductId}
               >
                 افزودن
               </Button>
@@ -254,7 +194,7 @@ export default function FeaturedManagement() {
                     کد: {item.product.productCode} | {item.color.name}
                   </p>
                   <p className="text-sm font-semibold mt-1">
-                    {price?.toLocaleString()} تومان
+                    {formatPrice(price)} تومان
                   </p>
                 </div>
               </div>

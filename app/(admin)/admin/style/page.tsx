@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -29,20 +29,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   useCreateStyleProduct,
   useDeleteStyleProduct,
   useStyleProducts,
 } from '@/services/features/products/hooks';
-import { useAdminProducsList } from '@/services/features/products/hooks';
+import { ProductsResponse } from '@/services/features/products/type';
 
 // ========== شمای اعتبارسنجی ==========
 const schema = z.object({
@@ -54,19 +47,16 @@ type FormValues = z.infer<typeof schema>;
 
 export default function StyleManagement() {
   const { data: styleItems, isLoading: isLoadingStyle } = useStyleProducts();
-  const { data: productsData } = useAdminProducsList({ all: true, limit: 100 });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string>('');
-  const [selectedColorId, setSelectedColorId] = useState<string>('');
+  const [selectedProductId, setSelectedProductId] =
+    useState<ProductsResponse | null>(null);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const createMutation = useCreateStyleProduct();
   const deleteMutation = useDeleteStyleProduct();
-
-  const products = productsData?.data || [];
 
   // ========== فرم ==========
   const methods = useForm<FormValues>({
@@ -79,48 +69,28 @@ export default function StyleManagement() {
 
   const { reset, handleSubmit } = methods;
 
-  // استخراج رنگ‌های موجود در محصول انتخاب‌شده
-  const availableColors = useMemo(() => {
-    if (!selectedProductId) return [];
-
-    const product = products.find(p => String(p.id) === selectedProductId);
-    if (!product || !product.variants) return [];
-
-    const colorMap = new Map<
-      number,
-      { id: number; name: string; hexCode: string }
-    >();
-    product.variants.forEach(variant => {
-      if (variant.color && !colorMap.has(variant.color.id)) {
-        colorMap.set(variant.color.id, variant.color);
-      }
-    });
-
-    return Array.from(colorMap.values());
-  }, [selectedProductId, products]);
-
-  // وقتی محصول عوض می‌شود، رنگ و فرم را ریست کن
-  useEffect(() => {
-    setSelectedColorId('');
-    reset({ faTitle: '', enTitle: '' });
-  }, [selectedProductId, reset]);
-
   // ========== ارسال فرم ==========
   const onSubmit = async (data: FormValues) => {
-    if (!selectedProductId || !selectedColorId) {
+    if (!selectedProductId) {
       toast.error('لطفاً محصول و رنگ را انتخاب کنید');
       return;
     }
 
+    const colorId = selectedProductId?.variants?.[0]?.color?.id;
+
+    if (!colorId) {
+      toast.error('برای این محصول رنگی یافت نشد');
+      return;
+    }
+
     await createMutation.mutateAsync({
-      productId: Number(selectedProductId),
-      colorId: Number(selectedColorId),
+      productId: Number(selectedProductId?.id),
+      colorId,
       faTitle: data.faTitle,
       enTitle: data.enTitle,
     });
 
-    setSelectedProductId('');
-    setSelectedColorId('');
+    setSelectedProductId(null);
     reset({ faTitle: '', enTitle: '' });
     setIsDialogOpen(false);
   };
@@ -173,44 +143,10 @@ export default function StyleManagement() {
                 <div className="space-y-1">
                   <label className="text-sm font-medium">محصول</label>
                   <ProductSearchSelect
-                    value={selectedProductId}
+                    value={selectedProductId?.id.toString() || ''}
                     onValueChange={setSelectedProductId}
                     placeholder="انتخاب محصول..."
                   />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">رنگ</label>
-                  <Select
-                    value={selectedColorId}
-                    onValueChange={setSelectedColorId}
-                    disabled={
-                      !selectedProductId || availableColors.length === 0
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue
-                        placeholder={
-                          !selectedProductId
-                            ? 'ابتدا محصول را انتخاب کنید'
-                            : availableColors.length === 0
-                              ? 'این محصول رنگی ندارد'
-                              : 'انتخاب رنگ...'
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableColors.map(color => (
-                        <SelectItem key={color.id} value={String(color.id)}>
-                          <span
-                            className="inline-block w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: color.hexCode }}
-                          />
-                          {color.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <RHFInput
@@ -242,7 +178,7 @@ export default function StyleManagement() {
                   variant="dark"
                   type="submit"
                   loading={createMutation.isPending}
-                  disabled={!selectedProductId || !selectedColorId}
+                  disabled={!selectedProductId}
                 >
                   افزودن
                 </Button>
