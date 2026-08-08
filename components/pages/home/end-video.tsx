@@ -39,8 +39,22 @@ export default function EndVideo() {
       ref={sectionRef}
       className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
     >
-      <video muted loop autoPlay className="w-full h-full object-cover">
+      <video
+        muted
+        loop
+        autoPlay
+        className="w-full h-full object-cover hidden sm:block"
+      >
         <source src="/home/end.mp4" type="video/mp4" />
+      </video>
+
+      <video
+        muted
+        loop
+        autoPlay
+        className="w-full h-full object-cover block sm:hidden"
+      >
+        <source src="/home/mobile_end.mp4" type="video/mp4" />
       </video>
     </div>
   );
