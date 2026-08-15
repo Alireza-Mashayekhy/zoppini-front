@@ -89,6 +89,11 @@ export const endpoints = {
     list: '/orders',
     get: (orderId: number) => `/orders/${orderId}`,
     cancel: (orderId: number) => `/orders/${orderId}/cancel`,
+
+    adminList: '/admin/orders',
+    adminGet: (orderId: number) => `/admin/orders/${orderId}`,
+    adminUpdateStatus: (orderId: number) => `/admin/orders/${orderId}/status`,
+    adminCancel: (orderId: number) => `/admin/orders/${orderId}/admin-cancel`,
   },
 
   addresses: {

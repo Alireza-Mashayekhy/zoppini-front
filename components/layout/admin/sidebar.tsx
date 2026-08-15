@@ -4,6 +4,7 @@ import {
   Boxes,
   Briefcase,
   Grid2X2,
+  ListOrdered,
   Newspaper,
   Palette,
   Ruler,
@@ -43,6 +44,11 @@ const items = [
     link: '/admin/products',
     icon: Boxes,
     name: 'محصولات',
+  },
+  {
+    link: '/admin/orders',
+    icon: ListOrdered,
+    name: 'سفارشات',
   },
   {
     link: '/admin/blog',
