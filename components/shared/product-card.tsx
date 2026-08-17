@@ -45,8 +45,8 @@ export default function ProductCard({
       )}
 
       {/* اطلاعات محصول */}
-      <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-12 pt-3">
-        <span className="line-clamp-1 overflow-hidden text-ellipsis">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-2 sm:px-5 pb-12 pt-3">
+        <span className="line-clamp-1 overflow-hidden text-ellipsis text-sm sm:text-base">
           {title}
         </span>
 

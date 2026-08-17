@@ -37,6 +37,21 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:3000/api/';
 
+function Dot({ col, row }: { col: number; row: number }) {
+  return (
+    <div
+      className="grid gap-0.5"
+      style={{
+        gridTemplateColumns: `repeat(${col}, minmax(0, 1fr))`,
+      }}
+    >
+      {Array.from({ length: col * row }, (_, index) => (
+        <span key={index} className="block w-1 h-1 bg-gray-800 rounded-full" />
+      ))}
+    </div>
+  );
+}
+
 export default function ProductList({
   initialData,
   initialParams,
@@ -219,38 +234,34 @@ export default function ProductList({
             </SelectTrigger>
             <SelectContent position="popper">
               <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
-              <SelectItem value="title:asc">عنوان (صعودی)</SelectItem>
               <SelectItem value="price:asc">ارزان ترین</SelectItem>
+              <SelectItem value="price:desc">گران ترین</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex items-center">
+        <div className="items-center hidden sm:flex">
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(3)}
-            className={rows === 3 ? 'underline' : ''}
+            className={rows === 3 ? 'border-b border-b-gray-300' : ''}
           >
-            3
+            <Dot col={3} row={1} />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(4)}
-            className={rows === 4 ? 'underline' : ''}
+            className={rows === 4 ? 'border-b border-b-gray-300' : ''}
           >
-            4
+            <Dot col={4} row={2} />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(6)}
-            className={rows === 6 ? 'underline' : ''}
+            className={rows === 6 ? 'border-b border-b-gray-300' : ''}
           >
-            6
+            <Dot col={6} row={3} />
           </Button>
-          <span className="mr-2">نمایش</span>
         </div>
       </div>
 
@@ -274,8 +285,8 @@ export default function ProductList({
               rows === 3
                 ? 'grid-cols-2 sm:grid-cols-3'
                 : rows === 4
-                  ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
-                  : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+                  ? 'grid-cols-2 sm:grid-cols-4'
+                  : 'grid-cols-2 sm:grid-cols-6'
             }`}
           >
             {' '}
