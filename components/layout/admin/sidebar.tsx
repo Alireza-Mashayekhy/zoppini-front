@@ -29,42 +29,58 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
-const items = [
-  {
-    link: '/admin/users',
-    icon: User,
-    name: 'کاربران',
-  },
-  {
-    link: '/admin/categories',
-    icon: Grid2X2,
-    name: 'دسته‌بندی‌‌ها',
-  },
-  {
-    link: '/admin/products',
-    icon: Boxes,
-    name: 'محصولات',
-  },
-  {
-    link: '/admin/orders',
-    icon: ListOrdered,
-    name: 'سفارشات',
-  },
-  {
-    link: '/admin/blog',
-    icon: Newspaper,
-    name: 'بلاگ',
-  },
-  { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
-  { icon: Star, name: 'محصولات پیشنهاد استایل', link: '/admin/style' },
-  { icon: Briefcase, name: 'درخواست های سازمانی', link: '/admin/b2b' },
-  { name: 'رنگ‌ها', link: '/admin/colors', icon: Palette }, // اضافه شد
-  { name: 'سایزها', link: '/admin/sizes', icon: Ruler }, // اضافه شد
-];
-
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  isAdmin,
+  isSeo,
+}: {
+  isAdmin: boolean;
+  isSeo: boolean;
+}) {
   const { state } = useSidebar();
   const pathname = usePathname();
+
+  const items = [];
+
+  if (isAdmin || isSeo) {
+    items.push(
+      {
+        link: '/admin/categories',
+        icon: Grid2X2,
+        name: 'دسته‌بندی‌‌ها',
+      },
+      {
+        link: '/admin/products',
+        icon: Boxes,
+        name: 'محصولات',
+      },
+
+      {
+        link: '/admin/blog',
+        icon: Newspaper,
+        name: 'بلاگ',
+      },
+    );
+  }
+
+  if (isAdmin) {
+    items.push(
+      {
+        link: '/admin/users',
+        icon: User,
+        name: 'کاربران',
+      },
+      { icon: Star, name: 'محصولات ویژه', link: '/admin/featured' },
+      { icon: Star, name: 'محصولات پیشنهاد استایل', link: '/admin/style' },
+      { icon: Briefcase, name: 'درخواست های سازمانی', link: '/admin/b2b' },
+      { name: 'رنگ‌ها', link: '/admin/colors', icon: Palette },
+      { name: 'سایزها', link: '/admin/sizes', icon: Ruler },
+      {
+        link: '/admin/orders',
+        icon: ListOrdered,
+        name: 'سفارشات',
+      },
+    );
+  }
 
   return (
     <Sidebar
