@@ -117,4 +117,13 @@ export const endpoints = {
   payment: {
     start: '/payment/start',
   },
+
+  discounts: {
+    list: '/admin/discounts',
+    detail: (id: number) => `/admin/discounts/${id}`,
+    create: '/admin/discounts',
+    update: (id: number) => `/admin/discounts/${id}`,
+    delete: (id: number) => `/admin/discounts/${id}`,
+    apply: '/discounts/apply',
+  },
 };

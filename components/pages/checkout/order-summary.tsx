@@ -1,26 +1,32 @@
-// components/pages/checkout/order-summary.tsx
 'use client';
 
 import Image from 'next/image';
 
-import { CartItem } from '@/services/features/cart/types';
+import { CartItem, CartResponse } from '@/services/features/cart/types';
+
+import { AppliedDiscount } from './checkout-form';
 
 interface OrderSummaryProps {
   items: CartItem[];
-  totalPrice: number;
+
+  appliedDiscount: AppliedDiscount | null;
+
   shippingCost: number;
-  finalPrice: number;
+
+  pricing?: CartResponse['pricing'] | null;
 }
 
 export default function OrderSummary({
   items,
-  totalPrice,
+  pricing,
+  appliedDiscount,
   shippingCost,
-  finalPrice,
 }: OrderSummaryProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
+    <div dir="rtl" className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
       <h2 className="text-xl font-light tracking-wide mb-4">خلاصه سفارش</h2>
+
+      {/* محصولات */}
 
       <div className="space-y-3 max-h-60 overflow-y-auto">
         {items.map(item => (
@@ -39,34 +45,93 @@ export default function OrderSummary({
                 className="object-cover"
               />
             </div>
+
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
                 {item.variant.product.title}
               </p>
+
               <p className="text-xs text-gray-500">
                 {item.variant.color?.name} / {item.variant.size?.name}
               </p>
+
               <p className="text-xs text-gray-500">×{item.quantity}</p>
             </div>
-            <span className="text-sm font-semibold whitespace-nowrap">
-              {(item.variant.price * item.quantity).toLocaleString()} تومان
-            </span>
+
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold whitespace-nowrap">
+                {(
+                  Number(item.variant.discountedPrice) * item.quantity
+                ).toLocaleString()}{' '}
+                تومان
+              </span>
+              <span
+                className={
+                  item.variant.discountedPrice
+                    ? 'text-xs font-semibold whitespace-nowrap line-through'
+                    : 'text-sm font-semibold whitespace-nowrap'
+                }
+              >
+                {(Number(item.variant.price) * item.quantity).toLocaleString()}{' '}
+                تومان
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="border-t mt-4 pt-4 space-y-2 text-sm">
+      {/* قیمت‌ها */}
+
+      <div className="border-t mt-4 pt-4 space-y-3 text-sm">
+        {/* جمع سبد */}
+
         <div className="flex justify-between">
           <span className="text-gray-600">جمع سبد</span>
-          <span>{totalPrice.toLocaleString()} تومان</span>
+
+          <span>
+            {appliedDiscount?.summary?.originalPrice.toLocaleString() ||
+              pricing?.originalPrice.toLocaleString()}{' '}
+            تومان
+          </span>
         </div>
+
+        {/* تخفیف */}
+
+        {pricing?.discountPrice && pricing?.discountPrice > 0 && (
+          <div className="flex justify-between text-green-600">
+            <span>تخفیف</span>
+
+            <span>
+              -{' '}
+              {appliedDiscount?.summary?.discountPrice.toLocaleString() ||
+                pricing?.discountPrice.toLocaleString()}{' '}
+              تومان
+            </span>
+          </div>
+        )}
+
+        {/* ارسال */}
+
         <div className="flex justify-between">
           <span className="text-gray-600">هزینه ارسال</span>
-          <span>{shippingCost.toLocaleString()} تومان</span>
+
+          <span>
+            {shippingCost > 0
+              ? `${shippingCost.toLocaleString()} تومان`
+              : 'رایگان'}
+          </span>
         </div>
-        <div className="flex justify-between font-semibold text-base pt-2 border-t">
+
+        {/* نهایی */}
+
+        <div className="flex justify-between font-semibold text-base pt-3 border-t">
           <span>قابل پرداخت</span>
-          <span>{finalPrice.toLocaleString()} تومان</span>
+
+          <span>
+            {appliedDiscount?.summary?.finalPrice.toLocaleString() ||
+              pricing?.finalPrice.toLocaleString()}{' '}
+            تومان
+          </span>
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export enum ShippingMethod {
 export interface CreateOrderDto {
   addressId: number;
   note?: string;
-  discount?: number;
+  discountCode?: string;
   shippingMethod: ShippingMethod;
 }
 

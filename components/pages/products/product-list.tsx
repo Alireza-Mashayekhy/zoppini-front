@@ -32,6 +32,11 @@ interface ProductListProps {
   };
 }
 
+const BASE_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3000/api/';
+
 export default function ProductList({
   initialData,
   initialParams,
@@ -40,7 +45,7 @@ export default function ProductList({
   const pathname = usePathname();
 
   // State برای فیلترها
-  const [sort, setSort] = useState(initialParams.sort || 'createdAt:desc');
+  const [sort, setSort] = useState(initialParams.sort || 'createdAt:asc');
   const [colorIds, setColorIds] = useState<number[]>(
     initialParams.colorIds || [],
   );
@@ -87,7 +92,7 @@ export default function ProductList({
       queryParams.append('limit', String(params.limit));
       if (params.search) queryParams.append('search', params.search);
       if (params.sort)
-        queryParams.append('sort', params.sort || 'createdAt:desc');
+        queryParams.append('sort', params.sort || 'createdAt:asc');
       if (params.categoryIds?.length) {
         queryParams.append('categoryIds', params.categoryIds.join(','));
       }
@@ -98,7 +103,9 @@ export default function ProductList({
         queryParams.append('sizeIds', params.sizeIds.join(','));
       }
 
-      const response = await fetch(`/api/products?${queryParams.toString()}`);
+      const response = await fetch(
+        `${BASE_URL}products?${queryParams.toString()}`,
+      );
       const data = (await response.json()) as ApiListResponse<ProductsResponse>;
 
       setItems(prev => [...prev, ...data.data]);
@@ -211,10 +218,8 @@ export default function ProductList({
               <SelectValue placeholder="مرتب‌سازی..." />
             </SelectTrigger>
             <SelectContent position="popper">
-              <SelectItem value="createdAt:desc">جدیدترین</SelectItem>
+              <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
               <SelectItem value="title:asc">عنوان (صعودی)</SelectItem>
-              <SelectItem value="title:desc">عنوان (نزولی)</SelectItem>
-              <SelectItem value="price:desc">گران ترین</SelectItem>
               <SelectItem value="price:asc">ارزان ترین</SelectItem>
             </SelectContent>
           </Select>
@@ -281,6 +286,7 @@ export default function ProductList({
                 title={product.title}
                 price={product.variants[0]?.price || 0}
                 slug={product.slug}
+                discount={product?.discount}
               />
             ))}
           </div>

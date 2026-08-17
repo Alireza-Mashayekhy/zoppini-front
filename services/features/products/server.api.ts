@@ -34,7 +34,6 @@ export async function getProducts(params: GetProductsParams = {}) {
     searchParams.append('sizeIds', params.sizeIds.join(','));
   }
 
-  console.log(searchParams);
   const url = `products?${searchParams.toString()}`;
   return serverFetch<ApiListResponse<ProductsResponse>>(url);
 }
@@ -49,4 +48,26 @@ export async function getFeaturedProducts() {
 
 export async function getStyleProducts() {
   return serverFetch<ApiListResponse<FeaturedProductResponse>>('style');
+}
+
+export async function getDiscountedProducts(params: GetProductsParams = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.page) searchParams.append('page', String(params.page));
+  if (params.limit) searchParams.append('limit', String(params.limit));
+  if (params.search) searchParams.append('search', params.search);
+  if (params.sort) searchParams.append('sort', params.sort);
+  if (params.categoryIds?.length) {
+    searchParams.append('categoryIds', params.categoryIds.join(','));
+  }
+  if (params.colorIds?.length) {
+    searchParams.append('colorIds', params.colorIds.join(','));
+  }
+  if (params.sizeIds?.length) {
+    searchParams.append('sizeIds', params.sizeIds.join(','));
+  }
+
+  console.log(searchParams);
+  const url = `products/discounted?${searchParams.toString()}`;
+  return serverFetch<ApiListResponse<ProductsResponse>>(url);
 }

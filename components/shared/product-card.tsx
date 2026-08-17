@@ -1,12 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { cn } from '@/lib/utils';
+import { ProductDiscount } from '@/services/features/discounts/types';
+
 interface ProductProps {
   image: string;
   title: string;
   price: number;
   slug: string;
   slider?: boolean;
+  discount?: ProductDiscount;
 }
 
 export default function ProductCard({
@@ -15,6 +19,7 @@ export default function ProductCard({
   price,
   slug,
   slider,
+  discount,
 }: ProductProps) {
   return (
     <Link href={`/product/${slug}`} className="flex h-full min-h-0 flex-col">
@@ -46,9 +51,21 @@ export default function ProductCard({
         </span>
 
         {!!price && price !== 0 && (
-          <span className="whitespace-nowrap text-sm">
-            {parseInt(price.toString()).toLocaleString()} تومان
-          </span>
+          <div className="flex flex-col whitespace-nowrap">
+            {discount && (
+              <span className="whitespace-nowrap text-sm">
+                {discount?.finalPrice.toLocaleString()} تومان
+              </span>
+            )}
+            <span
+              className={cn(
+                discount ? 'text-xs line-through' : 'text-sm',
+                'whitespace-nowrap',
+              )}
+            >
+              {parseInt(price.toString()).toLocaleString()} تومان
+            </span>
+          </div>
         )}
       </div>
     </Link>

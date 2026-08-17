@@ -92,6 +92,7 @@ export default function ProductContent({
   const activeColorId = selectedColorId || defaultColorId;
   const firstVariant = product.variants?.[0];
   const price = firstVariant?.price || 0;
+  const discountedPrice = firstVariant?.discountedPrice;
 
   const addToCart = useAddToCart();
   const { openCart } = useCartStore();
@@ -154,7 +155,19 @@ export default function ProductContent({
                 {addToCart.isPending
                   ? 'در حال افزودن...'
                   : 'افزودن به سبد خرید'}
-                <span>{parseInt(price.toString()).toLocaleString()} تومان</span>
+                <div className="flex flex-col">
+                  {discountedPrice && (
+                    <span>
+                      {parseInt(discountedPrice.toString()).toLocaleString()}{' '}
+                      تومان
+                    </span>
+                  )}
+                  <span
+                    className={discountedPrice ? 'line-through text-xs' : ''}
+                  >
+                    {parseInt(price.toString()).toLocaleString()} تومان
+                  </span>
+                </div>
               </button>
               <WishlistButton productId={product.id} />
             </div>
