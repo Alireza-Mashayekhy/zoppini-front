@@ -5,6 +5,7 @@ import {
   Briefcase,
   Grid2X2,
   ListOrdered,
+  MessageCircle,
   Newspaper,
   Palette,
   Ruler,
@@ -78,6 +79,11 @@ export default function AdminSidebar({
         link: '/admin/orders',
         icon: ListOrdered,
         name: 'سفارشات',
+      },
+      {
+        link: '/admin/contact',
+        icon: MessageCircle,
+        name: 'پیام های تماس با ما',
       },
     );
   }

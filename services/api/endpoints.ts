@@ -126,4 +126,12 @@ export const endpoints = {
     delete: (id: number) => `/admin/discounts/${id}`,
     apply: '/discounts/apply',
   },
+
+  contact: {
+    create: '/contact',
+
+    list: '/admin/contact',
+    detail: (id: number) => `/admin/contact/${id}`,
+    delete: (id: number) => `/admin/contact/${id}`,
+  },
 };
