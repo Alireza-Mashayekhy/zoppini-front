@@ -1,3 +1,6 @@
+import Image from 'next/image';
+import Link from 'next/link';
+
 import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
@@ -34,6 +37,22 @@ export default async function HomePage() {
         categories={HeroSectionCategories?.data ?? []}
         products={FeaturedProducts?.data ?? []}
       />
+
+      <div className="py-4">
+        <Link href="/discounted-products">
+          <div className="relative w-full aspect-[2.4] overflow-hidden">
+            <Image
+              src="/home/sale.webp"
+              alt="محصولات تخفیف‌دار زوپینی"
+              fill
+              priority
+              sizes="100vw"
+              quality={100}
+              className="object-cover"
+            />
+          </div>
+        </Link>
+      </div>
 
       {/* اسکرول عادی بعد از New In */}
       <CategoriesSection categories={HomeCategories?.data ?? []} />

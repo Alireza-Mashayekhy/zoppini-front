@@ -1,4 +1,5 @@
 import { CategoriesResponse } from '../categories/types';
+import { ProductDiscount } from '../discounts/types';
 import { UserResponse } from '../users/types';
 
 export interface ColorResponse {
@@ -26,6 +27,7 @@ export interface VariantResponse {
   price: number;
   stock: number;
   sku?: string;
+  discountedPrice?: number;
   color: ColorResponse;
   size: SizeResponse;
   product?: ProductsResponse;
@@ -57,6 +59,7 @@ export interface ProductsResponse {
   slug: string;
   image: string;
   description: string;
+  discount?: ProductDiscount;
   careInstructionsHtml: string;
   createdAt: string;
   updatedAt: string;

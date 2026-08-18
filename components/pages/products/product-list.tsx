@@ -32,6 +32,26 @@ interface ProductListProps {
   };
 }
 
+const BASE_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3000/api/';
+
+function Dot({ col, row }: { col: number; row: number }) {
+  return (
+    <div
+      className="grid gap-0.5"
+      style={{
+        gridTemplateColumns: `repeat(${col}, minmax(0, 1fr))`,
+      }}
+    >
+      {Array.from({ length: col * row }, (_, index) => (
+        <span key={index} className="block w-1 h-1 bg-gray-800 rounded-full" />
+      ))}
+    </div>
+  );
+}
+
 export default function ProductList({
   initialData,
   initialParams,
@@ -40,7 +60,7 @@ export default function ProductList({
   const pathname = usePathname();
 
   // State برای فیلترها
-  const [sort, setSort] = useState(initialParams.sort || 'createdAt:desc');
+  const [sort, setSort] = useState(initialParams.sort || 'createdAt:asc');
   const [colorIds, setColorIds] = useState<number[]>(
     initialParams.colorIds || [],
   );
@@ -87,7 +107,7 @@ export default function ProductList({
       queryParams.append('limit', String(params.limit));
       if (params.search) queryParams.append('search', params.search);
       if (params.sort)
-        queryParams.append('sort', params.sort || 'createdAt:desc');
+        queryParams.append('sort', params.sort || 'createdAt:asc');
       if (params.categoryIds?.length) {
         queryParams.append('categoryIds', params.categoryIds.join(','));
       }
@@ -98,7 +118,9 @@ export default function ProductList({
         queryParams.append('sizeIds', params.sizeIds.join(','));
       }
 
-      const response = await fetch(`/api/products?${queryParams.toString()}`);
+      const response = await fetch(
+        `${BASE_URL}products?${queryParams.toString()}`,
+      );
       const data = (await response.json()) as ApiListResponse<ProductsResponse>;
 
       setItems(prev => [...prev, ...data.data]);
@@ -211,41 +233,35 @@ export default function ProductList({
               <SelectValue placeholder="مرتب‌سازی..." />
             </SelectTrigger>
             <SelectContent position="popper">
-              <SelectItem value="createdAt:desc">جدیدترین</SelectItem>
-              <SelectItem value="title:asc">عنوان (صعودی)</SelectItem>
-              <SelectItem value="title:desc">عنوان (نزولی)</SelectItem>
-              <SelectItem value="price:desc">گران ترین</SelectItem>
+              <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
               <SelectItem value="price:asc">ارزان ترین</SelectItem>
+              <SelectItem value="price:desc">گران ترین</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex items-center">
+        <div className="items-center hidden sm:flex">
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(3)}
-            className={rows === 3 ? 'underline' : ''}
+            className={rows === 3 ? 'border-b border-b-gray-300' : ''}
           >
-            3
+            <Dot col={3} row={1} />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(4)}
-            className={rows === 4 ? 'underline' : ''}
+            className={rows === 4 ? 'border-b border-b-gray-300' : ''}
           >
-            4
+            <Dot col={4} row={2} />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
             onClick={() => setRows(6)}
-            className={rows === 6 ? 'underline' : ''}
+            className={rows === 6 ? 'border-b border-b-gray-300' : ''}
           >
-            6
+            <Dot col={6} row={3} />
           </Button>
-          <span className="mr-2">نمایش</span>
         </div>
       </div>
 
@@ -269,8 +285,8 @@ export default function ProductList({
               rows === 3
                 ? 'grid-cols-2 sm:grid-cols-3'
                 : rows === 4
-                  ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
-                  : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+                  ? 'grid-cols-2 sm:grid-cols-4'
+                  : 'grid-cols-2 sm:grid-cols-6'
             }`}
           >
             {' '}
@@ -281,6 +297,7 @@ export default function ProductList({
                 title={product.title}
                 price={product.variants[0]?.price || 0}
                 slug={product.slug}
+                discount={product?.discount}
               />
             ))}
           </div>

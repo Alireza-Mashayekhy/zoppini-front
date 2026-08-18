@@ -7,6 +7,7 @@ import { Field, FieldError, FieldLabel } from '../ui/field';
 export type RHFTextAreaProps = React.ComponentProps<'textarea'> & {
   name: string;
   label?: string;
+  isRequired?: boolean;
 };
 
 export default function RHFTextArea({ ...other }: RHFTextAreaProps) {
@@ -18,7 +19,10 @@ export default function RHFTextArea({ ...other }: RHFTextAreaProps) {
       control={control}
       render={({ field, fieldState }) => (
         <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={field.name}>{other?.label}</FieldLabel>
+          <FieldLabel htmlFor={field.name}>
+            {other?.label}
+            {other?.isRequired && <span className="text-red-500">*</span>}
+          </FieldLabel>
           <Textarea
             {...field}
             id={field.name}

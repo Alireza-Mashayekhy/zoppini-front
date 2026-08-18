@@ -41,11 +41,6 @@ export default function Cart() {
 
   const cartItems = data?.data?.items || [];
 
-  const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.variant.price * item.quantity,
-    0,
-  );
-
   const handleQuantityChange = (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) {
       deleteItem.mutate({ id: itemId });
@@ -157,12 +152,28 @@ export default function Cart() {
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
-                          {(
-                            item.variant.price * item.quantity
-                          ).toLocaleString()}{' '}
-                          تومان
-                        </span>
+                        <div className="flex flex-col">
+                          {item?.variant?.discountedPrice && (
+                            <span className="text-sm font-medium">
+                              {(
+                                item.variant.discountedPrice * item.quantity
+                              ).toLocaleString()}{' '}
+                              تومان
+                            </span>
+                          )}
+                          <span
+                            className={
+                              item?.variant?.discountedPrice
+                                ? 'text-xs font-medium line-through'
+                                : 'text-sm font-medium'
+                            }
+                          >
+                            {(
+                              item.variant.price * item.quantity
+                            ).toLocaleString()}{' '}
+                            تومان
+                          </span>
+                        </div>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -183,9 +194,21 @@ export default function Cart() {
           {cartItems.length > 0 && (
             <div className="border-t p-4 space-y-3">
               <div className="flex justify-between text-sm">
+                <span>قیمت</span>
+                <span className="font-semibold">
+                  {data?.data?.pricing?.originalPrice.toLocaleString()} تومان
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>تخفیف</span>
+                <span className="font-semibold">
+                  {data?.data?.pricing?.discountPrice.toLocaleString()} تومان
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span>جمع کل</span>
                 <span className="font-semibold">
-                  {totalPrice.toLocaleString()} تومان
+                  {data?.data?.pricing?.finalPrice.toLocaleString()} تومان
                 </span>
               </div>
               <div className="flex gap-2">

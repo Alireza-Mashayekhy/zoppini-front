@@ -9,6 +9,11 @@ export interface CartItem {
 export interface CartResponse {
   id: number;
   items: CartItem[];
+  pricing: {
+    discountPrice: number;
+    finalPrice: number;
+    originalPrice: number;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

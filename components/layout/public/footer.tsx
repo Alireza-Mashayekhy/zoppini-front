@@ -86,28 +86,28 @@ export default function Footer() {
             <Image
               src="/footer/enamad.webp"
               alt="enamad"
-              width={30}
-              height={30}
+              width={35}
+              height={35}
             />
           </a>
           <Image
             src="/footer/smartis.webp"
             alt="smartis"
-            width={30}
-            height={30}
+            width={35}
+            height={35}
           />
           <Image
             src="/footer/snapppay.webp"
             alt="snapppay"
-            width={30}
-            height={30}
+            width={35}
+            height={35}
           />
-          <Image src="/footer/tara.webp" alt="tara" width={30} height={30} />
+          <Image src="/footer/tara.webp" alt="tara" width={35} height={35} />
           <Image
             src="/footer/zarinpal.webp"
             alt="zarinpal"
-            width={30}
-            height={30}
+            width={35}
+            height={35}
           />
         </div>
 

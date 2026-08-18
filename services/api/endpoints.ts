@@ -89,6 +89,11 @@ export const endpoints = {
     list: '/orders',
     get: (orderId: number) => `/orders/${orderId}`,
     cancel: (orderId: number) => `/orders/${orderId}/cancel`,
+
+    adminList: '/admin/orders',
+    adminGet: (orderId: number) => `/admin/orders/${orderId}`,
+    adminUpdateStatus: (orderId: number) => `/admin/orders/${orderId}/status`,
+    adminCancel: (orderId: number) => `/admin/orders/${orderId}/admin-cancel`,
   },
 
   addresses: {
@@ -111,5 +116,22 @@ export const endpoints = {
 
   payment: {
     start: '/payment/start',
+  },
+
+  discounts: {
+    list: '/admin/discounts',
+    detail: (id: number) => `/admin/discounts/${id}`,
+    create: '/admin/discounts',
+    update: (id: number) => `/admin/discounts/${id}`,
+    delete: (id: number) => `/admin/discounts/${id}`,
+    apply: '/discounts/apply',
+  },
+
+  contact: {
+    create: '/contact',
+
+    list: '/admin/contact',
+    detail: (id: number) => `/admin/contact/${id}`,
+    delete: (id: number) => `/admin/contact/${id}`,
   },
 };
