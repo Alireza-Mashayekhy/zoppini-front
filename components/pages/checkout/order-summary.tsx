@@ -3,13 +3,12 @@
 import Image from 'next/image';
 
 import { CartItem, CartResponse } from '@/services/features/cart/types';
-
-import { AppliedDiscount } from './checkout-form';
+import { ApplyDiscountResponse } from '@/services/features/discounts/types';
 
 interface OrderSummaryProps {
   items: CartItem[];
 
-  appliedDiscount: AppliedDiscount | null;
+  appliedDiscount: ApplyDiscountResponse | null;
 
   shippingCost: number;
 
