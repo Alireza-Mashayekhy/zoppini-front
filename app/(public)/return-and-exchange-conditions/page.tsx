@@ -178,7 +178,7 @@ export default function ReturnPolicyPage() {
           <p className="text-gray-600 text-sm md:text-base">
             در صورت داشتن هرگونه سوال، تیم پشتیبانی{' '}
             <Link
-              href="/contact"
+              href="https://www.goftino.com/c/7Y752F"
               className="text-[#D4A373] font-medium hover:underline"
             >
               زوپینی
