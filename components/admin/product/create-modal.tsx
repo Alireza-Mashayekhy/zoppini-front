@@ -27,6 +27,7 @@ import {
 import {
   ColorResponse,
   createProductDto,
+  InitialProductData,
   ProductsResponse,
   SizeResponse,
 } from '@/services/features/products/type';
@@ -43,6 +44,14 @@ type FormValues = Omit<createProductDto, 'colorId'> & {
   colorId: string; // در فرم به صورت رشته (تک‌انتخاب)
 };
 
+function isInitialProductData(
+  data: ProductsResponse | InitialProductData,
+): data is InitialProductData {
+  return data.variants.some(
+    variant => 'colorId' in variant && 'sizeId' in variant,
+  );
+}
+
 export default function ProductCreateModal({
   categories,
   selectedData,
@@ -50,13 +59,15 @@ export default function ProductCreateModal({
   onOpenChange,
   colorsData,
   sizeData,
+  isDefaultValue,
 }: {
   categories: CategoriesResponse[];
-  selectedData: ProductsResponse | null;
+  selectedData: ProductsResponse | InitialProductData | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   colorsData: ColorResponse[];
   sizeData: SizeResponse[];
+  isDefaultValue?: boolean;
 }) {
   const [isCreateColorOpen, setCreateColorModal] = useState(false);
   const [isCreateSizeOpen, setCreateSizeModal] = useState(false);
@@ -90,7 +101,7 @@ export default function ProductCreateModal({
     value: String(cat.id),
   }));
 
-  const isEdit = !!selectedData;
+  const isEdit = !!selectedData && !isDefaultValue;
 
   // ==================== شمای اعتبارسنجی ====================
   const schema = z.object({
@@ -156,68 +167,40 @@ export default function ProductCreateModal({
     }
   }, [variants]);
 
-  // ==================== تولید واریانت‌ها با یک رنگ ثابت ====================
   useEffect(() => {
+    // در حالت Edit، واریانت‌ها از selectedData می‌آیند
+    if (selectedData) {
+      return;
+    }
+
     if (!colorId || !sizeId.length) {
       setVariants([]);
       return;
     }
 
-    const currentVariants = variantsRef.current; // واریانت‌های فعلی (با هر رنگی)
-    const newVariants: typeof variants = [];
+    const currentVariants = variantsRef.current;
 
-    for (const sId of sizeId) {
-      const existing = currentVariants.find(v => v.sizeId === sId);
+    const newVariants = sizeId.map(sId => {
+      const existing = currentVariants.find(
+        v => v.colorId === colorId && v.sizeId === sId,
+      );
 
-      newVariants.push({
+      return {
         id: existing?.id,
         colorId,
         sizeId: sId,
         price: existing?.price ?? 0,
         stock: existing?.stock ?? 0,
         sku: existing?.sku ?? '',
-      });
-    }
+      };
+    });
 
     setVariants(newVariants);
-  }, [colorId, sizeId]);
+  }, [colorId, sizeId, selectedData]);
 
   // ==================== مقداردهی اولیه در حالت ویرایش ====================
   useEffect(() => {
-    if (selectedData) {
-      // گرفتن رنگ‌های منحصربه‌فرد از واریانت‌ها
-      const uniqueColorIds = [
-        ...new Set(selectedData.variants?.map(v => String(v.color?.id)) || []),
-      ];
-      const uniqueSizeIds = [
-        ...new Set(selectedData.variants?.map(v => String(v.size?.id)) || []),
-      ];
-
-      // تنظیم مقدار colorId به اولین رنگ (یا رشته خالی)
-      const firstColorId = uniqueColorIds.length > 0 ? uniqueColorIds[0] : '';
-
-      reset({
-        title: selectedData.title,
-        description: selectedData.description || '',
-        careInstructionsHtml: selectedData.careInstructionsHtml || '',
-        slug: selectedData.slug,
-        productCode: selectedData.productCode,
-        categories: selectedData.categories?.map(c => String(c.id)) || [],
-        colorId: firstColorId, // <-- مقداردهی صحیح
-        sizeId: uniqueSizeIds,
-      });
-
-      setVariants(
-        selectedData.variants?.map(v => ({
-          id: v.id, // مهم
-          colorId: String(v.color?.id),
-          sizeId: String(v.size?.id),
-          price: Number(v.price),
-          stock: v.stock || 0,
-          sku: v.sku || '',
-        })) || [],
-      );
-    } else {
+    if (!selectedData) {
       reset({
         title: '',
         image: undefined,
@@ -229,10 +212,86 @@ export default function ProductCreateModal({
         colorId: '',
         sizeId: [],
       });
-      setVariants([]);
-    }
-  }, [selectedData, reset]);
 
+      setVariants([]);
+      return;
+    }
+
+    // =========================================
+    // محصولی که از راهکاران آمده
+    // =========================================
+    if (isDefaultValue) {
+      if (!isInitialProductData(selectedData)) {
+        console.error('Invalid InitialProductData:', selectedData);
+        return;
+      }
+
+      const initialVariants = selectedData.variants.map(v => ({
+        colorId: String(v.colorId),
+        sizeId: String(v.sizeId),
+        price: Number(v.price) || 0,
+        stock: Number(v.stock) || 0,
+        sku: v.sku || '',
+      }));
+
+      const firstVariant = initialVariants[0];
+
+      reset({
+        title: selectedData.title || '',
+        image: undefined,
+        description: selectedData.description || '',
+        careInstructionsHtml: selectedData.careInstructionsHtml || '',
+        slug: selectedData.slug || '',
+        productCode: String(selectedData.productCode || ''),
+        categories: selectedData.categories?.map(c => String(c.id)) || [],
+        colorId: firstVariant?.colorId || '',
+        sizeId: initialVariants.map(v => v.sizeId),
+      });
+
+      setVariants(initialVariants);
+
+      return;
+    }
+
+    // =========================================
+    // Edit محصول موجود در دیتابیس
+    // =========================================
+
+    const product = selectedData as ProductsResponse;
+
+    const productVariants = product.variants || [];
+
+    const uniqueColorIds = [
+      ...new Set(productVariants.map(v => String(v.color?.id)).filter(Boolean)),
+    ];
+
+    const uniqueSizeIds = [
+      ...new Set(productVariants.map(v => String(v.size?.id)).filter(Boolean)),
+    ];
+
+    reset({
+      title: product.title || '',
+      image: undefined,
+      description: product.description || '',
+      careInstructionsHtml: product.careInstructionsHtml || '',
+      slug: product.slug || '',
+      productCode: String(product.productCode || ''),
+      categories: product.categories?.map(c => String(c.id)) || [],
+      colorId: uniqueColorIds[0] || '',
+      sizeId: uniqueSizeIds,
+    });
+
+    setVariants(
+      productVariants.map(v => ({
+        id: v.id,
+        colorId: String(v.color.id),
+        sizeId: String(v.size.id),
+        price: Number(v.price) || 0,
+        stock: Number(v.stock) || 0,
+        sku: v.sku || '',
+      })),
+    );
+  }, [selectedData, isDefaultValue, reset]);
   // ==================== ارسال فرم ====================
   const onSubmit = async (data: FormValues) => {
     try {
@@ -280,7 +339,12 @@ export default function ProductCreateModal({
         formData.append('file', data.image);
       }
 
-      if (isEdit && selectedData) {
+      if (isEdit) {
+        if (!selectedData || !('id' in selectedData)) {
+          toast.error('اطلاعات محصول برای ویرایش معتبر نیست');
+          return;
+        }
+
         await editProductMutation.mutateAsync({
           id: selectedData.id,
           data: formData,
@@ -316,11 +380,11 @@ export default function ProductCreateModal({
   // ==================== رندر ====================
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="lg" variant="dark">
-          افزودن
-        </Button>
-      </DialogTrigger>
+      {!isDefaultValue && (
+        <DialogTrigger asChild>
+          <Button>افزودن</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
         <DialogHeader className="h-fit">
           <DialogTitle>{isEdit ? 'ویرایش محصول' : 'افزودن محصول'}</DialogTitle>

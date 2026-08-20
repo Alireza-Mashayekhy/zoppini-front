@@ -44,6 +44,8 @@ import {
   useAdminProducsList,
   useAdminSizeList,
   useDeleteProduct,
+  useSyncProduct,
+  useSyncProducts,
 } from '@/services/features/products/hooks';
 import { ProductsResponse } from '@/services/features/products/type';
 
@@ -58,12 +60,18 @@ export default function Products() {
   const [isDeleteModal, setDeleteModal] = useState(false);
   const [deleteCatId, setDeleteCatId] = useState<number | null>(null);
   const [openSameColorModal, setOpenSameColorModal] = useState(false);
+  const [isSyncOpen, setSyncOpen] = useState(false);
+  const [isAllSyncOpen, setAllSyncOpen] = useState(false);
+  const [syncProductId, setSyncProductId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
 
   const debouncedSearch = useDebounce(search, 500);
 
   const deleteMutation = useDeleteProduct();
+  const syncProductMutaion = useSyncProduct();
+  const syncProductsMutaion = useSyncProducts();
+
   const { data: categoriesList } = useAdminCategoriesList({
     all: true,
   });
@@ -109,22 +117,36 @@ export default function Products() {
     }
   };
 
+  const syncProducts = () => {
+    syncProductsMutaion.mutateAsync();
+  };
+
+  const syncProduct = () => {
+    if (!syncProductId) return;
+    syncProductMutaion.mutateAsync(syncProductId);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <ProductCreateModal
-          categories={categoriesList?.data || []}
-          selectedData={selectedProduct}
-          open={openModal}
-          onOpenChange={open => {
-            setOpenModal(open);
-            if (!open) {
-              setSelectedProduct(null);
-            }
-          }}
-          colorsData={colorsData?.data || []}
-          sizeData={sizeData?.data || []}
-        />
+        <div className="flex gap-4">
+          <ProductCreateModal
+            categories={categoriesList?.data || []}
+            selectedData={selectedProduct}
+            open={openModal}
+            onOpenChange={open => {
+              setOpenModal(open);
+              if (!open) {
+                setSelectedProduct(null);
+              }
+            }}
+            colorsData={colorsData?.data || []}
+            sizeData={sizeData?.data || []}
+          />
+          <Button onClick={() => setAllSyncOpen(true)}>
+            به روزرسانی راهکاران
+          </Button>
+        </div>
         <AddImagesModal
           selectedData={selectedProduct}
           open={openImagesModal}
@@ -198,6 +220,14 @@ export default function Products() {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
+                          setSyncOpen(true);
+                          setSyncProductId(product.id);
+                        }}
+                      >
+                        به روزرسانی از راهکاران
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
                           setDeleteModal(true);
                           setDeleteCatId(product.id);
                         }}
@@ -241,6 +271,44 @@ export default function Products() {
               onClick={() => deleteProduct()}
             >
               حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isSyncOpen} onOpenChange={setSyncOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              آیا از به روزرسانی این محصول مطمئنید؟
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              این عملیات قابل برگشت نیست
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="destructive">انصراف</AlertDialogCancel>
+            <AlertDialogAction onClick={() => syncProduct()}>
+              به روزرسانی
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isAllSyncOpen} onOpenChange={setAllSyncOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              آیا از به روزرسانی محصولات مطمئنید؟
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              این عملیات قابل برگشت نیست
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="destructive">انصراف</AlertDialogCancel>
+            <AlertDialogAction onClick={() => syncProducts()}>
+              به روزرسانی
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

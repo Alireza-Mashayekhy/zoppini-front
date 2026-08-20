@@ -155,3 +155,43 @@ export interface ProductColorImage {
     hexCode: string;
   };
 }
+
+export interface RahkaranProductsResponse {
+  RetailUnitRef: number;
+  fee: number;
+  hasToppings: boolean;
+  hasTrackingFactors: boolean;
+  partId: number;
+  productId: number;
+  productName: string;
+  productNumber: string;
+  retailUnitName: string;
+  unitName: string;
+  unitRef: number;
+}
+
+export interface InitialProductVariant {
+  colorId: string;
+  sizeId: string;
+  price: number;
+  stock: number;
+  sku?: string;
+}
+
+export interface InitialProductData {
+  productCode: string;
+  title: string;
+  slug: string;
+  image: string;
+  description: string;
+  careInstructionsHtml: string;
+
+  variants: InitialProductVariant[];
+
+  categories: CategoriesResponse[];
+
+  suggestedProducts: ProductsResponse[];
+  comments: CommentResponse[];
+  colorImages: ColorImageResponse[];
+  sameColorProducts: ProductsResponse[];
+}

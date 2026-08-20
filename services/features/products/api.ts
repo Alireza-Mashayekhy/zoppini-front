@@ -11,6 +11,7 @@ import {
   CreateStyleProductDto,
   FeaturedProductResponse,
   ProductsResponse,
+  RahkaranProductsResponse,
   SizeResponse,
 } from './type';
 
@@ -259,5 +260,31 @@ export async function updateSize(id: number, data: { name?: string }) {
 
 export async function deleteSize(id: number) {
   const { data } = await api.delete(endpoints.products.deleteSize(id));
+  return data;
+}
+
+export async function rahkaranProductsList(query: {
+  page?: number;
+  search?: string;
+}) {
+  const { data } = await api.get<ApiListResponse<RahkaranProductsResponse>>(
+    endpoints.products.rahkaranList,
+    {
+      params: query,
+    },
+  );
+
+  return data;
+}
+
+export async function syncProduct(id: number) {
+  const { data } = await api.post(endpoints.products.syncProduct(id));
+
+  return data;
+}
+
+export async function syncProducts() {
+  const { data } = await api.post(endpoints.products.syncProducts);
+
   return data;
 }

@@ -65,6 +65,10 @@ export const endpoints = {
     style: '/style',
     adminStyle: '/admin/style',
     removeStyle: (id: number) => `/admin/style/${id}`,
+
+    rahkaranList: '/admin/products/rahkaran/search',
+    syncProducts: '/admin/products/sync-rahkaran',
+    syncProduct: (id: number) => `/admin/products/${id}/sync-rahkaran`,
   },
 
   cart: {
