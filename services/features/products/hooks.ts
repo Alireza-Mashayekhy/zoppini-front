@@ -23,7 +23,10 @@ import {
   getProductById,
   getStyleProducts,
   productsList,
+  rahkaranProductsList,
   siezList,
+  syncProduct,
+  syncProducts,
   updateColor,
   updateColorImagesOrder,
   updateSameColorProducts,
@@ -363,6 +366,40 @@ export function useDeleteSize() {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'خطا در حذف سایز');
+    },
+  });
+}
+
+export const useRahkaranProducsList = (query: {
+  page?: number;
+  search?: string;
+}) => {
+  return useQuery({
+    queryKey: ['rahkaran_products', { ...query }],
+    queryFn: () => rahkaranProductsList(query),
+  });
+};
+
+export function useSyncProduct() {
+  return useMutation({
+    mutationFn: (id: number) => syncProduct(id),
+    onSuccess: () => {
+      toast.success('به روزرسانی راهکاران با موفقیت انجام شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در به روزرسانی');
+    },
+  });
+}
+
+export function useSyncProducts() {
+  return useMutation({
+    mutationFn: syncProducts,
+    onSuccess: () => {
+      toast.success('به روزرسانی با موفقیت در پس زمینه اجرا شد');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'خطا در به روزرسانی');
     },
   });
 }

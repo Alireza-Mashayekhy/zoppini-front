@@ -66,6 +66,11 @@ export default function AdminSidebar({
   if (isAdmin) {
     items.push(
       {
+        link: '/admin/rahkaran-products',
+        icon: Boxes,
+        name: 'محصولات راهکاران',
+      },
+      {
         link: '/admin/users',
         icon: User,
         name: 'کاربران',
