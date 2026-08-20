@@ -1,6 +1,13 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+
 export const metadata: Metadata = {
   title: 'سوالات متداول - زوپینی',
   description:
@@ -28,41 +35,46 @@ export const metadata: Metadata = {
 export default function FAQPage() {
   return (
     <div className="min-h-screen pt-[52px] pb-12">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto max-w-4xl px-4">
         {/* Header */}
         <div className="mb-8 pt-6">
-          <h1 className="text-3xl md:text-4xl font-light text-[#1A1A1A] tracking-wide">
+          <h1 className="text-3xl font-light tracking-wide text-[#1A1A1A] md:text-4xl">
             سوالات متداول
           </h1>
-          <p className="text-gray-500 mt-2 text-sm md:text-base">
+
+          <p className="mt-2 text-sm text-gray-500 md:text-base">
             پاسخ به سوالات رایج شما درباره خرید از زوپینی
           </p>
         </div>
 
-        {/* FAQ List */}
-        <div className="space-y-4">
+        {/* FAQ */}
+        <Accordion type="single" collapsible className="space-y-3" dir="rtl">
           {faqs.map((faq, index) => (
-            <div
+            <AccordionItem
               key={index}
-              className="bg-white rounded-2xl shadow-sm p-6 md:p-8 border-r-4 border-[#D4A373] hover:shadow-md transition-shadow"
+              value={`faq-${index}`}
+              className="rounded-2xl border border-gray-100 border-r-4 border-r-[#D4A373] bg-white px-5 shadow-sm transition-shadow hover:shadow-md md:px-7"
             >
-              <h3 className="text-lg md:text-xl font-medium text-[#1A1A1A] mb-2">
+              <AccordionTrigger className="py-5 text-right text-base font-medium text-[#1A1A1A] hover:no-underline md:text-lg">
                 {faq.question}
-              </h3>
-              <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+              </AccordionTrigger>
+
+              <AccordionContent className="pb-5 text-sm leading-7 text-gray-600 md:text-base">
                 {faq.answer}
-              </p>
-            </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
 
         {/* Contact Support */}
-        <div className="bg-[#FBF7F0] border border-[#E8DCCC] rounded-xl p-6 text-center mt-8">
-          <p className="text-gray-600 text-sm md:text-base">
+        <div className="mt-8 rounded-xl border border-[#E8DCCC] bg-[#FBF7F0] p-6 text-center">
+          <p className="text-sm text-gray-600 md:text-base">
             پاسخ سوال خود را پیدا نکردید؟{' '}
             <Link
               href="https://www.goftino.com/c/7Y752F"
-              className="text-[#D4A373] font-medium hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-[#D4A373] hover:underline"
             >
               با پشتیبانی زوپینی تماس بگیرید
             </Link>
