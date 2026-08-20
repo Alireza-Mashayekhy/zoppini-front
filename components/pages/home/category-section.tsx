@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 
+import HlsVideo from '@/components/shared/hls-video';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -152,28 +153,18 @@ export default function CategoriesSection({
       >
         {/* ویدیو اول */}
         <div className="relative col-span-2 aspect-square hidden sm:block">
-          <video
-            muted
-            loop
-            autoPlay
-            playsInline
+          <HlsVideo
+            src="/home/category_1/master.m3u8"
             className="h-full w-full object-cover"
-          >
-            <source src="/home/category_1.mp4" type="video/mp4" />
-          </video>
+          />
         </div>
 
         {/* ویدیو دوم */}
         <div className="relative col-span-2 aspect-square">
-          <video
-            muted
-            loop
-            autoPlay
-            playsInline
+          <HlsVideo
+            src="/home/category_2/master.m3u8"
             className="h-full w-full object-cover"
-          >
-            <source src="/home/category_2.mp4" type="video/mp4" />
-          </video>
+          />
         </div>
 
         {/* دسته بندی های 5 تا 8 */}

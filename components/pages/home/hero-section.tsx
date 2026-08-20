@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
+import HlsVideo from '@/components/shared/hls-video';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 interface HeroSectionProps {
@@ -79,8 +80,9 @@ export default function HeroSection({
       <div className="grid h-full grid-cols-1 sm:grid-cols-2">
         {/* Video 1 */}
         <div className="relative h-full overflow-hidden bg-black">
-          <video
+          <HlsVideo
             ref={video1Ref}
+            src="/home/hero_section_1/master.m3u8"
             muted
             loop
             playsInline
@@ -103,9 +105,7 @@ export default function HeroSection({
             }
             onPlay={() => setIsPlaying1(true)}
             onPause={() => setIsPlaying1(false)}
-          >
-            <source src="/home/hero_section_1.mp4" type="video/mp4" />
-          </video>
+          />
 
           <div
             className={`pointer-events-none absolute inset-0 transition-all duration-500 ${
@@ -116,8 +116,9 @@ export default function HeroSection({
 
         {/* Video 2 */}
         <div className="relative h-full overflow-hidden bg-black">
-          <video
+          <HlsVideo
             ref={video2Ref}
+            src="/home/hero_section_2/master.m3u8"
             muted
             loop
             playsInline
@@ -140,9 +141,7 @@ export default function HeroSection({
             }
             onPlay={() => setIsPlaying2(true)}
             onPause={() => setIsPlaying2(false)}
-          >
-            <source src="/home/hero_section_2.mp4" type="video/mp4" />
-          </video>
+          />
 
           <div
             className={`pointer-events-none absolute inset-0 transition-all duration-500 ${

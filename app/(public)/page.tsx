@@ -5,6 +5,7 @@ import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
+import HlsVideo from '@/components/shared/hls-video';
 import { ApiListResponse } from '@/services/api/types';
 import {
   getHeroSectionCategories,
@@ -62,15 +63,10 @@ export default async function HomePage() {
       <EndVideo />
 
       <div className="flex justify-center py-10">
-        <video
-          muted
-          loop
-          autoPlay
-          playsInline
+        <HlsVideo
+          src="/home/shoab/master.m3u8"
           className="aspect-square w-full max-w-[200px] sm:max-w-[500px] object-cover"
-        >
-          <source src="/home/shoab.mp4" type="video/mp4" />
-        </video>
+        />
       </div>
     </div>
   );

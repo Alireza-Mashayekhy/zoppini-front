@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 
+import HlsVideo from '@/components/shared/hls-video';
 import LuxuryTitle from '@/components/shared/luxury-title';
 import { FeaturedProductResponse } from '@/services/features/products/type';
 
@@ -96,15 +97,10 @@ export default function SuggestedStyle({
           >
             {/* ویدیو - راست‌ترین آیتم */}
             <div className="h-full w-[98vw] shrink-0 sm:w-[40vw] lg:w-[28.57vw]">
-              <video
-                muted
-                loop
-                autoPlay
-                playsInline
+              <HlsVideo
+                src="/home/style/master.m3u8"
                 className="h-full w-full object-cover"
-              >
-                <source src="/home/style.mp4" type="video/mp4" />
-              </video>
+              />
             </div>
 
             {/* محصولات - سمت چپ ویدیو */}
