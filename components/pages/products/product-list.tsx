@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
 import { ProductsResponse } from '@/services/features/products/type';
@@ -74,6 +75,7 @@ export default function ProductList({
 }: ProductListProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const isScrollingDown = useScrollDirection();
 
   // State برای فیلترها
   const [sort, setSort] = useState(initialParams.sort || 'createdAt:asc');
@@ -223,7 +225,13 @@ export default function ProductList({
   return (
     <div className="flex flex-col">
       {/* نوار بالایی */}
-      <div className="flex items-center justify-between gap-4 px-6 h-20 sticky top-[52px] bg-background z-10 border-t">
+      <div
+        className={cn(
+          'sticky z-10 flex h-20 items-center justify-between gap-4 border-t bg-background/80 px-6 backdrop-blur-xl transition-[top] duration-300',
+          isScrollingDown ? 'top-0' : 'top-[52px]',
+        )}
+      >
+        {' '}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -259,7 +267,6 @@ export default function ProductList({
             </Select>
           </div>
         </div>
-
         <div className="items-center hidden sm:flex">
           <Button
             variant="ghost"
