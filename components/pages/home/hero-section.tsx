@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
@@ -13,10 +12,12 @@ interface HeroSectionProps {
   categoriesRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function HeroSection({
-  categories,
-  categoriesRef,
-}: HeroSectionProps) {
+export default function HeroSection(
+  {
+    // categories,
+    // categoriesRef,
+  }: HeroSectionProps,
+) {
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
 
@@ -157,7 +158,7 @@ export default function HeroSection({
       </h1>
 
       {/* Hero Categories */}
-      <div
+      {/* <div
         ref={categoriesRef}
         className="absolute bottom-0 right-0 z-20 m-6 flex flex-col gap-2 text-right font-sans text-white"
       >
@@ -167,18 +168,16 @@ export default function HeroSection({
             key={category.id}
             className="group relative inline-block overflow-hidden rounded-lg py-1 text-xl font-semibold text-shadow-lg"
           >
-            {/* متن اصلی */}
             <span className="block transition-transform duration-300 group-hover:-translate-y-[110%]">
               {category.name}
             </span>
 
-            {/* متن دوم برای hover */}
             <span className="absolute inset-0 block translate-y-full transition-transform duration-300 group-hover:translate-y-0">
               {category.name}
             </span>
           </Link>
         ))}
-      </div>
+      </div> */}
     </section>
   );
 }

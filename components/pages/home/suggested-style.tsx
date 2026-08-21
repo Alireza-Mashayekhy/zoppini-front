@@ -36,7 +36,7 @@ export default function SuggestedStyle({
         scrollTrigger: {
           trigger: section,
 
-          start: 'top 52px',
+          start: 'top 0px',
 
           end: () => `+=${getScrollDistance()}`,
 
@@ -80,10 +80,10 @@ export default function SuggestedStyle({
   return (
     <section
       ref={sectionRef}
-      className="relative h-[calc(100vh-52px)] w-full overflow-hidden bg-white"
+      className="relative h-screen w-full overflow-hidden bg-white"
     >
       <div className="flex h-full w-full flex-col">
-        <LuxuryTitle className="mb-6 mt-4 sm:mt-0 px-6 shrink-0">
+        <LuxuryTitle className="mb-6 mt-4 px-6 shrink-0">
           پیشنهاد استایل
         </LuxuryTitle>
 
