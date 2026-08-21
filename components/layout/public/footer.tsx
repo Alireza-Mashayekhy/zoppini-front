@@ -15,8 +15,8 @@ export default function Footer() {
             <AnimateLink href="tel:09352715016">
               <li>09352715016</li>
             </AnimateLink>
-            <AnimateLink href="mailto:zoppini.collection1@gmail.com">
-              <li>zoppini.collection1@gmail.com</li>
+            <AnimateLink href="mailto:info@zoppinico.com">
+              <li>info@zoppinico.com</li>
             </AnimateLink>
           </ul>
         </div>
@@ -35,7 +35,7 @@ export default function Footer() {
             <AnimateLink href="/shopping_guide">
               <li>راهنمای خرید</li>
             </AnimateLink>
-            <AnimateLink href="/club/club.pdf" download>
+            <AnimateLink href="https://zoppiniclub.dayaclub.com/">
               <li>باشگاه مشتریان</li>
             </AnimateLink>
           </ul>
@@ -71,9 +71,11 @@ export default function Footer() {
         <div className="flex flex-col gap-5 max-w-72">
           <span className="text-sm font-semibold">درباره ما</span>
           <p className="text-sm">
-            لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ لورم
-            ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ لورم ایپسوم متن
-            ساختگی با تولید سادگی نامفهوم از صنعت چاپ
+            زوپینی از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه باکیفیت و متفاوت فعالیت
+            می‌کند. ما با تکیه بر زنجیره یکپارچه طراحی، تأمین و تولید، مجموعه‌ای
+            از پوشاک کلاسیک و کژوال را ارائه می‌دهیم. کت‌وشلوارهای زوپینی با
+            الهام از فرم کلاسیک ایتالیایی و متناسب با آناتومی و سلیقه مرد ایرانی
+            طراحی می‌شوند.
           </p>
         </div>
       </div>
@@ -144,7 +146,7 @@ export default function Footer() {
             />
           </a>
           <a
-            href="https://www.instagram.com/zoppini.official?igsh=MW02d3p6dnh2ODF0OA=="
+            href="https://www.instagram.com/zoppini.official"
             target="_blank"
             className=""
           >

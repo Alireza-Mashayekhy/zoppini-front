@@ -45,8 +45,8 @@ export default async function AdminLayout({
     <SidebarProvider>
       <AdminSidebar isAdmin={isAdmin} isSeo={isSeo} />
 
-      <SidebarInset className="bg-border">
-        <main className="p-4">{children}</main>
+      <SidebarInset className="bg-border min-w-0 overflow-x-hidden">
+        <main className="p-4 min-w-0 w-full">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

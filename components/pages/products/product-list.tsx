@@ -1,6 +1,7 @@
 // components/products/product-list.tsx
 'use client';
 
+import { ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -14,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
 import { ProductsResponse } from '@/services/features/products/type';
 
@@ -33,20 +35,34 @@ interface ProductListProps {
 }
 
 const BASE_URL =
-  process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
   'http://localhost:3000/api/';
 
-function Dot({ col, row }: { col: number; row: number }) {
+function Dot({
+  col,
+  row,
+  active,
+}: {
+  col: number;
+  row: number;
+  active: boolean;
+}) {
   return (
     <div
-      className="grid gap-0.5"
+      className="grid gap-0.5 "
       style={{
         gridTemplateColumns: `repeat(${col}, minmax(0, 1fr))`,
       }}
     >
       {Array.from({ length: col * row }, (_, index) => (
-        <span key={index} className="block w-1 h-1 bg-gray-800 rounded-full" />
+        <span
+          key={index}
+          className={cn(
+            'block w-1 h-1 rounded-full transition-all',
+            active ? 'bg-gray-800' : 'bg-gray-400 group-hover:bg-gray-800',
+          )}
+        />
       ))}
     </div>
   );
@@ -225,42 +241,46 @@ export default function ProductList({
             )}
           </Button>
 
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger
-              noIcon
-              className="w-fit border-none outline-0! ring-0! shadow-none!"
-            >
-              <SelectValue placeholder="مرتب‌سازی..." />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
-              <SelectItem value="price:asc">ارزان ترین</SelectItem>
-              <SelectItem value="price:desc">گران ترین</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1 items-center">
+            <span className="text-xs">مرتب‌سازی:</span>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger
+                noIcon
+                className="w-fit border border-primary outline-0! ring-0! shadow-none!"
+              >
+                <SelectValue placeholder="مرتب‌سازی..." />
+                <ChevronDown />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
+                <SelectItem value="price:asc">ارزان ترین</SelectItem>
+                <SelectItem value="price:desc">گران ترین</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="items-center hidden sm:flex">
           <Button
             variant="ghost"
             onClick={() => setRows(3)}
-            className={rows === 3 ? 'border-b border-b-gray-300' : ''}
+            className={'group'}
           >
-            <Dot col={3} row={1} />
+            <Dot active={rows === 3} col={3} row={1} />
           </Button>
           <Button
             variant="ghost"
             onClick={() => setRows(4)}
-            className={rows === 4 ? 'border-b border-b-gray-300' : ''}
+            className={'group'}
           >
-            <Dot col={4} row={2} />
+            <Dot active={rows === 4} col={4} row={2} />
           </Button>
           <Button
             variant="ghost"
             onClick={() => setRows(6)}
-            className={rows === 6 ? 'border-b border-b-gray-300' : ''}
+            className={'group'}
           >
-            <Dot col={6} row={3} />
+            <Dot active={rows === 6} col={6} row={3} />
           </Button>
         </div>
       </div>

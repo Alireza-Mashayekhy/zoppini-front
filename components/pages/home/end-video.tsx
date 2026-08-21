@@ -5,6 +5,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useRef } from 'react';
 
+import HlsVideo from '@/components/shared/hls-video';
+
 gsap.registerPlugin(ScrollTrigger);
 
 export default function EndVideo() {
@@ -39,23 +41,14 @@ export default function EndVideo() {
       ref={sectionRef}
       className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
     >
-      <video
-        muted
-        loop
-        autoPlay
+      <HlsVideo
+        src="/home/end/master.m3u8"
         className="w-full h-full object-cover hidden sm:block"
-      >
-        <source src="/home/end.mp4" type="video/mp4" />
-      </video>
-
-      <video
-        muted
-        loop
-        autoPlay
+      />
+      <HlsVideo
+        src="/home/mobile_end/master.m3u8"
         className="w-full h-full object-cover block sm:hidden"
-      >
-        <source src="/home/mobile_end.mp4" type="video/mp4" />
-      </video>
+      />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
+import HlsVideo from '@/components/shared/hls-video';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 interface HeroSectionProps {
@@ -12,10 +12,12 @@ interface HeroSectionProps {
   categoriesRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function HeroSection({
-  categories,
-  categoriesRef,
-}: HeroSectionProps) {
+export default function HeroSection(
+  {
+    // categories,
+    // categoriesRef,
+  }: HeroSectionProps,
+) {
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
 
@@ -79,8 +81,9 @@ export default function HeroSection({
       <div className="grid h-full grid-cols-1 sm:grid-cols-2">
         {/* Video 1 */}
         <div className="relative h-full overflow-hidden bg-black">
-          <video
+          <HlsVideo
             ref={video1Ref}
+            src="/home/hero_section_1/master.m3u8"
             muted
             loop
             playsInline
@@ -103,9 +106,7 @@ export default function HeroSection({
             }
             onPlay={() => setIsPlaying1(true)}
             onPause={() => setIsPlaying1(false)}
-          >
-            <source src="/home/hero_section_1.mp4" type="video/mp4" />
-          </video>
+          />
 
           <div
             className={`pointer-events-none absolute inset-0 transition-all duration-500 ${
@@ -116,8 +117,9 @@ export default function HeroSection({
 
         {/* Video 2 */}
         <div className="relative h-full overflow-hidden bg-black">
-          <video
+          <HlsVideo
             ref={video2Ref}
+            src="/home/hero_section_2/master.m3u8"
             muted
             loop
             playsInline
@@ -140,9 +142,7 @@ export default function HeroSection({
             }
             onPlay={() => setIsPlaying2(true)}
             onPause={() => setIsPlaying2(false)}
-          >
-            <source src="/home/hero_section_2.mp4" type="video/mp4" />
-          </video>
+          />
 
           <div
             className={`pointer-events-none absolute inset-0 transition-all duration-500 ${
@@ -158,7 +158,7 @@ export default function HeroSection({
       </h1>
 
       {/* Hero Categories */}
-      <div
+      {/* <div
         ref={categoriesRef}
         className="absolute bottom-0 right-0 z-20 m-6 flex flex-col gap-2 text-right font-sans text-white"
       >
@@ -168,18 +168,16 @@ export default function HeroSection({
             key={category.id}
             className="group relative inline-block overflow-hidden rounded-lg py-1 text-xl font-semibold text-shadow-lg"
           >
-            {/* متن اصلی */}
             <span className="block transition-transform duration-300 group-hover:-translate-y-[110%]">
               {category.name}
             </span>
 
-            {/* متن دوم برای hover */}
             <span className="absolute inset-0 block translate-y-full transition-transform duration-300 group-hover:translate-y-0">
               {category.name}
             </span>
           </Link>
         ))}
-      </div>
+      </div> */}
     </section>
   );
 }
