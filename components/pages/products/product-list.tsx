@@ -135,7 +135,7 @@ export default function ProductList({
       }
 
       const response = await fetch(
-        `${BASE_URL}products?${queryParams.toString()}`,
+        `${BASE_URL}/products?${queryParams.toString()}`,
       );
       const data = (await response.json()) as ApiListResponse<ProductsResponse>;
 
