@@ -136,7 +136,7 @@ export default function CategoriesSection({
               className="object-cover"
             />
 
-            <div className="absolute bottom-4 right-4 opacity-0 transition-all group-hover:opacity-100">
+            <div className="absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
               {category.name}
             </div>
           </Link>
@@ -181,7 +181,7 @@ export default function CategoriesSection({
               className="object-cover"
             />
 
-            <div className="absolute bottom-4 right-4 opacity-0 transition-all group-hover:opacity-100">
+            <div className="absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
               {category.name}
             </div>
           </Link>

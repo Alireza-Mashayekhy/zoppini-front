@@ -2,6 +2,7 @@
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -93,7 +94,7 @@ export default function ProductList({
   const [items, setItems] = useState<ProductsResponse[]>(
     initialData.data || [],
   );
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialParams.page || 1);
   const [hasMore, setHasMore] = useState(
     initialData.pagination
       ? initialData.pagination.page < initialData.pagination.totalPages
@@ -336,6 +337,14 @@ export default function ProductList({
             <span className="text-sm text-gray-500">در حال بارگذاری...</span>
           )}
         </div>
+
+        {hasMore && (
+          <div className="mt-10 flex justify-center">
+            <Link href={`?page=${page + 1}`} className="text-sm underline">
+              محصولات بیشتر
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );

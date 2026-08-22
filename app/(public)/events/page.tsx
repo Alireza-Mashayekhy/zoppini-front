@@ -76,11 +76,11 @@ export default function EventsPage() {
               فضای برند، محصولات و رویکرد زوپینی در ارائه تجربه‌ای متفاوت آشنا
               شدند.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {retailShowImages.map((img, index) => (
                 <div
                   key={index}
-                  className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100"
+                  className="relative aspect-video rounded-lg overflow-hidden bg-gray-100"
                 >
                   <Image
                     src={img}
@@ -118,11 +118,11 @@ export default function EventsPage() {
               از حضور ارزشمند همه مهمانان و همراهانی که در این لحظه کنار زوپینی
               بودند صمیمانه سپاسگزاریم.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {kermanOpeningImages.map((img, index) => (
                 <div
                   key={index}
-                  className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100"
+                  className="relative aspect-video rounded-lg overflow-hidden bg-gray-100"
                 >
                   <Image
                     src={img}
@@ -153,17 +153,17 @@ export default function EventsPage() {
 }
 
 const retailShowImages = [
-  'https://images.unsplash.com/photo-1605022093847-0400063b1758?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1601748389448-9a5b8a34c67a?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1577174881658-0f30ed549adc?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=300&fit=crop&crop=center',
+  '/events/namayeshgah_1.jpg',
+  '/events/namayeshgah_2.jpg',
+  '/events/namayeshgah_3.jpg',
+  '/events/namayeshgah_4.png',
+  '/events/namayeshgah_5.png',
 ];
 
 const kermanOpeningImages = [
-  'https://images.unsplash.com/photo-1605022093847-0400063b1758?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=300&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1601748389448-9a5b8a34c67a?w=400&h=300&fit=crop&crop=center',
+  '/events/kerman_1.png',
+  '/events/kerman_2.png',
+  '/events/kerman_3.png',
+  '/events/kerman_4.png',
+  '/events/kerman_5.png',
 ];

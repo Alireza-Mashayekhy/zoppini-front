@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
@@ -153,9 +154,9 @@ export default function HeroSection(
       </div>
 
       {/* Logo */}
-      <h1 className="text-shadow-lg absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-5xl text-white">
-        Zoppini
-      </h1>
+      <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+        <Image src="/logo/white-logo.png" width={200} height={30} alt="logo" />
+      </div>
 
       {/* Hero Categories */}
       {/* <div

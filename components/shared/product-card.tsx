@@ -85,15 +85,15 @@ export default function ProductCard({
       )}
 
       {/* اطلاعات محصول */}
-      <div className="flex shrink-0 items-center justify-between gap-3 px-2 pb-12 pt-3 sm:px-5">
-        <span className="line-clamp-1 overflow-hidden text-ellipsis text-sm sm:text-base">
+      <div className="flex flex-col sm:flex-row shrink-0 items-center justify-between gap-1 sm:gap-3 px-2 pb-12 pt-3 sm:px-5">
+        <span className="self-start line-clamp-1 overflow-hidden text-ellipsis text-[10px] sm:text-base">
           {title}
         </span>
 
         {!!price && price !== 0 && (
-          <div className="flex flex-col items-end whitespace-nowrap">
+          <div className="flex self-end flex-row-reverse sm:flex-col items-end whitespace-nowrap gap-2 sm:gap-0">
             {hasDiscount && (
-              <span className="text-sm font-medium text-red-600">
+              <span className="text-[10px] font-medium">
                 {discount.finalPrice.toLocaleString()} تومان
               </span>
             )}
@@ -101,7 +101,9 @@ export default function ProductCard({
             <span
               className={cn(
                 'whitespace-nowrap',
-                hasDiscount ? 'text-xs text-gray-400 line-through' : 'text-sm',
+                hasDiscount
+                  ? 'text-[8px] text-gray-400 line-through'
+                  : 'text-[10px]',
               )}
             >
               {parseInt(price.toString()).toLocaleString()} تومان

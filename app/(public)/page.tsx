@@ -41,13 +41,24 @@ export default async function HomePage() {
 
       <div className="py-4">
         <Link href="/discounted-products">
-          <div className="relative w-full aspect-[2.4] overflow-hidden">
+          <div className="relative hidden sm:block w-full aspect-[2.4] overflow-hidden">
             <Image
               src="/home/sale.webp"
               alt="محصولات تخفیف‌دار زوپینی"
               fill
               priority
               sizes="100vw"
+              quality={100}
+              className="object-cover"
+            />
+          </div>
+          <div className="relative sm:hidden w-full h-auto overflow-hidden">
+            <Image
+              src="/home/mobile_sale.png"
+              alt="محصولات تخفیف‌دار زوپینی"
+              width={1080}
+              height={1920}
+              priority
               quality={100}
               className="object-cover"
             />
