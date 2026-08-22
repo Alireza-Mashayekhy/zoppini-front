@@ -168,11 +168,6 @@ export default function ProductCreateModal({
   }, [variants]);
 
   useEffect(() => {
-    // در حالت Edit، واریانت‌ها از selectedData می‌آیند
-    if (selectedData) {
-      return;
-    }
-
     if (!colorId || !sizeId.length) {
       setVariants([]);
       return;
@@ -180,15 +175,19 @@ export default function ProductCreateModal({
 
     const currentVariants = variantsRef.current;
 
-    const newVariants = sizeId.map(sId => {
-      const existing = currentVariants.find(
-        v => v.colorId === colorId && v.sizeId === sId,
-      );
+    const newVariants = sizeId.map(size => {
+      // اول variant فعلی با همین سایز را پیدا کن
+      // مهم نیست رنگ قبلی چه بوده
+      const existing = currentVariants.find(variant => variant.sizeId === size);
 
       return {
-        id: existing?.id,
+        // چون رنگ عوض شده، id قبلی را نباید نگه داریم
+        id: undefined,
+
         colorId,
-        sizeId: sId,
+        sizeId: size,
+
+        // اطلاعات قبلی حفظ می‌شوند
         price: existing?.price ?? 0,
         stock: existing?.stock ?? 0,
         sku: existing?.sku ?? '',
@@ -196,7 +195,7 @@ export default function ProductCreateModal({
     });
 
     setVariants(newVariants);
-  }, [colorId, sizeId, selectedData]);
+  }, [colorId, sizeId]);
 
   // ==================== مقداردهی اولیه در حالت ویرایش ====================
   useEffect(() => {
@@ -325,6 +324,8 @@ export default function ProductCreateModal({
         toast.error('مقادیر رنگ یا سایز نامعتبر است');
         return;
       }
+
+      console.log(variantsPayload);
 
       const formData = new FormData();
       formData.append('productCode', productCode);
