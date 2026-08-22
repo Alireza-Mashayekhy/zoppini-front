@@ -80,9 +80,9 @@ export default function SuggestedStyle({
   return (
     <section
       ref={sectionRef}
-      className="relative h-screen w-full overflow-hidden bg-white"
+      className="relative flex items-center h-screen w-full overflow-hidden bg-white"
     >
-      <div className="flex h-full w-full flex-col">
+      <div className="flex h-[80%] sm:h-full w-full flex-col">
         <LuxuryTitle className="mb-6 mt-4 px-6 shrink-0">
           پیشنهاد استایل
         </LuxuryTitle>
@@ -115,7 +115,7 @@ export default function SuggestedStyle({
                 <Link
                   href={`/product/${product.product.slug}`}
                   key={product.id}
-                  className="flex h-full w-[98vw] shrink-0 flex-col sm:w-[40vw] lg:w-[28.57vw]"
+                  className="flex h-full w-[80vw] shrink-0 flex-col sm:w-[40vw] lg:w-[28.57vw]"
                 >
                   <div className="relative min-h-0 flex-1">
                     <Image
