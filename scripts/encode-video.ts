@@ -3,9 +3,14 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 
+interface VideoInfo {
+  width: number;
+  height: number;
+  duration: number;
+}
+
 interface VideoQuality {
   name: string;
-  width: number;
   height: number;
   bandwidth: number;
   averageBandwidth: number;
@@ -14,10 +19,21 @@ interface VideoQuality {
   bufsize: string;
 }
 
+interface EncodedVariant {
+  quality: VideoQuality;
+  width: number;
+  height: number;
+}
+
+/**
+ * کیفیت‌های HLS
+ *
+ * height فقط ارتفاع هدف است.
+ * عرض بر اساس Aspect Ratio اصلی ویدیو محاسبه می‌شود.
+ */
 const qualities: VideoQuality[] = [
   {
     name: '360p',
-    width: 640,
     height: 360,
     bandwidth: 900000,
     averageBandwidth: 800000,
@@ -27,7 +43,6 @@ const qualities: VideoQuality[] = [
   },
   {
     name: '480p',
-    width: 854,
     height: 480,
     bandwidth: 1650000,
     averageBandwidth: 1500000,
@@ -37,7 +52,6 @@ const qualities: VideoQuality[] = [
   },
   {
     name: '720p',
-    width: 1280,
     height: 720,
     bandwidth: 3300000,
     averageBandwidth: 3000000,
@@ -47,7 +61,6 @@ const qualities: VideoQuality[] = [
   },
   {
     name: '1080p',
-    width: 1920,
     height: 1080,
     bandwidth: 5500000,
     averageBandwidth: 5000000,
@@ -57,6 +70,45 @@ const qualities: VideoQuality[] = [
   },
 ];
 
+/**
+ * اجرای command
+ */
+function runCommand(command: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const process = spawn(command, args, {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    process.stdout.on('data', data => {
+      stdout += data.toString();
+    });
+
+    process.stderr.on('data', data => {
+      stderr += data.toString();
+    });
+
+    process.on('error', error => {
+      reject(error);
+    });
+
+    process.on('close', code => {
+      if (code === 0) {
+        resolve(stdout.trim());
+        return;
+      }
+
+      reject(new Error(`${command} exited with code ${code}\n${stderr}`));
+    });
+  });
+}
+
+/**
+ * اجرای FFmpeg
+ */
 function runFFmpeg(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const ffmpeg = spawn('ffmpeg', args, {
@@ -71,55 +123,136 @@ function runFFmpeg(args: string[]): Promise<void> {
     ffmpeg.on('close', code => {
       if (code === 0) {
         resolve();
-      } else {
-        reject(new Error(`FFmpeg exited with code ${code}`));
+        return;
       }
+
+      reject(new Error(`FFmpeg exited with code ${code}`));
     });
   });
 }
 
-function createVideoFilter(width: number, height: number): string {
-  /**
-   * First scale the video so both dimensions are
-   * at least the target resolution.
-   *
-   * Then crop the excess area.
-   *
-   * This prevents FFmpeg from creating black bars.
-   */
-  return [
-    `scale=${width}:${height}:force_original_aspect_ratio=increase`,
-    `crop=${width}:${height}`,
-  ].join(',');
-}
+/**
+ * گرفتن اطلاعات ویدیوی اصلی
+ */
+async function getVideoInfo(inputPath: string): Promise<VideoInfo> {
+  const output = await runCommand('ffprobe', [
+    '-v',
+    'error',
 
-function createMasterPlaylist(outputDir: string): void {
-  const masterPath = path.join(outputDir, 'master.m3u8');
+    '-select_streams',
+    'v:0',
 
-  const lines = ['#EXTM3U', '#EXT-X-VERSION:3', ''];
+    '-show_entries',
+    'stream=width,height,duration',
 
-  // Highest quality first
-  const orderedQualities = [...qualities].reverse();
+    '-of',
+    'json',
 
-  for (const quality of orderedQualities) {
-    lines.push(
-      `#EXT-X-STREAM-INF:BANDWIDTH=${quality.bandwidth},AVERAGE-BANDWIDTH=${quality.averageBandwidth},RESOLUTION=${quality.width}x${quality.height},CODECS="avc1.640028,mp4a.40.2"`,
-    );
+    inputPath,
+  ]);
 
-    lines.push(`${quality.name}/playlist.m3u8`);
+  const data = JSON.parse(output);
 
-    lines.push('');
+  const stream = data.streams?.[0];
+
+  if (!stream) {
+    throw new Error(`No video stream found: ${inputPath}`);
   }
 
-  writeFileSync(masterPath, lines.join('\n'), 'utf8');
-  console.log(`📄 Master playlist created: ${masterPath}`);
+  const width = Number(stream.width);
+  const height = Number(stream.height);
+  const duration = Number(stream.duration || 0);
+
+  if (!width || !height) {
+    throw new Error(`Invalid video dimensions: ${inputPath}`);
+  }
+
+  return {
+    width,
+    height,
+    duration,
+  };
 }
 
+/**
+ * محاسبه ابعاد خروجی با حفظ Aspect Ratio
+ *
+ * مثال:
+ *
+ * Original:
+ * 1920x800
+ *
+ * 360p:
+ * 864x360
+ *
+ * 480p:
+ * 1152x480
+ *
+ * 720p:
+ * 1728x720
+ *
+ * 1080p:
+ * 1920x800
+ */
+function calculateDimensions(
+  originalWidth: number,
+  originalHeight: number,
+  targetHeight: number,
+): {
+  width: number;
+  height: number;
+} {
+  /**
+   * اگر ویدیوی اصلی از کیفیت موردنظر
+   * کوچک‌تر یا مساوی باشد، Upscale نمی‌کنیم.
+   */
+  if (originalHeight <= targetHeight) {
+    return {
+      width: originalWidth - (originalWidth % 2),
+
+      height: originalHeight - (originalHeight % 2),
+    };
+  }
+
+  const aspectRatio = originalWidth / originalHeight;
+
+  let height = targetHeight;
+
+  let width = Math.round(height * aspectRatio);
+
+  /**
+   * H.264 بهتر است Resolution زوج داشته باشد.
+   */
+  width -= width % 2;
+  height -= height % 2;
+
+  return {
+    width,
+    height,
+  };
+}
+
+/**
+ * ساخت Video Filter
+ *
+ * فقط Scale انجام می‌شود.
+ *
+ * ❌ Crop نداریم.
+ * ❌ تغییر Aspect Ratio نداریم.
+ */
+function createVideoFilter(width: number, height: number): string {
+  return `scale=${width}:${height}:flags=lanczos`;
+}
+
+/**
+ * Encode یک کیفیت
+ */
 async function encodeQuality(
   inputPath: string,
   outputDir: string,
   quality: VideoQuality,
-): Promise<void> {
+  videoInfo: VideoInfo,
+): Promise<EncodedVariant> {
   const qualityDir = path.join(outputDir, quality.name);
 
   await mkdir(qualityDir, {
@@ -130,12 +263,21 @@ async function encodeQuality(
 
   const segmentPath = path.join(qualityDir, 'segment%05d.ts');
 
-  const filter = createVideoFilter(quality.width, quality.height);
+  const dimensions = calculateDimensions(
+    videoInfo.width,
+    videoInfo.height,
+    quality.height,
+  );
+
+  const filter = createVideoFilter(dimensions.width, dimensions.height);
 
   console.log('');
-  console.log(
-    `▶️ Encoding ${quality.name} (${quality.width}x${quality.height})`,
-  );
+
+  console.log(`▶️ Encoding ${quality.name}`);
+
+  console.log(`   Original: ${videoInfo.width}x${videoInfo.height}`);
+
+  console.log(`   Output:   ${dimensions.width}x${dimensions.height}`);
 
   await runFFmpeg([
     '-y',
@@ -143,7 +285,10 @@ async function encodeQuality(
     '-i',
     inputPath,
 
-    // Video
+    // =========================
+    // VIDEO
+    // =========================
+
     '-vf',
     filter,
 
@@ -171,7 +316,10 @@ async function encodeQuality(
     '-bufsize',
     quality.bufsize,
 
-    // Consistent keyframes between qualities
+    // =========================
+    // KEYFRAMES
+    // =========================
+
     '-g',
     '48',
 
@@ -181,7 +329,10 @@ async function encodeQuality(
     '-sc_threshold',
     '0',
 
-    // Audio
+    // =========================
+    // AUDIO
+    // =========================
+
     '-c:a',
     'aac',
 
@@ -194,7 +345,10 @@ async function encodeQuality(
     '-ac',
     '2',
 
+    // =========================
     // HLS
+    // =========================
+
     '-f',
     'hls',
 
@@ -211,10 +365,56 @@ async function encodeQuality(
   ]);
 
   console.log(`✅ ${quality.name} completed`);
+
+  return {
+    quality,
+    width: dimensions.width,
+    height: dimensions.height,
+  };
 }
 
+/**
+ * ساخت master.m3u8
+ */
+function createMasterPlaylist(
+  outputDir: string,
+  variants: EncodedVariant[],
+): void {
+  const masterPath = path.join(outputDir, 'master.m3u8');
+
+  const lines = ['#EXTM3U', '#EXT-X-VERSION:3', ''];
+
+  /**
+   * کیفیت بالاتر اول قرار می‌گیرد.
+   */
+  const orderedVariants = [...variants].reverse();
+
+  for (const variant of orderedVariants) {
+    const { quality, width, height } = variant;
+
+    lines.push(
+      `#EXT-X-STREAM-INF:BANDWIDTH=${quality.bandwidth},AVERAGE-BANDWIDTH=${quality.averageBandwidth},RESOLUTION=${width}x${height},CODECS="avc1.640028,mp4a.40.2"`,
+    );
+
+    lines.push(`${quality.name}/playlist.m3u8`);
+
+    lines.push('');
+  }
+
+  writeFileSync(masterPath, lines.join('\n'), 'utf8');
+
+  console.log(`📄 Master playlist created: ${masterPath}`);
+}
+
+/**
+ * Encode یک ویدیو
+ */
 async function encodeVideo(inputPath: string): Promise<void> {
   const absoluteInputPath = path.resolve(inputPath);
+
+  // =========================
+  // Validate input
+  // =========================
 
   if (!existsSync(absoluteInputPath)) {
     throw new Error(`Video not found: ${absoluteInputPath}`);
@@ -231,14 +431,37 @@ async function encodeVideo(inputPath: string): Promise<void> {
   const outputDir = path.join(path.dirname(absoluteInputPath), baseName);
 
   console.log('');
+
   console.log('======================================');
+
   console.log(`🎬 ${baseName}`);
+
   console.log('======================================');
+
   console.log(`📥 Input:  ${absoluteInputPath}`);
+
   console.log(`📤 Output: ${outputDir}`);
+
   console.log('');
 
-  // Delete previous HLS output
+  // =========================
+  // Get original information
+  // =========================
+
+  const videoInfo = await getVideoInfo(absoluteInputPath);
+
+  console.log(`📐 Original resolution: ${videoInfo.width}x${videoInfo.height}`);
+
+  if (videoInfo.duration) {
+    console.log(`⏱️ Duration: ${videoInfo.duration.toFixed(2)}s`);
+  }
+
+  console.log('');
+
+  // =========================
+  // Delete old output
+  // =========================
+
   if (existsSync(outputDir)) {
     console.log('🗑️ Removing previous HLS output...');
 
@@ -250,46 +473,107 @@ async function encodeVideo(inputPath: string): Promise<void> {
     console.log('✅ Previous output removed');
   }
 
-  // Create clean output directory
+  // =========================
+  // Create output directory
+  // =========================
+
   await mkdir(outputDir, {
     recursive: true,
   });
 
+  // =========================
+  // Encode qualities
+  // =========================
+
+  const variants: EncodedVariant[] = [];
+
   for (const quality of qualities) {
-    await encodeQuality(absoluteInputPath, outputDir, quality);
+    /**
+     * اگر Resolution اصلی از این کیفیت
+     * کوچک‌تر باشد، Upscale نمی‌کنیم.
+     *
+     * مثال:
+     *
+     * Source = 720p
+     *
+     * 360p ✅
+     * 480p ✅
+     * 720p ✅
+     * 1080p ❌
+     */
+    if (videoInfo.height < quality.height) {
+      console.log(`⏭️ Skipping ${quality.name}`);
+
+      console.log(
+        `   Source height (${videoInfo.height}) < target height (${quality.height})`,
+      );
+
+      continue;
+    }
+
+    const variant = await encodeQuality(
+      absoluteInputPath,
+      outputDir,
+      quality,
+      videoInfo,
+    );
+
+    variants.push(variant);
   }
 
-  createMasterPlaylist(outputDir);
+  // =========================
+  // Master playlist
+  // =========================
+
+  createMasterPlaylist(outputDir, variants);
 
   console.log('');
+
   console.log(`🎉 ${baseName} completed`);
+
   console.log('');
 }
 
+/**
+ * Main
+ */
 async function main(): Promise<void> {
   const inputFiles = process.argv.slice(2);
 
   if (inputFiles.length === 0) {
     console.error('');
+
     console.error('❌ No video files specified.');
+
     console.error('');
+
     console.error('Usage:');
+
     console.error('  pnpm video:encode public/home/category_1.mp4');
+
     console.error('');
+
     console.error('Multiple files:');
+
     console.error(
       '  pnpm video:encode public/home/category_1.mp4 public/home/category_2.mp4',
     );
+
     console.error('');
 
     process.exit(1);
   }
 
   console.log('');
+
   console.log('======================================');
+
   console.log('🎬 HLS VIDEO ENCODER');
+
   console.log('======================================');
+
   console.log(`📦 Files to process: ${inputFiles.length}`);
+
   console.log('');
 
   let successCount = 0;
@@ -304,20 +588,31 @@ async function main(): Promise<void> {
       failedCount++;
 
       console.error('');
-      console.error(`❌ Failed: ${inputFile}`);
-      console.error(error);
-      console.error('');
 
-      // Continue with the next video
+      console.error(`❌ Failed: ${inputFile}`);
+
+      console.error(error);
+
+      console.error('');
     }
   }
 
+  // =========================
+  // Summary
+  // =========================
+
   console.log('');
+
   console.log('======================================');
+
   console.log('📊 ENCODING SUMMARY');
+
   console.log('======================================');
+
   console.log(`✅ Successful: ${successCount}`);
+
   console.log(`❌ Failed:     ${failedCount}`);
+
   console.log('');
 
   if (failedCount > 0) {
@@ -327,7 +622,9 @@ async function main(): Promise<void> {
 
 main().catch(error => {
   console.error('');
+
   console.error('❌ Fatal error');
+
   console.error(error);
 
   process.exit(1);
