@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Book,
   Boxes,
   Briefcase,
   Grid2X2,
@@ -8,6 +9,7 @@ import {
   MessageCircle,
   Newspaper,
   Palette,
+  Percent,
   Ruler,
   Star,
   User,
@@ -89,6 +91,16 @@ export default function AdminSidebar({
         link: '/admin/contact',
         icon: MessageCircle,
         name: 'پیام های تماس با ما',
+      },
+      {
+        link: '/admin/catalog',
+        icon: Book,
+        name: 'مجله دیجیتال',
+      },
+      {
+        link: '/admin/discounts',
+        icon: Percent,
+        name: 'تخفیفات',
       },
     );
   }

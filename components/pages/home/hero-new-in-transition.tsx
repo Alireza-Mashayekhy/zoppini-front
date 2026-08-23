@@ -27,7 +27,7 @@ export default function HeroNewInTransition({
 
   useGSAP(
     () => {
-      if (!wrapperRef.current || !categoriesRef.current || !newInRef.current) {
+      if (!wrapperRef.current || !newInRef.current) {
         return;
       }
 
@@ -52,22 +52,24 @@ export default function HeroNewInTransition({
       });
 
       /*
-       * مرحله 1
+       * مرحله 1 (اختیاری)
        *
-       * دقیقاً مثل کد اول:
-       * کل لیست دسته بندی ها با هم از پایین بالا می آید
+       * اگر categoriesRef به المانی وصل باشد،
+       * لیست دسته‌بندی‌ها از پایین بالا می‌آید
        */
-      timeline.fromTo(
-        categoriesRef.current,
-        {
-          yPercent: 120,
-        },
-        {
-          yPercent: 0,
-          duration: 1,
-          ease: 'power2.out',
-        },
-      );
+      if (categoriesRef.current) {
+        timeline.fromTo(
+          categoriesRef.current,
+          {
+            yPercent: 120,
+          },
+          {
+            yPercent: 0,
+            duration: 1,
+            ease: 'power2.out',
+          },
+        );
+      }
 
       /*
        * مرحله 2
