@@ -39,13 +39,14 @@ export default async function HomePage() {
         products={FeaturedProducts?.data ?? []}
       />
 
-      <div className="py-4">
+      <div>
         <Link href="/discounted-products">
-          <div className="relative hidden sm:block w-full aspect-[2.4] overflow-hidden">
+          <div className="relative hidden sm:block w-full h-auto overflow-hidden">
             <Image
-              src="/home/sale.webp"
+              src="/home/sale.png"
               alt="محصولات تخفیف‌دار زوپینی"
-              fill
+              width={4269}
+              height={2400}
               priority
               sizes="100vw"
               quality={100}
