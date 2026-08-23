@@ -99,6 +99,7 @@ export default function SuggestedStyle({
             <div className="h-full w-[98vw] shrink-0 sm:w-[40vw] lg:w-[28.57vw]">
               <HlsVideo
                 src="/home/style/master.m3u8"
+                lowQualityFirst
                 className="h-full w-full object-cover"
               />
             </div>

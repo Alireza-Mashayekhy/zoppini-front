@@ -43,10 +43,12 @@ export default function EndVideo() {
     >
       <HlsVideo
         src="/home/end/master.m3u8"
+        lowQualityFirst
         className="w-full h-full object-cover hidden sm:block"
       />
       <HlsVideo
         src="/home/mobile_end/master.m3u8"
+        lowQualityFirst
         className="w-full h-full object-cover block sm:hidden"
       />
     </div>
