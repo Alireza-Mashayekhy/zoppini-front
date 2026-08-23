@@ -15,7 +15,7 @@ export default async function Header() {
   return (
     <HeaderScroll>
       <header className="w-full bg-background backdrop-blur-2xl">
-        <div className="custom-container grid h-13 grid-cols-3 items-center lg:flex lg:justify-between">
+        <div className="px-6 grid h-13 grid-cols-3 items-center lg:flex lg:justify-between">
           {/* RIGHT */}
           <div className="flex items-center">
             <Logo className="ml-5 hidden h-6.5 w-30 md:h-8.25 md:w-35 lg:block" />
