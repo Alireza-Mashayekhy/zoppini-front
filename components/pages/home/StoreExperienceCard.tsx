@@ -2,7 +2,15 @@
 
 import './StoreExperienceCard.css';
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import {
+  FocusEvent,
+  TransitionEvent,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 /**
  * کارت فروشگاه — مکعب سه‌بعدی افقی مثل کارت سرویس گوچی.
@@ -50,7 +58,7 @@ export default function StoreExperienceCard({
 }) {
   const reactId = useId();
   const blurId = `zse-spin-blur-${reactId.replace(/:/g, '')}`;
-  const cardRef = useRef(null);
+  const cardRef = useRef<HTMLElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const faces = (images.length ? images : DEFAULT_IMAGES).slice(0, 4);
 
@@ -100,7 +108,7 @@ export default function StoreExperienceCard({
     return () => window.clearTimeout(timer);
   }, [holdMs, isPaused, spinning, snap, turn]);
 
-  function handleTransitionEnd(event) {
+  function handleTransitionEnd(event: TransitionEvent<HTMLElement>) {
     if (event.target !== event.currentTarget) return;
     if (event.propertyName !== 'transform') return;
     if (!spinning) return;
@@ -112,11 +120,17 @@ export default function StoreExperienceCard({
     }
   }
 
-  function handleBlur(event) {
-    if (!event.currentTarget.contains(event.relatedTarget)) {
+  function handleBlur(event: FocusEvent<HTMLElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setFocusPaused(false);
     }
   }
+
+  const cardStyle = {
+    '--zse-spin-ms': `${spinMs}ms`,
+    '--zse-turn': String(turn),
+    '--zse-seam-filter': `url(#${blurId})`,
+  } as React.CSSProperties;
 
   return (
     <section
@@ -129,11 +143,7 @@ export default function StoreExperienceCard({
       ]
         .filter(Boolean)
         .join(' ')}
-      style={{
-        '--zse-spin-ms': `${spinMs}ms`,
-        '--zse-turn': String(turn),
-        '--zse-seam-filter': `url(#${blurId})`,
-      }}
+      style={cardStyle}
       aria-label="تجربه فروشگاه‌های زوپینی"
       onMouseEnter={() => setHoverPaused(true)}
       onMouseLeave={() => setHoverPaused(false)}
