@@ -155,6 +155,7 @@ export default function CategoriesSection({
         <div className="relative col-span-2 aspect-square hidden sm:block">
           <HlsVideo
             src="/home/category_1/master.m3u8"
+            lowQualityFirst
             className="h-full w-full object-cover"
           />
         </div>
@@ -163,6 +164,7 @@ export default function CategoriesSection({
         <div className="relative col-span-2 aspect-square">
           <HlsVideo
             src="/home/category_2/master.m3u8"
+            lowQualityFirst
             className="h-full w-full object-cover"
           />
         </div>

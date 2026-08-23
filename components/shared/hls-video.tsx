@@ -14,7 +14,18 @@ interface HlsVideoProps extends Omit<
   'src'
 > {
   src: string;
+  /**
+   * اگر true باشد، ویدیو با پایین‌ترین کیفیت شروع شده
+   * و بعد از لود کامل صفحه، کیفیت آرام آرام بالا می‌رود.
+   */
+  lowQualityFirst?: boolean;
 }
+
+/**
+ * تعداد فریم‌های انتظار بین هر بار ارتقاء کیفیت
+ * (حدود ۳ ثانیه → ۶۰ فریم)
+ */
+const UPGRADE_INTERVAL_MS = 3000;
 
 const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
   (
@@ -25,6 +36,7 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
       muted = true,
       loop = true,
       playsInline = true,
+      lowQualityFirst = false,
       ...props
     },
     forwardedRef,
@@ -43,13 +55,15 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
       if (!video) return;
 
       let hls: Hls | null = null;
+      let upgradeTimer: ReturnType<typeof setInterval> | null = null;
 
       // Chrome / Edge / Firefox
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
 
-          startLevel: -1,
+          // اگر lowQualityFirst فعال باشد، از پایین‌ترین کیفیت شروع کن
+          startLevel: lowQualityFirst ? 0 : -1,
           capLevelToPlayerSize: false,
 
           abrBandWidthFactor: 0.7,
@@ -61,6 +75,47 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
 
         hls.loadSource(src);
         hls.attachMedia(video);
+
+        // ── منطق ارتقاء کیفیت پس از لود صفحه ──
+        if (lowQualityFirst) {
+          const startUpgrade = () => {
+            if (!hls) return;
+
+            // اگر هنوز به آخرین سطح نرسیده‌ایم
+            let currentLevel = hls.currentLevel;
+            const maxLevel = hls.levels.length - 1;
+
+            if (currentLevel < maxLevel) {
+              // سطح بعدی را انتخاب کن
+              hls.currentLevel = currentLevel + 1;
+            } else {
+              // به آخرین سطح رسیدیم → ABR خودکار را فعال کن
+              hls.nextLevel = -1;
+
+              // تایمر را متوقف کن
+              if (upgradeTimer) {
+                clearInterval(upgradeTimer);
+                upgradeTimer = null;
+              }
+            }
+          };
+
+          // بعد از لود کامل صفحه، شروع به ارتقاء کن
+          if (document.readyState === 'complete') {
+            // صفحه قبلاً لود شده
+            upgradeTimer = setInterval(startUpgrade, UPGRADE_INTERVAL_MS);
+          } else {
+            const onLoad = () => {
+              upgradeTimer = setInterval(startUpgrade, UPGRADE_INTERVAL_MS);
+            };
+            window.addEventListener('load', onLoad, { once: true });
+
+            // cleanup برای این listener
+            hls.on(Hls.Events.DESTROYING, () => {
+              window.removeEventListener('load', onLoad);
+            });
+          }
+        }
       }
 
       // Safari / iOS
@@ -75,6 +130,11 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
       }
 
       return () => {
+        if (upgradeTimer) {
+          clearInterval(upgradeTimer);
+          upgradeTimer = null;
+        }
+
         if (hls) {
           hls.destroy();
           hls = null;
@@ -84,7 +144,7 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
         video.removeAttribute('src');
         video.load();
       };
-    }, [src]);
+    }, [src, lowQualityFirst]);
 
     return (
       <video

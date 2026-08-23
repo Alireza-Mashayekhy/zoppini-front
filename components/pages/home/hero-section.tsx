@@ -88,6 +88,7 @@ export default function HeroSection(
             muted
             loop
             playsInline
+            lowQualityFirst
             className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
@@ -124,6 +125,7 @@ export default function HeroSection(
             muted
             loop
             playsInline
+            lowQualityFirst
             className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
