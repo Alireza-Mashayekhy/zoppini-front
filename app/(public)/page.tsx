@@ -2,10 +2,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import CategoriesSection from '@/components/pages/home/category-section';
+import CubeImageCarousel from '@/components/pages/home/cube-image-carousel';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
-import HlsVideo from '@/components/shared/hls-video';
 import { ApiListResponse } from '@/services/api/types';
 import {
   getHeroSectionCategories,
@@ -74,10 +74,18 @@ export default async function HomePage() {
 
       <EndVideo />
 
-      <div className="flex justify-center py-10">
-        <HlsVideo
+      <div className="flex justify-center my-10">
+        {/* <HlsVideo
           src="/home/shoab/master.m3u8"
           className="aspect-square w-full max-w-[200px] sm:max-w-[500px] object-cover"
+        /> */}
+        <CubeImageCarousel
+          images={[
+            '/home/store-01.png',
+            '/home/store-02.png',
+            '/home/store-03.png',
+            '/home/store-04.png',
+          ]}
         />
       </div>
     </div>
