@@ -68,9 +68,9 @@ export default function Footer() {
           </p>
           <Button>عضویت</Button>
         </div> */}
-        <div className="flex flex-col gap-5 max-w-72">
+        <div className="flex flex-col gap-5 sm:max-w-72">
           <span className="text-sm font-semibold">درباره ما</span>
-          <p className="text-sm">
+          <p className="text-sm leading-[1.8]">
             زوپینی از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه باکیفیت و متفاوت فعالیت
             می‌کند. ما با تکیه بر زنجیره یکپارچه طراحی، تأمین و تولید، مجموعه‌ای
             از پوشاک کلاسیک و کژوال را ارائه می‌دهیم. کت‌وشلوارهای زوپینی با

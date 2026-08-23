@@ -31,7 +31,6 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
   ) => {
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    // ref داخلی را در اختیار parent هم قرار می‌دهیم
     useImperativeHandle(
       forwardedRef,
       () => videoRef.current as HTMLVideoElement,
@@ -41,26 +40,18 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
     useEffect(() => {
       const video = videoRef.current;
 
-      if (!video) {
-        console.error('❌ Video element not found');
+      if (!video) return;
 
-        return;
-      }
-
-      console.log('🎬 HLS init:', src);
+      let hls: Hls | null = null;
 
       // Chrome / Edge / Firefox
       if (Hls.isSupported()) {
-        const hls = new Hls({
+        hls = new Hls({
           enableWorker: true,
 
-          // Auto quality
           startLevel: -1,
-
-          // فعلاً محدود به اندازه container نیست
           capLevelToPlayerSize: false,
 
-          // Adaptive bitrate
           abrBandWidthFactor: 0.7,
           abrBandWidthUpFactor: 0.5,
 
@@ -70,27 +61,29 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
 
         hls.loadSource(src);
         hls.attachMedia(video);
-
-        return () => {
-          hls.destroy();
-        };
       }
 
       // Safari / iOS
-      const nativeHls = video.canPlayType('application/vnd.apple.mpegurl');
-
-      if (nativeHls === 'probably' || nativeHls === 'maybe') {
+      else if (
+        video.canPlayType('application/vnd.apple.mpegurl') === 'probably' ||
+        video.canPlayType('application/vnd.apple.mpegurl') === 'maybe'
+      ) {
         video.src = src;
-
-        return () => {
-          video.removeAttribute('src');
-          video.load();
-        };
+        video.load();
+      } else {
+        console.error('❌ HLS is not supported');
       }
 
-      console.error('❌ HLS is not supported');
+      return () => {
+        if (hls) {
+          hls.destroy();
+          hls = null;
+        }
 
-      return undefined;
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      };
     }, [src]);
 
     return (
@@ -100,6 +93,7 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
         loop={loop}
         autoPlay={autoPlay}
         playsInline={playsInline}
+        preload="auto"
         className={className}
         {...props}
       />

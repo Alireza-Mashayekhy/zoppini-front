@@ -54,6 +54,8 @@ export default function ProductContent({
   });
 
   // ۴. اضافه کردن URL تصویر برای هر رنگ
+  console.log(colorMap);
+  console.log(product.sameColorProducts);
   const colorLinks = Array.from(colorMap.values()).map(item => {
     let imageUrl = '';
     if (item.productSlug === product.slug) {
@@ -68,12 +70,12 @@ export default function ProductContent({
         p => p.slug === item.productSlug,
       );
       if (sameProduct) {
-        const colorImage = sameProduct.colorImages?.find(
-          img => img.color?.id === item.color.id,
-        );
+        const colorImage = sameProduct.colorImages[0];
+
         imageUrl = colorImage?.url || '';
       }
     }
+
     return {
       ...item,
       url: imageUrl,
