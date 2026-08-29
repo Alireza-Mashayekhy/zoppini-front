@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title: 'محصولات تخفیف خورده - زوپینی',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

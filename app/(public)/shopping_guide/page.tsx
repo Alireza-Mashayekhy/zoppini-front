@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'راهنمای خرید - زوپینی',
     description:
       'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

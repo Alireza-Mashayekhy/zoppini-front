@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: 'رویداد ها - زوپینی',
     description:
       'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',
