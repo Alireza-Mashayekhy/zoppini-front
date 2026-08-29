@@ -153,17 +153,18 @@ export default function Cart() {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex flex-col">
-                          {item?.variant?.discountedPrice && (
-                            <span className="text-sm font-medium">
-                              {(
-                                item.variant.discountedPrice * item.quantity
-                              ).toLocaleString()}{' '}
-                              تومان
-                            </span>
-                          )}
+                          {item?.variant?.discount &&
+                            item?.variant?.discountedPrice && (
+                              <span className="text-sm font-medium">
+                                {(
+                                  item.variant.discountedPrice * item.quantity
+                                ).toLocaleString()}{' '}
+                                تومان
+                              </span>
+                            )}
                           <span
                             className={
-                              item?.variant?.discountedPrice
+                              item?.variant?.discount
                                 ? 'text-xs font-medium line-through'
                                 : 'text-sm font-medium'
                             }
