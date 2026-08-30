@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductContent from '@/components/pages/product/content';
+import ProductJsonLd from '@/components/pages/product/product-jsonld';
 import { getProduct } from '@/services/features/products/server.api';
 
 interface ProductPageProps {
@@ -72,5 +73,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const productData = product.data;
 
   console.log(productData);
-  return <ProductContent products={productData} />;
+  return (
+    <>
+      <ProductJsonLd product={productData.product} />
+      <ProductContent products={productData} />
+    </>
+  );
 }

@@ -40,6 +40,25 @@ export default function PublicLayout({
         }}
       />
 
+      <Script
+        id="json-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'زوپینی',
+            url: 'https://zoppinico.com',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target:
+                'https://zoppinico.com/products?search={search_term_string}',
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
+
       <Header />
 
       {children}
