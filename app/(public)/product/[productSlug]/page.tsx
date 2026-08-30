@@ -40,7 +40,6 @@ export async function generateMetadata({
     return {
       title: `${productData.title} - زوپینی`,
       description: cleanDescription,
-      keywords: productData.title?.split(' ').slice(0, 5).join(', ') || '',
       openGraph: {
         title: productData.title,
         description: cleanDescription,

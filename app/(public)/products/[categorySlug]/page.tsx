@@ -46,7 +46,6 @@ export async function generateMetadata({
     return {
       title: `قیمت و خرید انواع ${categoryData.name} - زوپینی`,
       description: cleanDescription,
-      keywords: `خرید ${categoryData.name}, محصولات ${categoryData.name}, ${categoryData.name} مردانه, زوپینی`,
       openGraph: {
         title: categoryData.name,
         description: cleanDescription,

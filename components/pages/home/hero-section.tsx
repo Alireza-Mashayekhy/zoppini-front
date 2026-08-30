@@ -160,7 +160,12 @@ export default function HeroSection(
 
       {/* Logo */}
       <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-        <Image src="/logo/white-logo.png" width={200} height={30} alt="logo" />
+        <Image
+          src="/logo/white-logo.png"
+          width={200}
+          height={30}
+          alt="زوپینی"
+        />
       </div>
 
       {/* Hero Categories */}
