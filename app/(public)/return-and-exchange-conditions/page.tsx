@@ -22,7 +22,7 @@ export const metadata: Metadata = {
       ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
   },
   alternates: {
-    canonical: '/contact',
+    canonical: '/return-and-exchange-conditions',
   },
 };
 

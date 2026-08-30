@@ -21,7 +21,7 @@ export const metadata: Metadata = {
       'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
   },
   alternates: {
-    canonical: '/contact',
+    canonical: '/events',
   },
 };
 
