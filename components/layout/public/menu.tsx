@@ -190,9 +190,9 @@ export default function Menu({
                 {activeCategory ? (
                   <>
                     <div className="mb-5 flex items-center justify-between border-b pb-4">
-                      <h3 className="text-base font-medium">
+                      <span className="text-base font-medium">
                         {activeCategory.name}
-                      </h3>
+                      </span>
 
                       <Link
                         href={`/products/${activeCategory.slug}`}
