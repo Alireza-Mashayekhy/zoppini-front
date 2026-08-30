@@ -1,4 +1,6 @@
 // app/products/page.tsx
+import { Metadata } from 'next';
+
 import ProductList from '@/components/pages/products/product-list';
 import { getProducts } from '@/services/features/products/server.api';
 
@@ -13,6 +15,13 @@ interface ProductsPageProps {
     sizeIds?: string;
   }>;
 }
+
+export const metadata: Metadata = {
+  title: 'همه محصولات - زوپینی',
+  description:
+    'خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار از زوپینی',
+  alternates: { canonical: '/products' },
+};
 
 export default async function ProductsPage({
   searchParams,
