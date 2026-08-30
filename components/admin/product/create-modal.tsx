@@ -325,8 +325,6 @@ export default function ProductCreateModal({
         return;
       }
 
-      console.log(variantsPayload);
-
       const formData = new FormData();
       formData.append('productCode', productCode);
       formData.append('title', title);

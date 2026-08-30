@@ -72,7 +72,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProduct(productSlug);
   const productData = product.data;
 
-  console.log(productData);
   return (
     <>
       <ProductJsonLd product={productData.product} />

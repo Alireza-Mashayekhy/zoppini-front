@@ -31,7 +31,6 @@ export default function ProductSizes({
   const [hoveredSizeId, setHoveredSizeId] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  console.log(product.variants);
   const uniqueSizes =
     product.variants
       ?.map(v => v.size)

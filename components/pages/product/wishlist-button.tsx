@@ -29,7 +29,6 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
   const removeFromWishlist = useRemoveFromWishlist();
 
   const handleToggle = async () => {
-    console.log(isInWishlist);
     if (!user) {
       toast.info('برای افزودن به علاقه‌مندی‌ها وارد شوید');
       router.push('/login');

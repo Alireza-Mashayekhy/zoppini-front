@@ -48,7 +48,6 @@ export default function SuggestedProductsModal({
 
   // وقتی مودال باز می‌شود، انتخاب‌های قبلی را از selectedData بارگذاری کن
   useEffect(() => {
-    console.log(selectedData);
     if (selectedData && open) {
       const currentSuggested =
         selectedData.suggestedProducts?.map(p => p?.id) || [];
