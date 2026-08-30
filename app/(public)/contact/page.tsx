@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'تماس زوپینی',
     description:
       'آدرس دفتر مرکزی : تهران، خیابان فردوسی, خیابان منوچهری, خیابان ارباب جمشید, پلاک 17, واحد 29, طبقه 2،',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

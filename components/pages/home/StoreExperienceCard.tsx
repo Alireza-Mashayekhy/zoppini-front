@@ -168,8 +168,16 @@ export default function StoreExperienceCard({
       </svg>
 
       <div className="zse__fill" aria-hidden="true">
-        <img className="zse__fill-image" src={outgoing.src} alt="" />
-        <img className="zse__fill-image" src={incoming.src} alt="" />
+        <img
+          className="zse__fill-image"
+          src={outgoing.src}
+          alt="store image 1"
+        />
+        <img
+          className="zse__fill-image"
+          src={incoming.src}
+          alt="store image 2"
+        />
       </div>
 
       <div className="zse__stage">

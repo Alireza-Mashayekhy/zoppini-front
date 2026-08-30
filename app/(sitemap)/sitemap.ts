@@ -18,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date('2026-07-15T14:13:00+00:00'),
     },
     {
-      url: `${BASE_URL}/product_cat-sitemap.xml`,
+      url: `${BASE_URL}/product-category-sitemap.xml`,
       lastModified: new Date('2026-07-15T14:13:00+00:00'),
     },
   ];

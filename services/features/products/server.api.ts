@@ -67,7 +67,6 @@ export async function getDiscountedProducts(params: GetProductsParams = {}) {
     searchParams.append('sizeIds', params.sizeIds.join(','));
   }
 
-  console.log(searchParams);
   const url = `products/discounted?${searchParams.toString()}`;
   return serverFetch<ApiListResponse<ProductsResponse>>(url);
 }

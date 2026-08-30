@@ -78,6 +78,9 @@ export default function HeroSection(
 
   return (
     <section className="relative h-full overflow-hidden">
+      <h1 className="sr-only">
+        فروشگاه آنلاین پوشاک مردانه زوپینی - کت شلوار، پالتو و پیراهن مردانه
+      </h1>
       {/* Videos */}
       <div className="grid h-full grid-cols-1 sm:grid-cols-2">
         {/* Video 1 */}
@@ -157,7 +160,12 @@ export default function HeroSection(
 
       {/* Logo */}
       <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-        <Image src="/logo/white-logo.png" width={200} height={30} alt="logo" />
+        <Image
+          src="/logo/white-logo.png"
+          width={200}
+          height={30}
+          alt="زوپینی"
+        />
       </div>
 
       {/* Hero Categories */}

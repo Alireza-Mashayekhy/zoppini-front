@@ -43,7 +43,6 @@ export default function middleware(request: NextRequest) {
 
     if (pathname.startsWith('/admin')) {
       const allowedRoles = ['admin', 'seo'];
-      console.log(roleArray);
       const hasAccess = roleArray.some(role => allowedRoles.includes(role));
       if (!hasAccess) {
         return NextResponse.redirect(new URL('/dashboard', request.url));

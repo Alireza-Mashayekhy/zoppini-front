@@ -19,7 +19,7 @@ export default function BranchesContent() {
         {/* Header */}
         <div className="mb-8 pt-6">
           <h1 className="text-3xl md:text-4xl font-light text-[#1A1A1A] tracking-wide">
-            تماس با <span className="font-medium text-[#D4A373]">زوپینی</span>
+            شعب <span className="font-medium text-[#D4A373]">زوپینی</span>
           </h1>
           <p className="text-gray-500 mt-2 text-sm md:text-base">
             ما همیشه برای پاسخگویی به شما در دسترس هستیم

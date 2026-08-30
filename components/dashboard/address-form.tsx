@@ -103,7 +103,6 @@ export default function AddressForm({
   }, [initialData, reset]);
 
   const onSubmit = async (data: AddressFormData) => {
-    console.log(data);
     try {
       if (isEditing && initialData) {
         await updateAddress.mutateAsync({

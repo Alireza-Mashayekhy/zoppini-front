@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: 'سوالات متداول - زوپینی',
     description:
       'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

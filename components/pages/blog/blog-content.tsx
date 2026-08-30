@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { BlogPostResponse } from '@/services/features/blog/types';
 
 export default function BlogContent({ post }: { post: BlogPostResponse }) {
-  console.log(post);
   const formattedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString('fa-IR')
     : null;

@@ -2,6 +2,8 @@
 import { Metadata } from 'next';
 
 import ProductContent from '@/components/pages/product/content';
+import ProductJsonLd from '@/components/pages/product/product-jsonld';
+import Breadcrumb from '@/components/shared/breadcrumb';
 import { getProduct } from '@/services/features/products/server.api';
 
 interface ProductPageProps {
@@ -38,7 +40,6 @@ export async function generateMetadata({
     return {
       title: `${productData.title} - زوپینی`,
       description: cleanDescription,
-      keywords: productData.title?.split(' ').slice(0, 5).join(', ') || '',
       openGraph: {
         title: productData.title,
         description: cleanDescription,
@@ -71,6 +72,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProduct(productSlug);
   const productData = product.data;
 
-  console.log(productData);
-  return <ProductContent products={productData} />;
+  return (
+    <>
+      <ProductJsonLd product={productData.product} />
+      <Breadcrumb
+        items={[
+          { name: 'خانه', href: '/' },
+          {
+            name: productData.product.categories[0].name,
+            href: `/products/${productData.product.categories[0].slug}`,
+          },
+          {
+            name: productData.product.title,
+            href: `/product/${productData.product.slug}`,
+          },
+        ]}
+      />
+      <ProductContent products={productData} />
+    </>
+  );
 }

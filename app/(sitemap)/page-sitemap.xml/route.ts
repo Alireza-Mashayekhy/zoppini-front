@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 const BASE_URL = 'https://zoppinico.com';
 
 const pagesList = [
-  `${BASE_URL}/`,
+  `${BASE_URL}`,
 
   `${BASE_URL}/b2bsale`,
 

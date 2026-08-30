@@ -87,7 +87,7 @@ export default function Footer() {
           >
             <Image
               src="/footer/enamad.webp"
-              alt="enamad"
+              alt="نماد اعتماد الکترونیکی زوپینی"
               width={35}
               height={35}
             />

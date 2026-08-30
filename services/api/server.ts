@@ -69,7 +69,6 @@ export async function serverFetch<T>(
         cache: options.cache ?? 'no-store',
         next: options.next,
       });
-      console.log(res, options.method);
     } else {
       throw new Error('UNAUTHORIZED');
     }

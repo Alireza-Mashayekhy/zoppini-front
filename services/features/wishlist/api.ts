@@ -25,7 +25,6 @@ export const checkWishlist = async (productId: number): Promise<boolean> => {
   const url = endpoints.wishlist.check(productId);
 
   const { data } = await api.get<ApiSingleResponse<WishlistCheckResponse>>(url);
-  console.log('data', data);
   return data.data.isInWishlist;
 };
 

@@ -36,7 +36,6 @@ export function PersianDatePicker({
         locale: persian_fa,
         date: formValue,
       });
-      console.log(formValue, date.format());
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDateValue(date.format());
       return;

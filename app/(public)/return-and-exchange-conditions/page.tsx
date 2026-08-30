@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     title: 'شرایط مرجوع و تعویض - زوپینی',
     description:
       ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
-    images: [{ url: '/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
       ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
   },
   alternates: {
-    canonical: '/contact',
+    canonical: '/return-and-exchange-conditions',
   },
 };
 
