@@ -17,10 +17,10 @@ interface ProductsPageProps {
 }
 
 export const metadata: Metadata = {
-  title: 'محصولات تخفیف خورده - زوپینی',
+  title: 'فروش ویژه - زوپینی',
 
   openGraph: {
-    title: 'محصولات تخفیف خورده - زوپینی',
+    title: 'فروش ویژه - زوپینی',
     images: [{ url: '/logo/og-image.jpg' }],
     type: 'website',
     siteName: 'زوپینی',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'محصولات تخفیف خورده - زوپینی',
+    title: 'فروش ویژه - زوپینی',
   },
   alternates: {
     canonical: '/discounted-products',
@@ -56,7 +56,7 @@ export default async function ProductsPage({
   return (
     <div className="pt-[52px]">
       <h1 className="h-20 border-t px-6 flex items-center">
-        محصولات تخفیف خورده
+        فروش ویژه
         <span className="mr-2 text-sm text-gray-500 font-normal">
           ({productsData?.pagination?.total || 0} محصول)
         </span>
