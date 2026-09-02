@@ -34,6 +34,7 @@ interface ProductListProps {
     colorIds?: number[];
     sizeIds?: number[];
   };
+  discounted?: boolean;
 }
 
 const BASE_URL =
@@ -73,6 +74,7 @@ function Dot({
 export default function ProductList({
   initialData,
   initialParams,
+  discounted = false,
 }: ProductListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -138,7 +140,7 @@ export default function ProductList({
       }
 
       const response = await fetch(
-        `${BASE_URL}/products?${queryParams.toString()}`,
+        `${BASE_URL}/${discounted ? 'products/discounted' : 'products'}?${queryParams.toString()}`,
       );
       const data = (await response.json()) as ApiListResponse<ProductsResponse>;
 

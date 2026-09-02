@@ -61,7 +61,11 @@ export default async function ProductsPage({
           ({productsData?.pagination?.total || 0} محصول)
         </span>
       </h1>
-      <ProductList initialData={productsData} initialParams={queryParams} />
+      <ProductList
+        initialData={productsData}
+        initialParams={queryParams}
+        discounted
+      />
     </div>
   );
 }
