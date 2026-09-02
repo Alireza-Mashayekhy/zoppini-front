@@ -185,12 +185,12 @@ export default function PWAModal() {
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleLater} className="flex-1">
+          <Button variant="outline" onClick={handleLater}>
             بعداً
           </Button>
 
           {!isIOS && prompt && (
-            <Button onClick={handleInstall} className="flex-1">
+            <Button onClick={handleInstall}>
               <Download className="mr-2 h-4 w-4" />
               نصب اپلیکیشن
             </Button>
