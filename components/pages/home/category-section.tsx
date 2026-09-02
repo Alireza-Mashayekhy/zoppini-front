@@ -125,7 +125,7 @@ export default function CategoriesSection({
         {/* دسته بندی های 1 تا 4 */}
         {categories.slice(0, 4).map(category => (
           <Link
-            href={`/products/${category.slug}`}
+            href={`/product-category/${category.slug}`}
             key={category.name}
             className="group relative mx-0.5 my-1 aspect-square bg-gray-300"
           >
@@ -172,7 +172,7 @@ export default function CategoriesSection({
         {/* دسته بندی های 5 تا 8 */}
         {categories.slice(4, 8).map(category => (
           <Link
-            href={`/products/${category.slug}`}
+            href={`/product-category/${category.slug}`}
             key={category.name}
             className="group relative mx-0.5 my-1 aspect-square bg-gray-300"
           >

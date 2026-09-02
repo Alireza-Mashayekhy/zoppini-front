@@ -61,7 +61,7 @@ export async function generateMetadata({
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
-        canonical: `/products/${categoryData.slug}`,
+        canonical: `/product-category/${categoryData.slug}`,
       },
     };
   } catch (error) {

@@ -175,7 +175,7 @@ export default function HeroSection(
       >
         {categories.map(category => (
           <Link
-            href={`/products/${category.slug}`}
+            href={`/product-category/${category.slug}`}
             key={category.id}
             className="group relative inline-block overflow-hidden rounded-lg py-1 text-xl font-semibold text-shadow-lg"
           >

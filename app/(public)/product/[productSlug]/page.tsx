@@ -80,7 +80,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           { name: 'خانه', href: '/' },
           {
             name: productData.product.categories[0].name,
-            href: `/products/${productData.product.categories[0].slug}`,
+            href: `/product-category/${productData.product.categories[0].slug}`,
           },
           {
             name: productData.product.title,
