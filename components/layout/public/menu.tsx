@@ -152,6 +152,13 @@ export default function Menu({
                 </div>
 
                 <div className="space-y-1">
+                  <Link
+                    href={`/discounted-products`}
+                    onMouseEnter={() => setActiveCategory(null)}
+                    className={`group flex items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-white hover:text-black hover:shadow-sm text-gray-700`}
+                  >
+                    <span>فروش ویژه</span>
+                  </Link>
                   {tree.map(category => {
                     const hasChildren = category.children.length > 0;
 
@@ -308,13 +315,16 @@ export default function Menu({
           </div>
 
           <div className="h-[calc(100%-80px)] space-y-1 overflow-y-auto p-4 scrollbar-thin">
-            {tree.length === 0 ? (
-              <p className="text-center text-gray-500">دسته‌بندی وجود ندارد</p>
-            ) : (
-              tree.map(category => (
-                <MobileCategoryNode key={category.id} category={category} />
-              ))
-            )}
+            {tree.map(category => (
+              <MobileCategoryNode key={category.id} category={category} />
+            ))}
+            <Link
+              href={`/discounted-products`}
+              className="block rounded-none border no-underline! border-transparent px-4 py-2 text-sm hover:border-black"
+              onClick={() => setIsMobileOpen(false)}
+            >
+              فروش ویژه
+            </Link>
           </div>
         </div>
       </div>

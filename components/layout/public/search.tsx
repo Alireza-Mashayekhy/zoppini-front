@@ -152,17 +152,21 @@ export default function Search() {
               {isLoading ? (
                 <div className="text-center text-gray-400">در حال جستجو...</div>
               ) : data?.data && data?.data.length > 0 ? (
-                <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                  {data?.data.map(product => (
-                    <ProductCard
-                      key={product.id}
-                      image={product.image}
-                      price={product?.variants?.[0]?.price}
-                      slug={product.slug}
-                      title={product.title}
-                    />
-                  ))}
-                </div>
+                query ? (
+                  <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                    {data?.data.map(product => (
+                      <ProductCard
+                        key={product.id}
+                        image={product.image}
+                        price={product?.variants?.[0]?.price}
+                        slug={product.slug}
+                        title={product.title}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  ''
+                )
               ) : query.trim() && !isLoading ? (
                 <div className="text-center text-gray-400">
                   نتیجه‌ای یافت نشد

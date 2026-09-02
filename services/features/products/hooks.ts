@@ -381,9 +381,12 @@ export const useRahkaranProducsList = (query: {
 };
 
 export function useSyncProduct() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (id: number) => syncProduct(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast.success('به روزرسانی راهکاران با موفقیت انجام شد');
     },
     onError: (error: any) => {
