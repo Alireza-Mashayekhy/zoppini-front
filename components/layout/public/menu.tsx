@@ -72,7 +72,7 @@ export default function Menu({
       return (
         <Link
           href={`/products/${category.slug}`}
-          className="block rounded-none border border-transparent px-4 py-2 text-sm hover:border-black"
+          className="block rounded-none border no-underline! border-transparent px-4 py-2 text-sm hover:border-black"
           onClick={() => setIsMobileOpen(false)}
         >
           {category.name}
@@ -91,7 +91,7 @@ export default function Menu({
             <div className="mr-4 mt-1 space-y-1 border-r pr-4">
               <Link
                 href={`/products/${category.slug}`}
-                className="block rounded-none border border-transparent px-4 py-2 text-sm hover:border-black"
+                className="block rounded-none border border-transparent no-underline! px-4 py-2 text-sm hover:border-black"
                 onClick={() => setIsMobileOpen(false)}
               >
                 مشاهده همه
