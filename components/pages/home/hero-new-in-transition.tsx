@@ -33,50 +33,44 @@ export default function HeroNewInTransition({
 
       const mm = gsap.matchMedia();
 
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: wrapperRef.current,
-          start: 'top top',
-
-          // کل مسیر اسکرول
-          end: '+=1600',
-
-          scrub: 1,
-
-          pin: true,
-
-          anticipatePin: 1,
-
-          invalidateOnRefresh: true,
-        },
-      });
-
-      /*
-       * مرحله 1 (اختیاری)
-       *
-       * اگر categoriesRef به المانی وصل باشد،
-       * لیست دسته‌بندی‌ها از پایین بالا می‌آید
-       */
-      if (categoriesRef.current) {
-        timeline.fromTo(
-          categoriesRef.current,
-          {
-            yPercent: 120,
-          },
-          {
-            yPercent: 0,
-            duration: 1,
-            ease: 'power2.out',
-          },
-        );
-      }
-
-      /*
-       * مرحله 2
-       *
-       * New In جداگانه و آهسته تر
-       */
+      // فقط دسکتاپ
       mm.add('(min-width: 768px)', () => {
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: wrapperRef.current,
+            start: 'top top',
+            end: '+=1600',
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        /*
+         * مرحله 1 - Categories
+         *
+         * در صورت نیاز می‌توانی فعالش کنی.
+         */
+
+        // if (categoriesRef.current) {
+        //   timeline.fromTo(
+        //     categoriesRef.current,
+        //     {
+        //       yPercent: 120,
+        //     },
+        //     {
+        //       yPercent: 0,
+        //       duration: 1,
+        //       ease: 'power2.out',
+        //     },
+        //   );
+        // }
+
+        /*
+         * مرحله 2 - New In
+         */
+
         timeline.fromTo(
           newInRef.current,
           {
@@ -95,10 +89,7 @@ export default function HeroNewInTransition({
           },
           {
             yPercent: 0,
-
-            // افزایش این مقدار = حرکت آهسته تر
             duration: 0.5,
-
             ease: 'none',
           },
         );
@@ -109,11 +100,14 @@ export default function HeroNewInTransition({
             duration: 0.2,
           },
         );
+
+        return () => {
+          timeline.scrollTrigger?.kill();
+          timeline.kill();
+        };
       });
 
       return () => {
-        timeline.scrollTrigger?.kill();
-        timeline.kill();
         mm.revert();
       };
     },

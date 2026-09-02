@@ -25,7 +25,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAModal() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const [windowWidth, setWindowWidth] = useState(
@@ -185,12 +185,12 @@ export default function PWAModal() {
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleLater} className="flex-1">
+          <Button variant="outline" onClick={handleLater}>
             بعداً
           </Button>
 
           {!isIOS && prompt && (
-            <Button onClick={handleInstall} className="flex-1">
+            <Button onClick={handleInstall}>
               <Download className="mr-2 h-4 w-4" />
               نصب اپلیکیشن
             </Button>
