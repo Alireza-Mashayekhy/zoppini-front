@@ -71,7 +71,7 @@ export default function Menu({
     if (!hasChildren) {
       return (
         <Link
-          href={`/products/${category.slug}`}
+          href={`/product-category/${category.slug}`}
           className="block rounded-none border no-underline! border-transparent px-4 py-2 text-sm hover:border-black"
           onClick={() => setIsMobileOpen(false)}
         >
@@ -90,7 +90,7 @@ export default function Menu({
           <AccordionContent>
             <div className="mr-4 mt-1 space-y-1 border-r pr-4">
               <Link
-                href={`/products/${category.slug}`}
+                href={`/product-category/${category.slug}`}
                 className="block rounded-none border border-transparent no-underline! px-4 py-2 text-sm hover:border-black"
                 onClick={() => setIsMobileOpen(false)}
               >
@@ -158,7 +158,7 @@ export default function Menu({
                     return (
                       <Link
                         key={category.id}
-                        href={`/products/${category.slug}`}
+                        href={`/product-category/${category.slug}`}
                         onMouseEnter={() =>
                           setActiveCategory(hasChildren ? category : null)
                         }
@@ -195,7 +195,7 @@ export default function Menu({
                       </span>
 
                       <Link
-                        href={`/products/${activeCategory.slug}`}
+                        href={`/product-category/${activeCategory.slug}`}
                         className="text-xs text-gray-500 transition-colors hover:text-black"
                       >
                         مشاهده همه
@@ -207,7 +207,7 @@ export default function Menu({
                         {activeCategory.children.map(child => (
                           <Link
                             key={child.id}
-                            href={`/products/${child.slug}`}
+                            href={`/product-category/${child.slug}`}
                             className="group flex items-center justify-between border-b border-transparent py-2 text-sm text-gray-600 transition-colors hover:border-gray-200 hover:text-black"
                           >
                             <span>{child.name}</span>

@@ -104,7 +104,7 @@ export default function Cart() {
                   className="flex gap-4 border-b pb-4 last:border-0"
                 >
                   <Link
-                    href={`/products/${item.variant.product.slug}`}
+                    href={`/product/${item.variant.product.slug}`}
                     className="relative w-20 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100"
                     onClick={closeCart}
                   >
@@ -120,7 +120,7 @@ export default function Cart() {
                   </Link>
                   <div className="flex-1 min-w-0">
                     <Link
-                      href={`/products/${item.variant.product.slug}`}
+                      href={`/product/${item.variant.product.slug}`}
                       className="font-medium text-sm hover:underline"
                       onClick={closeCart}
                     >
