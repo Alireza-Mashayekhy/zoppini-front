@@ -25,7 +25,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAModal() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const [windowWidth, setWindowWidth] = useState(
