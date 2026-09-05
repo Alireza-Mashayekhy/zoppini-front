@@ -39,7 +39,7 @@ export default async function HomePage() {
         products={FeaturedProducts?.data ?? []}
       />
 
-      <div>
+      <div className="mb-4">
         <Link href="/discounted-products">
           <div className="relative hidden sm:block w-full h-auto overflow-hidden">
             <Image

@@ -1,18 +1,25 @@
 import { decodeJwt } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
   const refreshToken = request.cookies.get('refresh_token')?.value;
   const pathname = request.nextUrl.pathname;
 
   // (Optional) redundant because matcher already restricts, but keep for safety
-  if (!pathname.startsWith('/admin') && !pathname.startsWith('/dashboard')) {
+  const isCheckoutRoute =
+    pathname === '/checkout' || pathname.startsWith('/checkout/');
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isDashboardRoute = pathname.startsWith('/dashboard');
+
+  if (!isAdminRoute && !isDashboardRoute && !isCheckoutRoute) {
     return NextResponse.next();
   }
 
   if (!token && !refreshToken) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   try {
@@ -32,16 +39,11 @@ export default function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if (
-      pathname === '/login' ||
-      pathname === '/login-with-pass' ||
-      pathname === '/sign-up' ||
-      pathname === '/forgot-pass'
-    ) {
-      return NextResponse.redirect(new URL('/home', request.url));
+    if (isCheckoutRoute) {
+      return NextResponse.next();
     }
 
-    if (pathname.startsWith('/admin')) {
+    if (isAdminRoute) {
       const allowedRoles = ['admin', 'seo'];
       const hasAccess = roleArray.some(role => allowedRoles.includes(role));
       if (!hasAccess) {
@@ -56,5 +58,10 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*'], // add '/dashboard' if needed
+  matcher: [
+    '/admin/:path*',
+    '/dashboard/:path*',
+    '/checkout',
+    '/checkout/:path*',
+  ],
 };
