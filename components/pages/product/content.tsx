@@ -132,6 +132,7 @@ export default function ProductContent({
         <div className="order-2 md:order-1 px-4 md:px-0 md:pt-5 flex flex-col gap-10 justify-between w-full md:w-1/2 mx-auto">
           <div>
             <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
+            <div className="mb-4">کد محصول: {product?.productCode}</div>
 
             <ProductColors
               colorLinks={colorLinks}

@@ -60,6 +60,18 @@ export default function Footer() {
             </AnimateLink>
           </ul>
         </div>
+        <a
+          href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
+          target="_blank"
+          className="sm:hidden"
+        >
+          <Image
+            src="/footer/enamad.webp"
+            alt="نماد اعتماد الکترونیکی زوپینی"
+            width={100}
+            height={110}
+          />
+        </a>
         {/* <div className="flex flex-col gap-5 max-w-72">
           <span className="text-sm font-semibold">خبرنامه</span>
           <p className="text-sm">
@@ -84,6 +96,7 @@ export default function Footer() {
           <a
             href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
             target="_blank"
+            className="hidden sm:block"
           >
             <Image
               src="/footer/enamad.webp"
