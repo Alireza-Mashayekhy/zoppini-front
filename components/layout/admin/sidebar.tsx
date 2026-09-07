@@ -4,6 +4,7 @@ import {
   Book,
   Boxes,
   Briefcase,
+  Gamepad,
   Grid2X2,
   ListOrdered,
   MessageCircle,
@@ -101,6 +102,11 @@ export default function AdminSidebar({
         link: '/admin/discounts',
         icon: Percent,
         name: 'تخفیفات',
+      },
+      {
+        link: '/admin/gamification',
+        icon: Gamepad,
+        name: 'gamification',
       },
     );
   }
