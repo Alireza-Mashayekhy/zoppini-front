@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { createGamification, gamificationList } from './api';
+import { createGamification, gamificationList, gamificationStats } from './api';
 import { GamificationDto } from './type';
 
 export const useGamificationList = (query: {
@@ -18,3 +18,10 @@ export function useCreateGamification() {
     mutationFn: (formData: GamificationDto) => createGamification(formData),
   });
 }
+
+export const useGamificationStats = () => {
+  return useQuery({
+    queryKey: ['gamification-stats'],
+    queryFn: () => gamificationStats(),
+  });
+};

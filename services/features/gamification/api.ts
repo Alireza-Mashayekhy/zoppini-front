@@ -2,7 +2,11 @@ import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
-import { GamificationDto, GamificationResponse } from './type';
+import {
+  GamificationDto,
+  GamificationResponse,
+  GamificationStats,
+} from './type';
 
 export async function gamificationList(query: {
   page?: number;
@@ -18,15 +22,9 @@ export async function gamificationList(query: {
   return data;
 }
 
-export async function gamificationStats(query: {
-  page?: number;
-  search?: string;
-}) {
-  const { data } = await api.get<ApiListResponse<GamificationResponse>>(
+export async function gamificationStats() {
+  const { data } = await api.get<ApiSingleResponse<GamificationStats>>(
     endpoints.gamificateion.stats,
-    {
-      params: query,
-    },
   );
 
   return data;

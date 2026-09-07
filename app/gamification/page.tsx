@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ type Question = {
   options: string[];
 };
 
-const QUESTIONS: Question[] = [
+export const QUESTIONS: Question[] = [
   {
     id: 1,
     text: 'اگر قرار باشه برای یک موقعیت مهم لباس بپوشی، کدوم را انتخاب می‌کنی؟',
@@ -228,15 +229,10 @@ export default function StyleQuizPage() {
         top: 0,
         behavior: 'smooth',
       });
-    } catch (error) {
+    } catch (error: any) {
       const message =
-        error instanceof Error
-          ? error.message
-          : 'خطا در ثبت اطلاعات. لطفاً دوباره تلاش کنید.';
-
-      setErrors({
-        phone: message,
-      });
+        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
+      toast.error(message);
     }
   };
 
