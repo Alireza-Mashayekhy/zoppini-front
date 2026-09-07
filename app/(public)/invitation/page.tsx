@@ -31,6 +31,7 @@ export default function InvitationPage() {
         width={2560}
         height={2049}
         objectFit="cover"
+        loading="eager"
         className="h-[calc(100vh-52px)] w-auto mx-auto hidden sm:block"
       />
       <Image
@@ -39,6 +40,7 @@ export default function InvitationPage() {
         width={2560}
         height={2049}
         objectFit="cover"
+        loading="eager"
         className="w-full h-auto mx-auto sm:hidden"
       />
     </div>
