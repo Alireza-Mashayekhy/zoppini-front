@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     description: 'دعوتنامه زوپینی',
   },
   alternates: {
-    canonical: '/events',
+    canonical: '/invitation',
   },
 };
 
-export default function EventsPage() {
+export default function InvitationPage() {
   return (
     <div className="pt-[52px] pb-4 relative">
       <Image
