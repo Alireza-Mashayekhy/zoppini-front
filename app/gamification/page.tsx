@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -12,81 +14,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-
-type ProfileId = 'A' | 'B' | 'C' | 'D';
-
-type Profile = {
-  id: ProfileId;
-  key: string;
-  titleEn: string;
-  titleFa: string;
-  descriptions: string[];
-};
+import { useCreateGamification } from '@/services/features/gamification/hooks';
+import { GamificationDto } from '@/services/features/gamification/type';
 
 type Question = {
   id: number;
   text: string;
   options: string[];
-};
-
-type LeadData = {
-  fullName: string;
-  phone: string;
-  birthDay: string;
-  birthMonth: string;
-  birthYear: string;
-  answers: (number | null)[];
-  purchaseMotivation: string | null;
-  scores: Record<ProfileId, number>;
-  result: Profile;
-  submittedAt: string;
-};
-
-const PROFILES: Record<ProfileId, Profile> = {
-  A: {
-    id: 'A',
-    key: 'classic-gentleman',
-    titleEn: 'CLASSIC GENTLEMAN',
-    titleFa: 'کلاسیک جنتلمن',
-    descriptions: [
-      'شما به استایل کلاسیک و همیشه شیک علاقه دارید.',
-      'برای شما تناسب، ظرافت و ظاهر رسمی اهمیت زیادی دارد.',
-      'انتخاب‌های شما نشان می‌دهد به استایلی اعتماد دارید که هیچ‌وقت از مد نمی‌افتد.',
-    ],
-  },
-
-  B: {
-    id: 'B',
-    key: 'modern-classic',
-    titleEn: 'MODERN CLASSIC',
-    titleFa: 'مدرن کلاسیک',
-    descriptions: [
-      'شما ترکیبی از ظرافت کلاسیک و سادگی مدرن را ترجیح می‌دهید.',
-      'برای شما لباس باید شیک، دقیق و قابل استفاده در موقعیت‌های مختلف باشد.',
-    ],
-  },
-
-  C: {
-    id: 'C',
-    key: 'smart-casual',
-    titleEn: 'SMART CASUAL',
-    titleFa: 'اسمارت کژوال',
-    descriptions: [
-      'شما بین شیک بودن و راحتی تعادل برقرار می‌کنید.',
-      'برای شما لباس باید کاربردی، خوش‌پوش و مناسب موقعیت‌های مختلف باشد؛ بدون اینکه بیش از حد رسمی به نظر برسد.',
-    ],
-  },
-
-  D: {
-    id: 'D',
-    key: 'urban-casual',
-    titleEn: 'URBAN CASUAL',
-    titleFa: 'اربان کژوال',
-    descriptions: [
-      'شما استایلی راحت، مدرن و شخصی را ترجیح می‌دهید.',
-      'برای شما لباس بخشی از شخصیت شماست؛ راحتی مهم است، اما همیشه با چاشنی استایل و تفاوت.',
-    ],
-  },
 };
 
 const QUESTIONS: Question[] = [
@@ -135,23 +69,6 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-const OPTION_TO_PROFILE: ProfileId[] = ['A', 'B', 'C', 'D'];
-
-const Q4_SCORING: {
-  profile: ProfileId;
-  points: number;
-}[][] = [
-  [{ profile: 'A', points: 2 }],
-  [{ profile: 'C', points: 2 }],
-  [
-    { profile: 'D', points: 1 },
-    { profile: 'C', points: 1 },
-  ],
-  [{ profile: 'D', points: 2 }],
-];
-
-const TIE_BREAKER_QUESTIONS = [0, 2, 3];
-
 const PERSIAN_MONTHS = [
   'فروردین',
   'اردیبهشت',
@@ -181,6 +98,8 @@ const initialAnswers = () =>
   new Array<number | null>(QUESTIONS.length).fill(null);
 
 export default function StyleQuizPage() {
+  const gamificationMutation = useCreateGamification();
+
   const [step, setStep] = useState<'welcome' | 'quiz' | 'lead' | 'result'>(
     'welcome',
   );
@@ -201,73 +120,9 @@ export default function StyleQuizPage() {
     birth?: string;
   }>({});
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [leadData, setLeadData] = useState<LeadData | null>(null);
-
   const question = QUESTIONS[currentQuestion];
 
   const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-
-  const calculateScores = (): Record<ProfileId, number> => {
-    const scores: Record<ProfileId, number> = {
-      A: 0,
-      B: 0,
-      C: 0,
-      D: 0,
-    };
-
-    // Q1 × 3
-    if (answers[0] !== null) {
-      const profile = OPTION_TO_PROFILE[answers[0]];
-      scores[profile] += 3;
-    }
-
-    // Q3 × 3
-    if (answers[2] !== null) {
-      const profile = OPTION_TO_PROFILE[answers[2]];
-      scores[profile] += 3;
-    }
-
-    // Q4 custom scoring × 2
-    if (answers[3] !== null) {
-      Q4_SCORING[answers[3]].forEach(({ profile, points }) => {
-        scores[profile] += points;
-      });
-    }
-
-    return scores;
-  };
-
-  const calculateResult = () => {
-    const scores = calculateScores();
-
-    const maxScore = Math.max(...Object.values(scores));
-
-    const winners = (Object.keys(scores) as ProfileId[]).filter(
-      profile => scores[profile] === maxScore,
-    );
-
-    let profileKey: ProfileId;
-
-    if (winners.length === 1) {
-      profileKey = winners[0];
-    } else {
-      profileKey = 'A';
-
-      for (const questionIndex of TIE_BREAKER_QUESTIONS) {
-        if (answers[questionIndex] !== null) {
-          profileKey = OPTION_TO_PROFILE[answers[questionIndex]];
-          break;
-        }
-      }
-    }
-
-    return {
-      profile: PROFILES[profileKey],
-      scores,
-    };
-  };
 
   const startQuiz = () => {
     setCurrentQuestion(0);
@@ -347,68 +202,26 @@ export default function StyleQuizPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const saveLeadLocally = (data: LeadData) => {
-    try {
-      const existing = JSON.parse(
-        localStorage.getItem('zoppini_quiz_leads') || '[]',
-      );
-
-      existing.push(data);
-
-      localStorage.setItem('zoppini_quiz_leads', JSON.stringify(existing));
-    } catch {
-      // localStorage may be unavailable
-    }
-  };
-
-  const registerCustomer = async (data: LeadData) => {
-    const response = await fetch('/api/register-customer.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    const result = await response.json().catch(() => ({}));
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'خطا در ثبت اطلاعات در باشگاه مشتریان');
-    }
-
-    return result;
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!validateLeadForm()) return;
 
-    setIsSubmitting(true);
     setErrors({});
 
-    const { profile, scores } = calculateResult();
-
-    const data: LeadData = {
+    const data: GamificationDto = {
       fullName: fullName.trim(),
       phone: phone.trim(),
-      birthDay,
-      birthMonth,
-      birthYear,
-      answers: [...answers],
-      purchaseMotivation:
-        answers[1] !== null ? QUESTIONS[1].options[answers[1]] : null,
-      scores,
-      result: profile,
-      submittedAt: new Date().toISOString(),
+      birthDate: `${birthYear}/${birthMonth}/${birthDay}`,
+      answers: [
+        { questionNumber: 1, optionNumber: answers[0] || 1 },
+        { questionNumber: 2, optionNumber: answers[1] || 1 },
+        { questionNumber: 3, optionNumber: answers[2] || 1 },
+        { questionNumber: 4, optionNumber: answers[3] || 1 },
+      ],
     };
-
     try {
-      await registerCustomer(data);
-
-      saveLeadLocally(data);
-
-      setLeadData(data);
+      await gamificationMutation.mutateAsync(data);
       setStep('result');
 
       window.scrollTo({
@@ -424,8 +237,6 @@ export default function StyleQuizPage() {
       setErrors({
         phone: message,
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -440,12 +251,13 @@ export default function StyleQuizPage() {
     >
       <div className="relative isolate flex min-h-dvh flex-col bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,169,110,0.08),transparent),radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(201,169,110,0.04),transparent)]">
         {/* Header */}
-        <header className="flex shrink-0 flex-col items-center justify-center border-b border-white/[0.08] px-4 pb-6 pt-[max(1.75rem,env(safe-area-inset-top))] text-center">
-          <img
+        <header className="flex shrink-0 flex-col items-center justify-center border-b border-white/8 px-4 pb-6 pt-[max(1.75rem,env(safe-area-inset-top))] text-center">
+          <Image
             src="/logo/gray.png"
             alt="ZOPPINI"
             width={220}
             height={60}
+            loading="eager"
             className="mb-5 block h-auto w-[clamp(140px,40vw,220px)] object-contain"
           />
 
@@ -456,7 +268,7 @@ export default function StyleQuizPage() {
 
         {/* Main */}
         <main className="flex flex-1 items-start justify-center px-3.5 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-5 md:items-center md:px-5 md:py-8">
-          <div className="w-full max-w-[560px]">
+          <div className="w-full max-w-140">
             {/* ==================== WELCOME ==================== */}
             {step === 'welcome' && (
               <section className="animate-in fade-in slide-in-from-bottom-3 duration-500">
@@ -469,7 +281,7 @@ export default function StyleQuizPage() {
                     استایل شما کدام است؟
                   </h1>
 
-                  <p className="mx-auto mb-3 max-w-[420px] px-1 text-[clamp(0.9rem,3.5vw,1rem)] text-[#9a9690]">
+                  <p className="mx-auto mb-3 max-w-105 px-1 text-[clamp(0.9rem,3.5vw,1rem)] text-[#9a9690]">
                     به چند سؤال کوتاه جواب بدین و ببینید استایل شما کدام است.
                   </p>
 
@@ -482,11 +294,11 @@ export default function StyleQuizPage() {
                     onClick={startQuiz}
                     className={cn(
                       'min-h-12 rounded-lg px-6 text-base font-semibold',
-                      'bg-gradient-to-br from-[#c9a96e] to-[#a88b4a]',
+                      'bg-linear-to-br from-[#c9a96e] to-[#a88b4a]',
                       'text-[#0a0a0b]',
                       'shadow-[0_4px_20px_rgba(201,169,110,0.3)]',
                       'transition-all duration-300',
-                      'hover:-translate-y-0.5 hover:bg-gradient-to-br',
+                      'hover:-translate-y-0.5 hover:bg-linear-to-br',
                       'hover:from-[#e0c992] hover:to-[#a88b4a]',
                       'hover:shadow-[0_6px_28px_rgba(201,169,110,0.45)]',
                       'max-w-[320px] w-full',
@@ -502,9 +314,9 @@ export default function StyleQuizPage() {
             {step === 'quiz' && (
               <section className="animate-in fade-in slide-in-from-bottom-3 duration-500">
                 {/* Progress */}
-                <div className="mb-6 h-[3px] overflow-hidden rounded-full bg-[#1a1a1e]">
+                <div className="mb-6 h-0.75 overflow-hidden rounded-full bg-[#1a1a1e]">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#a88b4a] to-[#e0c992] transition-[width] duration-500 ease-out"
+                    className="h-full rounded-full bg-linear-to-r from-[#a88b4a] to-[#e0c992] transition-[width] duration-500 ease-out"
                     style={{
                       width: `${progress}%`,
                     }}
@@ -513,14 +325,14 @@ export default function StyleQuizPage() {
 
                 {/* Counter */}
                 <div className="mb-5">
-                  <span className="text-[0.8rem] font-semibold tracking-[0.05em] text-[#c9a96e]">
+                  <span className="text-[0.8rem] font-semibold tracking-wider text-[#c9a96e]">
                     سؤال {toPersianNum(currentQuestion + 1)} از{' '}
                     {toPersianNum(QUESTIONS.length)}
                   </span>
                 </div>
 
                 {/* Question */}
-                <h2 className="mb-7 text-[clamp(1.1rem,3.5vw,1.35rem)] font-semibold leading-[1.5]">
+                <h2 className="mb-7 text-[clamp(1.1rem,3.5vw,1.35rem)] font-semibold leading-normal">
                   {question.text}
                 </h2>
 
@@ -548,11 +360,11 @@ export default function StyleQuizPage() {
                           selected
                             ? [
                                 'border-[#c9a96e]',
-                                'bg-[#c9a96e]/[0.08]',
+                                'bg-[#c9a96e]/8',
                                 'shadow-[0_0_0_1px_#c9a96e]',
                               ]
                             : [
-                                'border-white/[0.08]',
+                                'border-white/8',
                                 'bg-[#1a1a1e]',
                                 'hover:border-[#c9a96e]/40',
                                 'hover:bg-[#141416]',
@@ -564,13 +376,13 @@ export default function StyleQuizPage() {
                             'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[0.8rem] font-semibold transition-all duration-300',
                             selected
                               ? 'border-[#c9a96e] bg-[#c9a96e] text-[#0a0a0b]'
-                              : 'border-white/[0.08] bg-[#0a0a0b] text-[#9a9690]',
+                              : 'border-white/8 bg-[#0a0a0b] text-[#9a9690]',
                           )}
                         >
                           {toPersianNum(index + 1)}
                         </span>
 
-                        <span className="min-w-0 flex-1 break-words">
+                        <span className="min-w-0 flex-1 wrap-break-word">
                           {option}
                         </span>
                       </button>
@@ -585,7 +397,7 @@ export default function StyleQuizPage() {
                     variant="outline"
                     disabled={currentQuestion === 0}
                     onClick={goToPreviousQuestion}
-                    className="min-h-12 border-white/[0.08] bg-transparent text-[#9a9690] hover:border-[#c9a96e]/40 hover:bg-transparent hover:text-[#f5f3ef]"
+                    className="min-h-12 border-white/8 bg-transparent text-[#9a9690] hover:border-[#c9a96e]/40 hover:bg-transparent hover:text-[#f5f3ef]"
                   >
                     سؤال قبل
                   </Button>
@@ -596,10 +408,10 @@ export default function StyleQuizPage() {
                     onClick={goToNextQuestion}
                     className={cn(
                       'min-h-12',
-                      'bg-gradient-to-br from-[#c9a96e] to-[#a88b4a]',
+                      'bg-linear-to-br from-[#c9a96e] to-[#a88b4a]',
                       'font-semibold text-[#0a0a0b]',
                       'shadow-[0_4px_20px_rgba(201,169,110,0.3)]',
-                      'hover:bg-gradient-to-br hover:from-[#e0c992] hover:to-[#a88b4a]',
+                      'hover:bg-linear-to-br hover:from-[#e0c992] hover:to-[#a88b4a]',
                       'disabled:cursor-not-allowed disabled:opacity-40',
                     )}
                   >
@@ -649,7 +461,7 @@ export default function StyleQuizPage() {
                       value={fullName}
                       onChange={event => setFullName(event.target.value)}
                       className={cn(
-                        'min-h-12 rounded-lg border-white/[0.08]',
+                        'min-h-12 rounded-lg border-white/8',
                         'bg-[#1a1a1e]',
                         'text-base text-[#f5f3ef]',
                         'placeholder:text-[#9a9690]/60',
@@ -682,7 +494,7 @@ export default function StyleQuizPage() {
                       value={phone}
                       onChange={event => setPhone(event.target.value)}
                       className={cn(
-                        'min-h-12 rounded-lg border-white/[0.08]',
+                        'min-h-12 rounded-lg border-white/8',
                         'bg-[#1a1a1e]',
                         'text-base text-[#f5f3ef]',
                         'placeholder:text-[#9a9690]/60',
@@ -705,7 +517,7 @@ export default function StyleQuizPage() {
                     <div className="grid grid-cols-3 gap-2">
                       {/* Day */}
                       <Select value={birthDay} onValueChange={setBirthDay}>
-                        <SelectTrigger className="min-h-12 border-white/[0.08] bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="روز" />
                         </SelectTrigger>
 
@@ -723,7 +535,7 @@ export default function StyleQuizPage() {
 
                       {/* Month */}
                       <Select value={birthMonth} onValueChange={setBirthMonth}>
-                        <SelectTrigger className="min-h-12 border-white/[0.08] bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="ماه" />
                         </SelectTrigger>
 
@@ -738,7 +550,7 @@ export default function StyleQuizPage() {
 
                       {/* Year */}
                       <Select value={birthYear} onValueChange={setBirthYear}>
-                        <SelectTrigger className="min-h-12 border-white/[0.08] bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="سال" />
                         </SelectTrigger>
 
@@ -765,18 +577,18 @@ export default function StyleQuizPage() {
                   {/* Submit */}
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={gamificationMutation.isPending}
                     className={cn(
                       'mt-2 min-h-12 w-full rounded-lg',
-                      'bg-gradient-to-br from-[#c9a96e] to-[#a88b4a]',
+                      'bg-linear-to-br from-[#c9a96e] to-[#a88b4a]',
                       'font-semibold text-[#0a0a0b]',
                       'shadow-[0_4px_20px_rgba(201,169,110,0.3)]',
-                      'hover:bg-gradient-to-br hover:from-[#e0c992] hover:to-[#a88b4a]',
+                      'hover:bg-linear-to-br hover:from-[#e0c992] hover:to-[#a88b4a]',
                       'hover:shadow-[0_6px_28px_rgba(201,169,110,0.45)]',
                       'disabled:cursor-not-allowed disabled:opacity-40',
                     )}
                   >
-                    {isSubmitting ? (
+                    {gamificationMutation.isPending ? (
                       <>
                         <span className="h-5 w-5 animate-spin rounded-full border-2 border-transparent border-t-[#0a0a0b]" />
                         <span>در حال ثبت...</span>
@@ -790,36 +602,15 @@ export default function StyleQuizPage() {
             )}
 
             {/* ==================== RESULT ==================== */}
-            {step === 'result' && leadData && (
+            {step === 'result' && (
               <section className="animate-in fade-in slide-in-from-bottom-3 duration-500">
                 <div className="text-center">
-                  <div className="mb-3 text-[0.7rem] font-semibold tracking-[0.25em] text-[#c9a96e] max-[480px]:tracking-[0.1em]">
+                  <div className="mb-3 text-[0.7rem] font-semibold tracking-[0.25em] text-[#c9a96e] max-[480px]:tracking-widest">
                     YOUR STYLE
                   </div>
 
-                  <div className="mb-2 text-[0.85rem] tracking-[0.15em] text-[#9a9690] max-[480px]:tracking-[0.1em]">
-                    نتیجه تست استایل شما
-                  </div>
-
-                  <h2 className="mb-6 text-[clamp(1.75rem,6vw,2.5rem)] font-bold leading-[1.2] tracking-[0.05em] text-[#e0c992]">
-                    {leadData.result.titleEn}
-                  </h2>
-
-                  <div className="mx-auto mb-6 h-0.5 w-[60px] bg-gradient-to-r from-transparent via-[#c9a96e] to-transparent" />
-
-                  <div className="space-y-3">
-                    {leadData.result.descriptions.map(description => (
-                      <p
-                        key={description}
-                        className="mx-auto max-w-[440px] px-1 text-[clamp(0.9rem,3.5vw,1rem)] leading-[1.9] text-[#f5f3ef]"
-                      >
-                        {description}
-                      </p>
-                    ))}
-                  </div>
-
                   {/* Credit */}
-                  <div className="mt-6 rounded-[20px] border border-[#c9a96e]/40 bg-gradient-to-br from-[#c9a96e]/15 to-[#c9a96e]/5 p-4 sm:p-6">
+                  <div className="mt-6 rounded-[20px] border border-[#c9a96e]/40 bg-linear-to-br from-[#c9a96e]/15 to-[#c9a96e]/5 p-4 sm:p-6">
                     <div className="mb-2 text-[clamp(1.15rem,5.5vw,1.5rem)] font-bold text-[#e0c992]">
                       {toPersianNum('2,000,000')} تومان
                     </div>
@@ -837,14 +628,12 @@ export default function StyleQuizPage() {
 
                   {/* CTA */}
                   <div className="mt-8">
-                    <a
-                      href="https://www.zoppinico.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href="/"
                       className={cn(
                         'inline-flex min-h-12 w-full max-w-[320px]',
                         'items-center justify-center rounded-lg',
-                        'bg-gradient-to-br from-[#c9a96e] to-[#a88b4a]',
+                        'bg-linear-to-br from-[#c9a96e] to-[#a88b4a]',
                         'px-6 text-base font-semibold text-[#0a0a0b]',
                         'transition-all duration-300',
                         'hover:-translate-y-0.5',
@@ -852,17 +641,8 @@ export default function StyleQuizPage() {
                       )}
                     >
                       مشاهده فروشگاه زوپینی
-                    </a>
+                    </Link>
                   </div>
-
-                  {/* User */}
-                  <p className="mt-6 px-1 text-[clamp(0.8rem,3vw,0.85rem)] text-[#9a9690]">
-                    {leadData.fullName} عزیز، استایل شما{' '}
-                    <strong className="font-bold text-[#e0c992]">
-                      {leadData.result.titleFa}
-                    </strong>{' '}
-                    است.
-                  </p>
                 </div>
               </section>
             )}
@@ -870,8 +650,8 @@ export default function StyleQuizPage() {
         </main>
 
         {/* Footer */}
-        <footer className="shrink-0 border-t border-white/[0.08] px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-center">
-          <p className="text-xs tracking-[0.05em] text-[#9a9690]">
+        <footer className="shrink-0 border-t border-white/8 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-center">
+          <p className="text-xs tracking-wider text-[#9a9690]">
             © زوپینی — فروشگاه پوشاک مردانه
           </p>
         </footer>

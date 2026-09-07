@@ -138,4 +138,10 @@ export const endpoints = {
     detail: (id: number) => `/admin/contact/${id}`,
     delete: (id: number) => `/admin/contact/${id}`,
   },
+
+  gamificateion: {
+    create: '/gamification/participations',
+    stats: '/admin/gamification/stats',
+    list: '/admin/gamification/participations',
+  },
 };
