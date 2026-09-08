@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, persianDateToISO } from '@/lib/utils';
 import { useCreateGamification } from '@/services/features/gamification/hooks';
 import { GamificationDto } from '@/services/features/gamification/type';
 
@@ -221,7 +221,7 @@ export default function StyleQuizPage() {
     const data: GamificationDto = {
       fullName: fullName.trim(),
       phone: phone.trim(),
-      birthDate: `${birthYear}/${birthMonth}/${birthDay}`,
+      birthDate: persianDateToISO(`${birthYear}/${birthMonth}/${birthDay}`),
       answers: [
         { questionNumber: 1, optionNumber: answers[0] || 1 },
         { questionNumber: 2, optionNumber: answers[1] || 1 },

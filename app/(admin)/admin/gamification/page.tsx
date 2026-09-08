@@ -396,7 +396,7 @@ export default function Users() {
                 </div>
 
                 <div className="font-medium">
-                  {selectedInfo?.birthDate || '-'}
+                  {toPersianDate(selectedInfo?.birthDate || '-')}
                 </div>
               </div>
 

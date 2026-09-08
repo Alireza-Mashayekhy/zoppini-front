@@ -58,5 +58,5 @@ export function persianDateToISO(value: string) {
     day,
   }).toDate();
 
-  return date.toISOString().split('T')[0];
+  return date.toISOString();
 }
