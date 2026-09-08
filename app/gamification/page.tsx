@@ -258,7 +258,7 @@ export default function StyleQuizPage() {
         {/* Header */}
         <header className="flex shrink-0 flex-col items-center justify-center border-b border-white/8 px-4 pb-6 pt-[max(1.75rem,env(safe-area-inset-top))] text-center">
           <Image
-            src="/logo/gray.png"
+            src="/logo/gray.webp"
             alt="ZOPPINI"
             width={220}
             height={60}

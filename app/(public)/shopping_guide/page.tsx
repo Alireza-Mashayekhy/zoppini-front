@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'راهنمای خرید - زوپینی',
     description:
       'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
-    images: [{ url: '/logo/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.webp' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',
@@ -34,7 +34,7 @@ export default function GuidePage() {
         {/* Header with image */}
         <div className="relative w-full h-[200px] md:h-[300px] rounded-2xl overflow-hidden mb-10 shadow-lg">
           <Image
-            src="/home/5 (5).jpg"
+            src="/home/5 (5).webp"
             alt="راهنمای خرید زوپینی"
             fill
             className="object-cover"

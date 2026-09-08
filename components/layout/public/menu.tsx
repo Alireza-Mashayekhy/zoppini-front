@@ -253,7 +253,7 @@ export default function Menu({
                   className="group relative aspect-square overflow-hidden"
                 >
                   <Image
-                    src="/home/category_1.jpg"
+                    src="/home/category_1.webp"
                     alt="محصولات زنانه"
                     fill
                     sizes="180px"
@@ -268,7 +268,7 @@ export default function Menu({
                   className="group relative aspect-square overflow-hidden"
                 >
                   <Image
-                    src="/home/category_2.jpg"
+                    src="/home/category_2.webp"
                     alt="محصولات مردانه"
                     fill
                     sizes="180px"

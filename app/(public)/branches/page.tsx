@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ضعب زوپینی',
     description: 'آدرس و شماره تماس فروشگاه زوپینی - شعبه تهران و کرمان',
-    images: [{ url: '/logo/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.webp' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

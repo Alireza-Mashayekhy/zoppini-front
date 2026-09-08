@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'دعوتنامه - زوپینی',
     description: 'دعوتنامه زوپینی',
-    images: [{ url: '/logo/og-image.jpg' }],
+    images: [{ url: '/logo/og-image.webp' }],
     type: 'website',
     siteName: 'زوپینی',
     locale: 'fa_IR',

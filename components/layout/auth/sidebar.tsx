@@ -8,7 +8,7 @@ export default function SidebarAuth() {
     <div className="relative h-full w-full overflow-hidden">
       <Image
         fill
-        src="/home/5 (5).jpg"
+        src="/home/5 (5).webp"
         alt="auth sidebar"
         className="object-cover"
         priority
