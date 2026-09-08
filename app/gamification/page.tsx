@@ -95,6 +95,14 @@ const toPersianNum = (input: string | number) => {
   });
 };
 
+const toEnglishNum = (input: string) => {
+  return input
+    .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - '۰'.charCodeAt(0)))
+    .replace(/[٠-٩]/g, digit =>
+      String(digit.charCodeAt(0) - '٠'.charCodeAt(0)),
+    );
+};
+
 const initialAnswers = () =>
   new Array<number | null>(QUESTIONS.length).fill(null);
 
@@ -488,7 +496,9 @@ export default function StyleQuizPage() {
                       autoComplete="tel"
                       placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                       value={phone}
-                      onChange={event => setPhone(event.target.value)}
+                      onChange={event => {
+                        setPhone(toEnglishNum(event.target.value));
+                      }}
                       className={cn(
                         'min-h-12 rounded-lg border-white/8',
                         'bg-[#1a1a1e]',
@@ -513,7 +523,7 @@ export default function StyleQuizPage() {
                     <div className="grid grid-cols-3 gap-2">
                       {/* Day */}
                       <Select value={birthDay} onValueChange={setBirthDay}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="روز" />
                         </SelectTrigger>
 
@@ -531,7 +541,7 @@ export default function StyleQuizPage() {
 
                       {/* Month */}
                       <Select value={birthMonth} onValueChange={setBirthMonth}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="ماه" />
                         </SelectTrigger>
 
@@ -546,7 +556,7 @@ export default function StyleQuizPage() {
 
                       {/* Year */}
                       <Select value={birthYear} onValueChange={setBirthYear}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="سال" />
                         </SelectTrigger>
 
