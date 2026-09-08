@@ -124,6 +124,7 @@ export default function SuggestedStyle({
                       fill
                       alt={product.product.title}
                       className="object-cover"
+                      sizes="(min-width: 1024px) 28.57vw, (min-width: 640px) 40vw, 80vw"
                     />
                   </div>
 
