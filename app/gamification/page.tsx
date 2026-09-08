@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, persianDateToISO } from '@/lib/utils';
 import { useCreateGamification } from '@/services/features/gamification/hooks';
 import { GamificationDto } from '@/services/features/gamification/type';
 
@@ -95,6 +95,14 @@ const toPersianNum = (input: string | number) => {
   });
 };
 
+const toEnglishNum = (input: string) => {
+  return input
+    .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - '۰'.charCodeAt(0)))
+    .replace(/[٠-٩]/g, digit =>
+      String(digit.charCodeAt(0) - '٠'.charCodeAt(0)),
+    );
+};
+
 const initialAnswers = () =>
   new Array<number | null>(QUESTIONS.length).fill(null);
 
@@ -114,6 +122,7 @@ export default function StyleQuizPage() {
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
+  const [followedInstagram, setFollowedInstagram] = useState(false);
 
   const [errors, setErrors] = useState<{
     name?: string;
@@ -213,7 +222,7 @@ export default function StyleQuizPage() {
     const data: GamificationDto = {
       fullName: fullName.trim(),
       phone: phone.trim(),
-      birthDate: `${birthYear}/${birthMonth}/${birthDay}`,
+      birthDate: persianDateToISO(`${birthYear}/${birthMonth}/${birthDay}`),
       answers: [
         { questionNumber: 1, optionNumber: answers[0] || 1 },
         { questionNumber: 2, optionNumber: answers[1] || 1 },
@@ -488,7 +497,9 @@ export default function StyleQuizPage() {
                       autoComplete="tel"
                       placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                       value={phone}
-                      onChange={event => setPhone(event.target.value)}
+                      onChange={event => {
+                        setPhone(toEnglishNum(event.target.value));
+                      }}
                       className={cn(
                         'min-h-12 rounded-lg border-white/8',
                         'bg-[#1a1a1e]',
@@ -513,7 +524,7 @@ export default function StyleQuizPage() {
                     <div className="grid grid-cols-3 gap-2">
                       {/* Day */}
                       <Select value={birthDay} onValueChange={setBirthDay}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="روز" />
                         </SelectTrigger>
 
@@ -531,7 +542,7 @@ export default function StyleQuizPage() {
 
                       {/* Month */}
                       <Select value={birthMonth} onValueChange={setBirthMonth}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="ماه" />
                         </SelectTrigger>
 
@@ -546,7 +557,7 @@ export default function StyleQuizPage() {
 
                       {/* Year */}
                       <Select value={birthYear} onValueChange={setBirthYear}>
-                        <SelectTrigger className="min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
+                        <SelectTrigger className="w-full min-h-12 border-white/8 bg-[#1a1a1e] text-center text-[#f5f3ef] focus:ring-[#c9a96e]/20">
                           <SelectValue placeholder="سال" />
                         </SelectTrigger>
 
@@ -570,10 +581,72 @@ export default function StyleQuizPage() {
                     </span>
                   </div>
 
+                  {/* Instagram Follow */}
+                  <a
+                    href="https://www.instagram.com/zoppini.official"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setFollowedInstagram(true)}
+                    className="flex justify-center"
+                  >
+                    <div className="font-semibold  text-[#e0c992] transition-colors hover:text-[#c9a96e] w-[400px]">
+                      <Image
+                        src="/gamification/instagram.png"
+                        alt="instagram"
+                        width={2170}
+                        height={725}
+                      />
+                    </div>
+                  </a>
+                  <div className="mb-5 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFollowedInstagram(previous => !previous)
+                      }
+                      className="flex items-center w-full gap-3 rounded-xl border border-white/8 bg-[#1a1a1e] p-2 px-4"
+                    >
+                      <div
+                        className={cn(
+                          'flex size-5 shrink-0 items-center justify-center rounded border transition-all',
+                          followedInstagram
+                            ? 'border-[#c9a96e] bg-[#c9a96e] text-[#0a0a0b]'
+                            : 'border-white/20 bg-transparent',
+                        )}
+                        aria-checked={followedInstagram}
+                        role="checkbox"
+                      >
+                        {followedInstagram && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className="size-3.5"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.42 0l-3.75-3.75a1 1 0 111.42-1.42l3.04 3.04 6.54-6.54a1 1 0 011.42 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </div>
+
+                      <label
+                        htmlFor="instagram-follow"
+                        className="block cursor-pointer text-xs text-[#706d68]"
+                      >
+                        با زدن تیک تأیید می‌کنم که پیج زوپینی را دنبال کرده‌ام.
+                      </label>
+                    </button>
+                  </div>
+
                   {/* Submit */}
                   <Button
                     type="submit"
-                    disabled={gamificationMutation.isPending}
+                    disabled={
+                      gamificationMutation.isPending || !followedInstagram
+                    }
                     className={cn(
                       'mt-2 min-h-12 w-full rounded-lg',
                       'bg-linear-to-br from-[#c9a96e] to-[#a88b4a]',
