@@ -18,19 +18,19 @@ import {
  */
 const DEFAULT_IMAGES = [
   {
-    src: '/home/store-01.png',
+    src: '/home/store-01.webp',
     alt: 'فروشگاه زوپینی — عکس ۱',
   },
   {
-    src: '/home/store-02.png',
+    src: '/home/store-02.webp',
     alt: 'فروشگاه زوپینی — عکس ۲',
   },
   {
-    src: '/home/store-03.png',
+    src: '/home/store-03.webp',
     alt: 'فروشگاه زوپینی — عکس ۳',
   },
   {
-    src: '/home/store-04.png',
+    src: '/home/store-04.webp',
     alt: 'فروشگاه زوپینی — عکس ۴',
   },
 ];

@@ -43,7 +43,7 @@ export default async function HomePage() {
         <Link href="/discounted-products">
           <div className="relative hidden sm:block w-full h-auto overflow-hidden">
             <Image
-              src="/home/sale.png"
+              src="/home/sale.webp"
               alt="محصولات تخفیف‌دار زوپینی"
               width={4269}
               height={2400}
@@ -55,7 +55,7 @@ export default async function HomePage() {
           </div>
           <div className="relative sm:hidden w-full h-auto overflow-hidden">
             <Image
-              src="/home/mobile_sale.png"
+              src="/home/mobile_sale.webp"
               alt="محصولات تخفیف‌دار زوپینی"
               width={1080}
               height={1920}

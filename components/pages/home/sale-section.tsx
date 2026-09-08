@@ -39,7 +39,7 @@ export default function SaleSection() {
         {[1, 2, 3, 4, 5].map(product => (
           <div key={product} className="keen-slider__slide number-slide1">
             <ProductCard
-              image="/home/5 (5).jpg"
+              image="/home/5 (5).webp"
               title="پیراهن مردانه"
               price={100000}
               slug="test"
