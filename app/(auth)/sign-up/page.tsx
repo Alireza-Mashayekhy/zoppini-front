@@ -18,6 +18,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { persianDateToISO } from '@/lib/utils';
 import { useSendOtp, useSignUp } from '@/services/features/auth/hooks';
 import { SignUpDto } from '@/services/features/auth/types';
 
@@ -99,7 +100,7 @@ export default function SignUp() {
       email: formData.email || '',
       code,
       password: formData.password,
-      birthDate: formData.birthDate || '',
+      birthDate: persianDateToISO(formData.birthDate || ''),
     };
 
     try {
