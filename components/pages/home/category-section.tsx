@@ -109,6 +109,7 @@ export default function CategoriesSection({
             fill
             alt="image category 1"
             className="object-cover"
+            sizes="50vw"
           />
         </div>
 
@@ -119,6 +120,7 @@ export default function CategoriesSection({
             fill
             alt="image category 2"
             className="object-cover"
+            sizes="(min-width: 640px) 50vw, 100vw"
           />
         </div>
 
@@ -134,6 +136,7 @@ export default function CategoriesSection({
               fill
               alt={category.name}
               className="object-cover"
+              sizes="(min-width: 640px) 25vw, 50vw"
             />
 
             <div className="text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
