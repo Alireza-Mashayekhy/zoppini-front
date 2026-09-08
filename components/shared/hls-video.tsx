@@ -15,17 +15,12 @@ interface HlsVideoProps extends Omit<
 > {
   src: string;
   /**
-   * اگر true باشد، ویدیو با پایین‌ترین کیفیت شروع شده
-   * و بعد از لود کامل صفحه، کیفیت آرام آرام بالا می‌رود.
+   * اگر true باشد، اولین فریم‌ها با پایین‌ترین کیفیت لود می‌شوند
+   * (برای شروع سریع‌تر) و بعد از آن، ABR خود hls.js
+   * بر اساس پهنای باند واقعی کاربر کیفیت را تنظیم می‌کند.
    */
   lowQualityFirst?: boolean;
 }
-
-/**
- * تعداد فریم‌های انتظار بین هر بار ارتقاء کیفیت
- * (حدود ۳ ثانیه → ۶۰ فریم)
- */
-const UPGRADE_INTERVAL_MS = 3000;
 
 const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
   (
@@ -42,6 +37,9 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
     forwardedRef,
   ) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    // مقدار اولیه lowQualityFirst رو فریز می‌کنیم تا تغییرش
+    // باعث ری‌ست کامل پلیر نشه
+    const lowQualityFirstRef = useRef(lowQualityFirst);
 
     useImperativeHandle(
       forwardedRef,
@@ -54,46 +52,47 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
       if (!video) return;
 
       let hls: Hls | null = null;
-      let upgradeTimer: ReturnType<typeof setInterval> | null = null;
 
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
-          startLevel: lowQualityFirst ? 0 : -1,
-          capLevelToPlayerSize: true, // ✅ ارتقاء متناسب با سایز پلیر
+          // فقط اولین سطح رو پایین می‌ذاریم، بقیه رو به ABR واگذار می‌کنیم
+          startLevel: lowQualityFirstRef.current ? 0 : -1,
+          capLevelToPlayerSize: true,
 
-          // --- بافر بهینه ---
-          maxBufferLength: 2, // فقط ۲ ثانیه اولیه
-          maxBufferSize: 10 * 1000 * 1000, // ۱۰MB موقت
+          // بافر معقول برای پخش روان (پیش‌فرض‌های hls.js تقریباً همینه)
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          maxBufferSize: 60 * 1000 * 1000,
 
-          // --- ABR بهینه ---
-          abrBandWidthFactor: 0.85,
-          abrBandWidthUpFactor: 0.7,
+          // مقادیر پیش‌فرض ABR رو دست‌نخورده می‌ذاریم تا تخمین واقعی باشه
         });
 
         hls.loadSource(src);
         hls.attachMedia(video);
 
-        // آپگرید کیفیت فقط بعد از لود کامل level‌ها
-        if (lowQualityFirst) {
-          const tryStartUpgrade = () => {
-            if (!hls || hls.levels.length === 0) return;
+        // مدیریت خطا برای پایداری پخش (بدون این، یک خطای شبکه
+        // می‌تونه کل پلیر رو هنگ کنه)
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (!data.fatal || !hls) return;
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              break;
+          }
+        });
 
-            const maxLevel = hls.levels.length - 1;
-            upgradeTimer = setInterval(() => {
-              if (!hls) return;
-
-              if (hls.currentLevel < maxLevel) {
-                hls.currentLevel = hls.currentLevel + 1;
-              } else {
-                hls.nextLevel = -1; // ABR فعال
-                clearInterval(upgradeTimer!);
-              }
-            }, UPGRADE_INTERVAL_MS);
-          };
-
-          hls.on(Hls.Events.MANIFEST_PARSED, tryStartUpgrade);
-        }
+        // هیچ تایمر دستی برای ارتقاء کیفیت لازم نیست:
+        // با startLevel: -1 یا حتی 0، از فرگمنت‌های بعدی
+        // AbrController خودش بر اساس پهنای باند واقعی
+        // (throughput اندازه‌گیری‌شده) کیفیت رو تنظیم می‌کنه —
+        // دقیقاً همون رفتار Auto یوتیوب.
       }
 
       // Safari / iOS
@@ -103,7 +102,6 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
       }
 
       return () => {
-        clearInterval(upgradeTimer!);
         if (hls) {
           hls.destroy();
         }
@@ -111,7 +109,7 @@ const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(
         video.removeAttribute('src');
         video.load();
       };
-    }, [src, lowQualityFirst]);
+    }, [src]);
 
     return (
       <video
