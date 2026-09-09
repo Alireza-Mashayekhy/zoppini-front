@@ -103,24 +103,26 @@ export default function CategoriesSection({
         className="relative z-0 grid w-full grid-cols-2 bg-white sm:grid-cols-4"
       >
         {/* تصویر اول */}
-        <div className="relative col-span-2 aspect-square hidden sm:block">
+        <div className="relative col-span-2 aspect-square hidden sm:block bg-gray-200">
           <Image
             src="/home/category_1.webp"
             fill
             alt="image category 1"
             className="object-cover"
             sizes="50vw"
+            loading="lazy"
           />
         </div>
 
         {/* تصویر دوم */}
-        <div className="relative col-span-2 aspect-square">
+        <div className="relative col-span-2 aspect-square bg-gray-200">
           <Image
             src="/home/category_2.webp"
             fill
             alt="image category 2"
             className="object-cover"
             sizes="(min-width: 640px) 50vw, 100vw"
+            loading="lazy"
           />
         </div>
 
@@ -137,6 +139,7 @@ export default function CategoriesSection({
               alt={category.name}
               className="object-cover"
               sizes="(min-width: 640px) 25vw, 50vw"
+              loading="lazy"
             />
 
             <div className="text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
@@ -184,6 +187,8 @@ export default function CategoriesSection({
               fill
               alt={category.name}
               className="object-cover"
+              sizes="(min-width: 640px) 25vw, 50vw"
+              loading="lazy"
             />
 
             <div className="text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">

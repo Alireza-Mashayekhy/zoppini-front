@@ -19,12 +19,15 @@ export default function Search() {
   const debouncedQuery = useDebounce(query, 300); // 300ms تأخیر
   const pathname = usePathname();
 
-  const { data, isLoading } = useProducsList({
-    search: debouncedQuery,
-    all: false,
-    page: 1,
-    limit: 20,
-  });
+  const { data, isLoading } = useProducsList(
+    {
+      search: debouncedQuery,
+      all: false,
+      page: 1,
+      limit: 20,
+    },
+    { enabled: isSearchOpen && debouncedQuery.trim().length > 0 },
+  );
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);

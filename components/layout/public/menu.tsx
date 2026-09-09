@@ -257,6 +257,7 @@ export default function Menu({
                     alt="محصولات زنانه"
                     fill
                     sizes="180px"
+                    loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
 
@@ -272,6 +273,7 @@ export default function Menu({
                     alt="محصولات مردانه"
                     fill
                     sizes="180px"
+                    loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
 

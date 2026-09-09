@@ -63,6 +63,7 @@ export default function Footer() {
         <a
           href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
           target="_blank"
+          rel="noopener"
           className="sm:hidden"
         >
           <Image
@@ -70,6 +71,8 @@ export default function Footer() {
             alt="نماد اعتماد الکترونیکی زوپینی"
             width={100}
             height={110}
+            loading="lazy"
+            sizes="100px"
           />
         </a>
         {/* <div className="flex flex-col gap-5 max-w-72">
@@ -96,6 +99,7 @@ export default function Footer() {
           <a
             href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
             target="_blank"
+            rel="noopener"
             className="hidden sm:block"
           >
             <Image
@@ -103,6 +107,8 @@ export default function Footer() {
               alt="نماد اعتماد الکترونیکی زوپینی"
               width={35}
               height={35}
+              loading="lazy"
+              sizes="35px"
             />
           </a>
           <Image
@@ -110,19 +116,32 @@ export default function Footer() {
             alt="smartis"
             width={35}
             height={35}
+            loading="lazy"
+            sizes="35px"
           />
           <Image
             src="/footer/snapppay.webp"
             alt="snapppay"
             width={35}
             height={35}
+            loading="lazy"
+            sizes="35px"
           />
-          <Image src="/footer/tara.webp" alt="tara" width={35} height={35} />
+          <Image
+            src="/footer/tara.webp"
+            alt="tara"
+            width={35}
+            height={35}
+            loading="lazy"
+            sizes="35px"
+          />
           <Image
             src="/footer/zarinpal.webp"
             alt="zarinpal"
             width={35}
             height={35}
+            loading="lazy"
+            sizes="35px"
           />
         </div>
 
@@ -130,6 +149,7 @@ export default function Footer() {
           <a
             href="https://www.aparat.com/shorts/user/zoppini.official/shorts"
             target="_blank"
+            rel="noopener"
             className=""
           >
             <Image
@@ -138,29 +158,46 @@ export default function Footer() {
               alt="aparat"
               width={20}
               height={20}
+              loading="lazy"
+              sizes="20px"
             />
           </a>
-          <a href="https://ble.ir/zoppini" target="_blank" className="">
+          <a
+            href="https://ble.ir/zoppini"
+            target="_blank"
+            rel="noopener"
+            className=""
+          >
             <Image
               className="grayscale-100 hover:grayscale-0 transition"
               src="/footer/bale.webp"
               alt="bale"
               width={20}
               height={20}
+              loading="lazy"
+              sizes="20px"
             />
           </a>
-          <a href="https://www.eitaa.com/zoppini" target="_blank" className="">
+          <a
+            href="https://www.eitaa.com/zoppini"
+            target="_blank"
+            rel="noopener"
+            className=""
+          >
             <Image
               className="grayscale-100 hover:grayscale-0 transition"
               src="/footer/eitaa.webp"
               alt="eitaa"
               width={20}
               height={20}
+              loading="lazy"
+              sizes="20px"
             />
           </a>
           <a
             href="https://www.instagram.com/zoppini.official"
             target="_blank"
+            rel="noopener"
             className=""
           >
             <Image
@@ -169,11 +206,14 @@ export default function Footer() {
               alt="instagram"
               width={20}
               height={20}
+              loading="lazy"
+              sizes="20px"
             />
           </a>
           <a
             href="https://rubika.ir/zoppini_officiall"
             target="_blank"
+            rel="noopener"
             className=""
           >
             <Image
@@ -182,6 +222,8 @@ export default function Footer() {
               alt="rubicka"
               width={20}
               height={20}
+              loading="lazy"
+              sizes="20px"
             />
           </a>
         </div>

@@ -5,11 +5,15 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import NextTopLoader from 'nextjs-toploader';
 
-import PWAModal from '@/components/shared/pwa-modal';
 import { DirectionProvider } from '@/components/ui/direction';
 import { Toaster } from '@/components/ui/sonner';
+
+const PWAModal = dynamic(() => import('@/components/shared/pwa-modal'), {
+  ssr: false,
+});
 
 function makeQueryClient() {
   return new QueryClient({

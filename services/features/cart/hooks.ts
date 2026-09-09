@@ -9,10 +9,14 @@ import {
 } from './api';
 import { AddToCartDto, UpdateCartItemDto } from './types';
 
-export const useCartList = () => {
+export const useCartList = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['cart'],
     queryFn: () => cartList(),
+    enabled: options?.enabled ?? true,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 };
 

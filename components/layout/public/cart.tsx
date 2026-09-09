@@ -34,7 +34,7 @@ import { useCartStore } from '@/store/cart.store';
 
 export default function Cart() {
   const { isOpen, closeCart, openCart } = useCartStore();
-  const { data, isLoading } = useCartList();
+  const { data, isLoading } = useCartList({ enabled: isOpen });
   const updateItem = useUpdateCartItem();
   const deleteItem = useDeleteCartItem();
   const clearCart = useClearCart();

@@ -42,7 +42,7 @@ export async function serverFetch<T>(
         ? options.body
         : JSON.stringify(options.body);
 
-  let res = await fetch(`${BASE_URL}${url}`, {
+  const fetchInit: RequestInit & { next?: NextFetchRequestConfig } = {
     method: options.method ?? 'GET',
     headers: {
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
@@ -50,25 +50,19 @@ export async function serverFetch<T>(
       ...options.headers,
     },
     body: preparedBody as BodyInit,
-    cache: options.cache ?? 'no-store',
-    next: options.next,
-  });
+    ...(options.next
+      ? { next: options.next }
+      : { cache: options.cache ?? 'no-store' }),
+    ...(options.cache && options.next ? { cache: options.cache } : {}),
+  };
+
+  let res = await fetch(`${BASE_URL}${url}`, fetchInit);
 
   if (res.status === 401) {
     const refreshed = await refreshToken();
 
     if (refreshed) {
-      res = await fetch(`${BASE_URL}${url}`, {
-        method: options.method ?? 'GET',
-        headers: {
-          ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-          Cookie: cookieStore.toString(),
-          ...options.headers,
-        },
-        body: preparedBody as BodyInit,
-        cache: options.cache ?? 'no-store',
-        next: options.next,
-      });
+      res = await fetch(`${BASE_URL}${url}`, fetchInit);
     } else {
       throw new Error('UNAUTHORIZED');
     }

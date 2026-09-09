@@ -43,11 +43,15 @@ export async function getProduct(slug: string) {
 }
 
 export async function getFeaturedProducts() {
-  return serverFetch<ApiListResponse<FeaturedProductResponse>>('featured');
+  return serverFetch<ApiListResponse<FeaturedProductResponse>>('featured', {
+    next: { revalidate: 300, tags: ['featured-products'] },
+  });
 }
 
 export async function getStyleProducts() {
-  return serverFetch<ApiListResponse<FeaturedProductResponse>>('style');
+  return serverFetch<ApiListResponse<FeaturedProductResponse>>('style', {
+    next: { revalidate: 300, tags: ['style-products'] },
+  });
 }
 
 export async function getDiscountedProducts(params: GetProductsParams = {}) {
