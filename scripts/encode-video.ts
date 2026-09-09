@@ -252,6 +252,7 @@ async function encodeQuality(
   outputDir: string,
   quality: VideoQuality,
   videoInfo: VideoInfo,
+  includeAudio = true,
 ): Promise<EncodedVariant> {
   const qualityDir = path.join(outputDir, quality.name);
 
@@ -330,20 +331,25 @@ async function encodeQuality(
     '0',
 
     // =========================
-    // AUDIO
+    // AUDIO (muted background loops should use --mute to strip it
+    // entirely: saves ~128kbps + AAC decode on every segment)
     // =========================
 
-    '-c:a',
-    'aac',
+    ...(includeAudio
+      ? [
+          '-c:a',
+          'aac',
 
-    '-b:a',
-    '128k',
+          '-b:a',
+          '128k',
 
-    '-ar',
-    '48000',
+          '-ar',
+          '48000',
 
-    '-ac',
-    '2',
+          '-ac',
+          '2',
+        ]
+      : ['-an']),
 
     // =========================
     // HLS
@@ -409,7 +415,10 @@ function createMasterPlaylist(
 /**
  * Encode یک ویدیو
  */
-async function encodeVideo(inputPath: string): Promise<void> {
+async function encodeVideo(
+  inputPath: string,
+  includeAudio = true,
+): Promise<void> {
   const absoluteInputPath = path.resolve(inputPath);
 
   // =========================
@@ -516,6 +525,7 @@ async function encodeVideo(inputPath: string): Promise<void> {
       outputDir,
       quality,
       videoInfo,
+      includeAudio,
     );
 
     variants.push(variant);
@@ -538,7 +548,9 @@ async function encodeVideo(inputPath: string): Promise<void> {
  * Main
  */
 async function main(): Promise<void> {
-  const inputFiles = process.argv.slice(2);
+  const rawArgs = process.argv.slice(2);
+  const includeAudio = !rawArgs.includes('--mute');
+  const inputFiles = rawArgs.filter(arg => !arg.startsWith('--'));
 
   if (inputFiles.length === 0) {
     console.error('');
@@ -550,6 +562,14 @@ async function main(): Promise<void> {
     console.error('Usage:');
 
     console.error('  pnpm video:encode public/home/category_1.mp4');
+
+    console.error('');
+
+    console.error('Muted background loops (strips 128k audio, recommended');
+
+    console.error('for hero/category/end/style videos):');
+
+    console.error('  pnpm video:encode --mute public/home/hero_section_1.mp4');
 
     console.error('');
 
@@ -579,9 +599,17 @@ async function main(): Promise<void> {
   let successCount = 0;
   let failedCount = 0;
 
+  console.log(
+    includeAudio
+      ? '🔊 Including audio (128k AAC)'
+      : '🔇 Mute mode: audio stripped (-an)',
+  );
+
+  console.log('');
+
   for (const inputFile of inputFiles) {
     try {
-      await encodeVideo(inputFile);
+      await encodeVideo(inputFile, includeAudio);
 
       successCount++;
     } catch (error) {

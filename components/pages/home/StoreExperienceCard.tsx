@@ -171,12 +171,16 @@ export default function StoreExperienceCard({
         <img
           className="zse__fill-image"
           src={outgoing.src}
-          alt="store image 1"
+          alt=""
+          loading="lazy"
+          decoding="async"
         />
         <img
           className="zse__fill-image"
           src={incoming.src}
-          alt="store image 2"
+          alt=""
+          loading="lazy"
+          decoding="async"
         />
       </div>
 
@@ -208,7 +212,8 @@ export default function StoreExperienceCard({
                   src={face.src}
                   alt={index === turn % faces.length ? incoming.alt : ''}
                   draggable="false"
-                  decoding={index === 0 ? 'sync' : 'async'}
+                  decoding="async"
+                  loading={index === 0 ? 'eager' : 'lazy'}
                   fetchPriority={index === 0 ? 'high' : 'low'}
                 />
                 <img
@@ -217,6 +222,8 @@ export default function StoreExperienceCard({
                   alt=""
                   aria-hidden="true"
                   draggable="false"
+                  loading="lazy"
+                  decoding="async"
                 />
               </figure>
             ))}
@@ -247,7 +254,14 @@ export default function StoreExperienceCard({
 
       <div className="zse__preload" aria-hidden="true">
         {faces.map(face => (
-          <img key={face.src} src={face.src} alt="" />
+          <img
+            key={face.src}
+            src={face.src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+          />
         ))}
       </div>
     </section>

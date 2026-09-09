@@ -1,35 +1,32 @@
-import Image from 'next/image';
-import Link from 'next/link';
-
 import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
+import SaleBanner from '@/components/pages/home/sale-banner';
 import StoreExperienceCard from '@/components/pages/home/StoreExperienceCard';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
-import { ApiListResponse } from '@/services/api/types';
 import {
   getHeroSectionCategories,
   getHomeCategories,
 } from '@/services/features/categories/server.api';
-import { CategoriesResponse } from '@/services/features/categories/types';
 import {
   getFeaturedProducts,
   getStyleProducts,
 } from '@/services/features/products/server.api';
-import { FeaturedProductResponse } from '@/services/features/products/type';
+
+export const revalidate = 300;
 
 export default async function HomePage() {
-  const HeroSectionCategories: ApiListResponse<CategoriesResponse> =
-    await getHeroSectionCategories();
-
-  const HomeCategories: ApiListResponse<CategoriesResponse> =
-    await getHomeCategories();
-
-  const FeaturedProducts: ApiListResponse<FeaturedProductResponse> =
-    await getFeaturedProducts();
-
-  const StyleProducts: ApiListResponse<FeaturedProductResponse> =
-    await getStyleProducts();
+  const [
+    HeroSectionCategories,
+    HomeCategories,
+    FeaturedProducts,
+    StyleProducts,
+  ] = await Promise.all([
+    getHeroSectionCategories(),
+    getHomeCategories(),
+    getFeaturedProducts(),
+    getStyleProducts(),
+  ]);
 
   return (
     <div>
@@ -40,31 +37,7 @@ export default async function HomePage() {
       />
 
       <div className="mb-4">
-        <Link href="/discounted-products">
-          <div className="relative hidden sm:block w-full h-auto overflow-hidden">
-            <Image
-              src="/home/sale.webp"
-              alt="محصولات تخفیف‌دار زوپینی"
-              width={4269}
-              height={2400}
-              priority
-              sizes="100vw"
-              quality={100}
-              className="object-cover"
-            />
-          </div>
-          <div className="relative sm:hidden w-full h-auto overflow-hidden">
-            <Image
-              src="/home/mobile_sale.webp"
-              alt="محصولات تخفیف‌دار زوپینی"
-              width={1080}
-              height={1920}
-              priority
-              quality={100}
-              className="object-cover"
-            />
-          </div>
-        </Link>
+        <SaleBanner />
       </div>
 
       {/* اسکرول عادی بعد از New In */}

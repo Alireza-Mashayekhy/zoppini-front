@@ -12,7 +12,7 @@ export default function PublicLayout({
     <>
       <Script
         id="goftino-widget"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             !function(){

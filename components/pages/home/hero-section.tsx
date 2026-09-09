@@ -165,6 +165,9 @@ export default function HeroSection(
           width={200}
           height={30}
           alt="زوپینی"
+          priority
+          fetchPriority="high"
+          sizes="200px"
         />
       </div>
 

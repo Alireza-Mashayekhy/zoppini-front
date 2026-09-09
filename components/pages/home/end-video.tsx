@@ -3,14 +3,21 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function EndVideo() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useGSAP(() => {
     if (!sectionRef.current) return;
@@ -36,20 +43,28 @@ export default function EndVideo() {
     };
   }, []);
 
+  if (!mounted) {
+    return (
+      <div
+        ref={sectionRef}
+        className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0 bg-black"
+      />
+    );
+  }
+
   return (
     <div
       ref={sectionRef}
-      className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0"
+      className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0 bg-black"
     >
       <HlsVideo
-        src="/home/end/master.m3u8"
+        key={isMobile ? 'mobile' : 'desktop'}
+        src={
+          isMobile ? '/home/mobile_end/master.m3u8' : '/home/end/master.m3u8'
+        }
         lowQualityFirst
-        className="w-full h-full object-cover hidden sm:block"
-      />
-      <HlsVideo
-        src="/home/mobile_end/master.m3u8"
-        lowQualityFirst
-        className="w-full h-full object-cover block sm:hidden"
+        preload="metadata"
+        className="w-full h-full object-cover"
       />
     </div>
   );

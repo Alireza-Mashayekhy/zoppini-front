@@ -54,15 +54,22 @@ export const useSizeList = () => {
   });
 };
 
-export const useProducsList = (query: {
-  page?: number;
-  search?: string;
-  limit?: number;
-  all: boolean;
-}) => {
+export const useProducsList = (
+  query: {
+    page?: number;
+    search?: string;
+    limit?: number;
+    all: boolean;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['products', { ...query }],
     queryFn: () => productsList(query),
+    enabled: options?.enabled ?? true,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 };
 
