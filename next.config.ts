@@ -4,6 +4,8 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 const nextConfig: NextConfig = {
   images: {
+    dangerouslyAllowLocalIP: true,
+
     remotePatterns: [
       {
         protocol: 'https',
@@ -24,10 +26,8 @@ const nextConfig: NextConfig = {
           ]
         : []),
     ],
-    formats: ['image/avif', 'image/webp'],
+
     minimumCacheTTL: 31536000,
-    // Match actual breakpoints: mobile 390px, tablet 768px, desktop 1920px.
-    // Prevents overserving 4269px sale banner / 1080p video posters.
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
