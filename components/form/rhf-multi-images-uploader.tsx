@@ -61,7 +61,7 @@ export function RHFMultiImageUploader<T extends FieldValues>({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: { 'image/webp': [] },
     multiple: true,
   });
 
@@ -126,7 +126,7 @@ export function RHFMultiImageUploader<T extends FieldValues>({
               ? 'فایل را رها کنید...'
               : 'برای آپلود کلیک کنید یا عکس‌ها را بکشید و رها کنید'}
           </p>
-          <p className="text-xs text-gray-400">فرمت‌های مجاز: تصاویر</p>
+          <p className="text-xs text-gray-400"> فرمت‌های مجاز: webp</p>
         </div>
       </div>
 
