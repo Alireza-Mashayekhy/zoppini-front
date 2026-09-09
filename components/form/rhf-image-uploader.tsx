@@ -25,7 +25,7 @@ export function RHFImageUploader<T extends FieldValues>({
   setValue,
   error,
   defaultValue = null,
-  accept = 'image/jpeg,image/png,image/webp',
+  accept = 'image/webp',
   maxSize = 2 * 1024 * 1024,
   aspectRatio,
   className,
