@@ -204,6 +204,7 @@ export default function OpeningLandingPage() {
             width={512}
             height={512}
             priority
+            loading="eager"
             className="mx-auto w-26 object-contain sm:w-28 md:w-44 lg:w-49"
           />
 
@@ -266,6 +267,7 @@ export default function OpeningLandingPage() {
                 src="/opening/hero.jpg"
                 alt="کمپین افتتاحیه زوپینی — پوشاک مردانه پریمیوم"
                 fill
+                loading="eager"
                 priority
                 sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 600px"
                 className="object-cover object-[center_20%]"
