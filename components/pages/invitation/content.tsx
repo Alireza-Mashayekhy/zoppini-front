@@ -15,7 +15,7 @@ export default function InvitationPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex justify-center items-center overflow-hidden bg-black">
+    <div className="relative min-h-screen flex justify-center items-center overflow-hidden">
       {/* Desktop */}
       <div
         className={`
