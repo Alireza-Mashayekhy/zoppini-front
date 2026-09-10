@@ -66,7 +66,7 @@ export default function InformationCard({
           <Button
             asChild
             size="lg"
-            className="w-full justify-center rounded-[8px]! bg-orange-700 text-white shadow-sm transition-all hover:bg-orange-800 hover:shadow-md"
+            className="w-full justify-center rounded-[8px]! bg-[#C96115] text-white shadow-sm transition-all hover:bg-orange-800! hover:shadow-md"
           >
             <a href={`tel:${phoneHref}`}>تماس با شعبه</a>
           </Button>

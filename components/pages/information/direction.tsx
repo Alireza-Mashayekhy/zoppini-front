@@ -77,7 +77,7 @@ export default function DirectionsMenu({
           size="lg"
           className={
             className ??
-            'w-full justify-center rounded-[8px]! bg-orange-700 text-white shadow-sm transition-all hover:bg-orange-800 hover:shadow-md'
+            'w-full justify-center rounded-[8px]! bg-[#C96115] text-white shadow-sm transition-all hover:bg-orange-800 hover:shadow-md'
           }
         >
           مسیریابی
