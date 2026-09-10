@@ -1,0 +1,17 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2000" viewBox="0 0 1600 2000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#121214"/>
+      <stop offset="50%" stop-color="#0a0a0b"/>
+      <stop offset="100%" stop-color="#1a1814"/>
+    </linearGradient>
+    <radialGradient id="r" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#c9a96e" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#c9a96e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="2000" fill="url(#g)"/>
+  <rect width="1600" height="2000" fill="url(#r)"/>
+  <text x="800" y="980" text-anchor="middle" fill="#c9a96e" fill-opacity="0.35" font-family="Georgia, serif" font-size="42" letter-spacing="8">ZOPPINI</text>
+  <text x="800" y="1040" text-anchor="middle" fill="#9a9690" fill-opacity="0.5" font-family="sans-serif" font-size="22" letter-spacing="4">REPLACE WITH CAMPAIGN PHOTO</text>
+</svg>
