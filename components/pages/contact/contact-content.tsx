@@ -21,6 +21,8 @@ import { Button } from '@/components/ui/button';
 import { useCreateContact } from '@/services/features/contact/hooks';
 import { CreateContactDto } from '@/services/features/contact/types';
 
+import DirectionsMenu from '../information/direction';
+
 const BranchesMap = dynamic(
   () => import('@/components/pages/branches/branches-map'),
   {
@@ -278,9 +280,17 @@ export default function ContactContent() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <MapCard title="دفتر مرکزی تهران" location={0} />
-
-            <MapCard title="شعبه کرمان" location={1} />
+            <div className="space-y-2">
+              <MapCard title="دفتر مرکزی تهران" location={0} />
+              <DirectionsMenu lat={35.69776219399375} lng={51.42114981432789} />
+            </div>
+            <div className="space-y-2">
+              <MapCard title="شعبه کرمان" location={1} />
+              <DirectionsMenu
+                lat={30.286455507638387}
+                lng={57.03517457530013}
+              />
+            </div>
           </div>
         </section>
       </div>
@@ -373,7 +383,7 @@ function MapCard({ title, location }: { title: string; location: number }) {
         </div>
       </div>
 
-      <div className="h-[350px] w-full overflow-hidden bg-gray-100 md:h-[420px]">
+      <div className="h-[350px] w-full overflow-hidden bg-gray-100 md:h-[420px] relative z-0">
         <BranchesMap location={location} />
       </div>
     </div>
