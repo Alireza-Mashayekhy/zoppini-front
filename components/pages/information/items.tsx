@@ -52,13 +52,6 @@ const socialNetworks = [
     className:
       'border-[#E60023]/30 bg-[#E60023]/10 text-[#C4001D] hover:border-[#E60023]/50 hover:bg-[#E60023]/20',
   },
-  {
-    title: 'Rubika',
-    href: '#',
-    icon: Send,
-    className:
-      'border-[#00A693]/30 bg-[#00A693]/10 text-[#008F80] hover:border-[#00A693]/50 hover:bg-[#00A693]/20',
-  },
 ];
 
 const contactItems = [
@@ -144,7 +137,7 @@ export default function Items() {
             <section>
               <SectionTitle>شبکه‌های اجتماعی</SectionTitle>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
                 {socialNetworks.map(item => (
                   <SocialButton key={item.title} {...item} />
                 ))}
@@ -170,10 +163,10 @@ export default function Items() {
                       {/* عنوان + آیکون */}
                       <div className="flex items-center gap-3">
                         <div className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-background text-muted-foreground shadow-sm">
-                          <Icon className="size-4" />
+                          <Icon className="size-4 text-[#C96115]" />
                         </div>
 
-                        <span className="text-sm font-medium text-muted-foreground">
+                        <span className="text-sm font-medium text-[#C96115]">
                           {item.label}
                         </span>
                       </div>
@@ -181,7 +174,7 @@ export default function Items() {
                       {/* مقدار */}
                       <span
                         dir="ltr"
-                        className="max-w-[65%] truncate text-left text-sm font-semibold text-foreground transition-colors group-hover:text-primary"
+                        className="max-w-[65%] truncate text-left text-sm font-semibold text-[#C96115] transition-colors group-hover:text-primary"
                       >
                         {item.value}
                       </span>
