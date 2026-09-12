@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { VisitTracker } from '@/components/shared/visit-tracker';
+
 import { cn, persianDateToISO } from '@/lib/utils';
 import { useCreateGamification } from '@/services/features/gamification/hooks';
 import { GamificationDto } from '@/services/features/gamification/type';
@@ -255,6 +257,9 @@ export default function StyleQuizPage() {
       }}
     >
       <div className="relative isolate flex min-h-dvh flex-col bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,169,110,0.08),transparent),radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(201,169,110,0.04),transparent)]">
+        {/* Visit tracking */}
+        <VisitTracker page="gamification" />
+
         {/* Header */}
         <header className="flex shrink-0 flex-col items-center justify-center border-b border-white/8 px-4 pb-6 pt-[max(1.75rem,env(safe-area-inset-top))] text-center">
           <Image

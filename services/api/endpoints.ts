@@ -144,4 +144,11 @@ export const endpoints = {
     stats: '/admin/gamification/stats',
     list: '/admin/gamification/participations',
   },
+
+  visits: {
+    track: '/visits',
+    stats: '/admin/visits/stats',
+    list: '/admin/visits',
+    delete: (id: number) => `/admin/visits/${id}`,
+  },
 };
