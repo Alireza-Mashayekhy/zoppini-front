@@ -226,6 +226,38 @@ export default function Footer() {
               sizes="20px"
             />
           </a>
+          <a
+            href="https://t.me/zoppinii"
+            target="_blank"
+            rel="noopener"
+            className=""
+          >
+            <Image
+              className="grayscale-100 hover:grayscale-0 transition"
+              src="/footer/Telegram.webp"
+              alt="telegram"
+              width={20}
+              height={20}
+              loading="lazy"
+              sizes="20px"
+            />
+          </a>
+          <a
+            href="https://wa.me/09352715016"
+            target="_blank"
+            rel="noopener"
+            className=""
+          >
+            <Image
+              className="grayscale-100 hover:grayscale-0 transition"
+              src="/footer/WhatsApp.svg"
+              alt="whatsapp"
+              width={20}
+              height={20}
+              loading="lazy"
+              sizes="20px"
+            />
+          </a>
         </div>
       </div>
       <p className="text-center text-xs">
