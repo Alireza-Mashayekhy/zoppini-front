@@ -10,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { VisitTracker } from '@/components/shared/visit-tracker';
 import { Button } from '@/components/ui/button';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/zoppini.official/';
@@ -191,6 +192,9 @@ export default function OpeningLandingPage() {
         `,
       }}
     >
+      {/* Visit tracking */}
+      <VisitTracker page="landing-opening" />
+
       {/* =====================================================
           HERO / FIRST FOLD
       ====================================================== */}

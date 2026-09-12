@@ -4,6 +4,7 @@ import {
   Book,
   Boxes,
   Briefcase,
+  Eye,
   Gamepad,
   Grid2X2,
   ListOrdered,
@@ -107,6 +108,11 @@ export default function AdminSidebar({
         link: '/admin/gamification',
         icon: Gamepad,
         name: 'gamification',
+      },
+      {
+        link: '/admin/visits',
+        icon: Eye,
+        name: 'بازدید لندینگ و گیمیفیکیشن',
       },
     );
   }
