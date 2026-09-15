@@ -8,7 +8,7 @@ export const useGamificationList = (query: {
   search?: string;
 }) => {
   return useQuery({
-    queryKey: ['gamification'],
+    queryKey: ['gamification', { ...query }],
     queryFn: () => gamificationList(query),
   });
 };
