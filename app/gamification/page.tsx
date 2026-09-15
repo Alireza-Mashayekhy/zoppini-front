@@ -595,7 +595,7 @@ export default function StyleQuizPage() {
                   >
                     <div className="font-semibold  text-[#e0c992] transition-colors hover:text-[#c9a96e] w-[400px]">
                       <Image
-                        src="/gamification/instagram.png"
+                        src="/gamification/instagramm.png"
                         alt="instagram"
                         width={2170}
                         height={725}
