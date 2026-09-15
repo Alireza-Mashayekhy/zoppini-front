@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
+import { VisitTracker } from '@/components/shared/visit-tracker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,8 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { VisitTracker } from '@/components/shared/visit-tracker';
-
 import { cn, persianDateToISO } from '@/lib/utils';
 import { useCreateGamification } from '@/services/features/gamification/hooks';
 import { GamificationDto } from '@/services/features/gamification/type';
