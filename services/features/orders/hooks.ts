@@ -2,7 +2,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { cancelOrder, getOrder, getOrders } from './api';
+import {
+  cancelOrder,
+  confirmOrderFromWallet,
+  getOrder,
+  getOrders,
+} from './api';
 import { createOrder } from './api';
 import { CreateOrderDto } from './type';
 
@@ -31,6 +36,25 @@ export const useCancelOrder = () => {
     },
     onError: (error: any) => {
       toast.error(error?.message || 'خطا در لغو سفارش');
+    },
+  });
+};
+
+export const useConfirmOrderFromWallet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => confirmOrderFromWallet(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('سفارش با کیف پول تأیید شد');
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          'خطا در تأیید سفارش با کیف پول',
+      );
     },
   });
 };

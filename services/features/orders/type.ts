@@ -15,6 +15,7 @@ export interface CreateOrderDto {
   note?: string;
   discountCode?: string;
   shippingMethod: ShippingMethod;
+  useWallet?: boolean;
 }
 
 export enum OrderStatus {
@@ -47,6 +48,7 @@ export interface OrderResponse {
   shippingCost: number;
   discount: number;
   finalPrice: number;
+  walletPayment?: string;
   status: OrderStatus;
   shippingAddress?: string;
   phone?: string;

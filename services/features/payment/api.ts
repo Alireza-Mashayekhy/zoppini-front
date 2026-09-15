@@ -7,6 +7,7 @@ import { PaymentGateway } from './type';
 export interface StartPaymentResponse {
   refId: string;
   payUrl: string;
+  username?: string;
 }
 
 export async function startPayment(orderId: number, gateway: PaymentGateway) {

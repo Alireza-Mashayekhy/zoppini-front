@@ -40,6 +40,41 @@ export function toPersianDate(value: string | Date) {
   return `${year}/${month}/${day}`;
 }
 
+export function toPersianDateTime(value: string | Date) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const formatter = new Intl.DateTimeFormat('fa-IR-u-nu-latn', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+
+  const year = parts.find(part => part.type === 'year')?.value;
+
+  const month = parts.find(part => part.type === 'month')?.value;
+
+  const day = parts.find(part => part.type === 'day')?.value;
+
+  const hour = parts.find(part => part.type === 'hour')?.value;
+
+  const minute = parts.find(part => part.type === 'minute')?.value;
+
+  if (!year || !month || !day || !hour || !minute) {
+    return '';
+  }
+
+  return `${year}/${month}/${day} - ${hour}:${minute}`;
+}
+
 export function persianDateToISO(value: string) {
   if (!value) {
     return '';
