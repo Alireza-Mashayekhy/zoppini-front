@@ -26,3 +26,8 @@ export const cancelOrder = async (id: number): Promise<void> => {
   const url = endpoints.order.cancel(id);
   await api.patch(url);
 };
+
+export const confirmOrderFromWallet = async (id: number): Promise<void> => {
+  const url = endpoints.order.confirmFromWallet(id);
+  await api.post(url);
+};

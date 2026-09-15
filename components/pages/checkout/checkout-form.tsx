@@ -1,6 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
+import { Wallet } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -13,17 +15,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatPrice } from '@/lib/utils';
 import { useAddresses } from '@/services/features/addresses/hooks';
 import { useCartList } from '@/services/features/cart/hooks';
 import { useApplyDiscount } from '@/services/features/discounts/hooks';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
+import { confirmOrderFromWallet } from '@/services/features/orders/api';
 import { useCreateOrder } from '@/services/features/orders/hooks';
 import {
   CreateOrderDto,
+  OrderStatus,
   ShippingMethod,
 } from '@/services/features/orders/type';
 import { useStartPayment } from '@/services/features/payment/hooks';
 import { PaymentGateway } from '@/services/features/payment/type';
+import { useWallet } from '@/services/features/wallet/hooks';
 
 import OrderSummary from './order-summary';
 
@@ -56,6 +62,14 @@ export default function CheckoutForm() {
 
   const applyDiscountMutation = useApplyDiscount();
 
+  const queryClient = useQueryClient();
+
+  const { data: walletData } = useWallet();
+
+  const walletInfo = walletData?.data ?? null;
+
+  const walletBalance = Number(walletInfo?.balance ?? 0);
+
   const [selectedAddressId, setSelectedAddressId] = useState<
     number | undefined
   >();
@@ -74,6 +88,8 @@ export default function CheckoutForm() {
   const [appliedDiscount, setAppliedDiscount] =
     useState<ApplyDiscountResponse | null>(null);
 
+  const [useWalletPayment, setUseWalletPayment] = useState(false);
+
   const cartItems = cartData?.data?.items ?? [];
 
   const methods = useForm<CheckoutFormValues>({
@@ -90,6 +106,19 @@ export default function CheckoutForm() {
   const { handleSubmit, watch, setValue, register, getValues } = methods;
 
   const selectedShipping = watch('shippingMethod');
+
+  const baseFinalPrice = Number(
+    appliedDiscount?.summary?.finalPrice ??
+      cartData?.data?.pricing?.finalPrice ??
+      0,
+  );
+
+  const estimatedFinalPrice = baseFinalPrice + shippingCost;
+
+  const walletFullyCovers =
+    useWalletPayment &&
+    estimatedFinalPrice > 0 &&
+    walletBalance >= estimatedFinalPrice;
 
   /**
    * ==========================================
@@ -241,7 +270,7 @@ export default function CheckoutForm() {
       return;
     }
 
-    if (!selectedGateway) {
+    if (!selectedGateway && !walletFullyCovers) {
       toast.error('لطفاً یک درگاه پرداخت انتخاب کنید');
 
       return;
@@ -258,6 +287,8 @@ export default function CheckoutForm() {
         discountCode: data.discountCode?.trim()
           ? data.discountCode.trim().toUpperCase()
           : undefined,
+
+        useWallet: useWalletPayment,
       };
 
       /**
@@ -274,11 +305,53 @@ export default function CheckoutForm() {
         return;
       }
 
+      const fullyCoveredByWallet =
+        Number(order.walletPayment ?? 0) > 0 &&
+        Number(order.walletPayment) >= Number(order.finalPrice);
+
+      if (order.status === OrderStatus.PAID) {
+        toast.success('پرداخت با کیف پول انجام شد');
+
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+
+        router.push('/dashboard/orders');
+
+        return;
+      }
+
+      if (fullyCoveredByWallet && order.status === OrderStatus.PENDING) {
+        try {
+          await confirmOrderFromWallet(order.id);
+
+          toast.success('پرداخت با کیف پول انجام شد');
+
+          queryClient.invalidateQueries({ queryKey: ['wallet'] });
+        } catch (confirmError: any) {
+          toast.error(
+            confirmError?.response?.data?.message ||
+              'سفارش ثبت شد اما تأیید کیف پول کامل نشد؛ می‌توانید از صفحه سفارشات تلاش مجدد کنید',
+          );
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+
+        router.push('/dashboard/orders');
+
+        return;
+      }
+
       /**
        * ========================================
        * شروع پرداخت
        * ========================================
        */
+
+      if (!selectedGateway) {
+        router.push(`/checkout/payment?orderId=${order.id}`);
+
+        return;
+      }
 
       startPayment.mutate(
         {
@@ -573,7 +646,72 @@ export default function CheckoutForm() {
                 روش پرداخت
               </h2>
 
-              <div className="space-y-3">
+              {walletInfo && (
+                <div className="space-y-3 mb-3">
+                  <label
+                    className={`flex items-center gap-3 border-2 p-4 transition-all ${
+                      walletBalance <= 0
+                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
+                        : useWalletPayment
+                          ? 'cursor-pointer border-primary bg-primary/5'
+                          : 'cursor-pointer border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={useWalletPayment}
+                      onChange={e => setUseWalletPayment(e.target.checked)}
+                      disabled={walletBalance <= 0}
+                      className="w-4 h-4"
+                    />
+
+                    <div>
+                      <div className="flex items-center gap-2 font-medium">
+                        <Wallet className="w-4 h-4" strokeWidth={1.5} />
+                        پرداخت از کیف پول
+                      </div>
+
+                      <div className="text-sm text-gray-500">
+                        موجودی: {formatPrice(walletBalance)} تومان
+                      </div>
+                    </div>
+                  </label>
+
+                  {walletBalance <= 0 && (
+                    <p className="text-xs text-gray-500">
+                      موجودی کیف پول شما صفر است. برای شارژ به صفحه کیف پول
+                      مراجعه کنید.
+                    </p>
+                  )}
+
+                  {useWalletPayment &&
+                    walletFullyCovers &&
+                    estimatedFinalPrice > 0 && (
+                      <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                        کل مبلغ سفارش ({formatPrice(estimatedFinalPrice)} تومان)
+                        از کیف پول پرداخت می‌شود.
+                      </p>
+                    )}
+
+                  {useWalletPayment &&
+                    estimatedFinalPrice > 0 &&
+                    walletBalance > 0 &&
+                    walletBalance < estimatedFinalPrice && (
+                      <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                        مبلغ باقی‌مانده (
+                        {formatPrice(estimatedFinalPrice - walletBalance)}{' '}
+                        تومان) با کارت بانکی پرداخت می‌شود.
+                      </p>
+                    )}
+                </div>
+              )}
+
+              <div
+                className={`space-y-3 ${
+                  walletFullyCovers ? 'pointer-events-none opacity-50' : ''
+                }`}
+              >
+                {' '}
                 <GatewayCard
                   gateway={PaymentGateway.MELLAT}
                   title="بانک ملت"
@@ -581,7 +719,6 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
-
                 <GatewayCard
                   gateway={PaymentGateway.ZARINPAL}
                   title="زرین‌پال"
@@ -589,7 +726,6 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
-
                 <GatewayCard
                   gateway={PaymentGateway.DIGIPAY}
                   title="دیجی‌پی"
@@ -597,7 +733,6 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
-
                 <GatewayCard
                   gateway={PaymentGateway.TARA}
                   title="تارا"
@@ -617,9 +752,13 @@ export default function CheckoutForm() {
               className="w-full"
               variant="dark"
               loading={createOrder.isPending || startPayment.isPending}
-              disabled={!selectedAddressId || !selectedGateway}
+              disabled={
+                !selectedAddressId || (!walletFullyCovers && !selectedGateway)
+              }
             >
-              ثبت سفارش و پرداخت
+              {walletFullyCovers
+                ? 'ثبت سفارش با کیف پول'
+                : 'ثبت سفارش و پرداخت'}
             </Button>
           </div>
         </FormProvider>

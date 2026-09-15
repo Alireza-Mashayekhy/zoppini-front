@@ -93,6 +93,8 @@ export const endpoints = {
     list: '/orders',
     get: (orderId: number) => `/orders/${orderId}`,
     cancel: (orderId: number) => `/orders/${orderId}/cancel`,
+    confirmFromWallet: (orderId: number) =>
+      `/orders/${orderId}/confirm-from-wallet`,
 
     adminList: '/admin/orders',
     adminGet: (orderId: number) => `/admin/orders/${orderId}`,
@@ -120,6 +122,12 @@ export const endpoints = {
 
   payment: {
     start: '/payment/start',
+    startWalletCharge: '/payment/start-wallet-charge',
+  },
+
+  wallet: {
+    info: '/wallet',
+    transactions: '/wallet/transactions',
   },
 
   discounts: {

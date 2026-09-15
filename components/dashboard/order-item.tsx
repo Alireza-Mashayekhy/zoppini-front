@@ -7,7 +7,10 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn, formatPrice } from '@/lib/utils';
-import { useCancelOrder } from '@/services/features/orders/hooks';
+import {
+  useCancelOrder,
+  useConfirmOrderFromWallet,
+} from '@/services/features/orders/hooks';
 import { OrderResponse, OrderStatus } from '@/services/features/orders/type';
 
 const statusMap: Record<OrderStatus, { label: string; color: string }> = {
@@ -28,10 +31,18 @@ interface OrderItemProps {
 export default function OrderItem({ order }: OrderItemProps) {
   const [expanded, setExpanded] = useState(false);
   const cancelOrder = useCancelOrder();
+  const confirmFromWallet = useConfirmOrderFromWallet();
 
   const status = statusMap[order.status];
   const canCancel =
     order.status === OrderStatus.PENDING || order.status === OrderStatus.PAID;
+
+  const walletPaymentAmount = Number(order.walletPayment ?? 0);
+
+  const needsWalletRetry =
+    order.status === OrderStatus.PENDING &&
+    walletPaymentAmount > 0 &&
+    walletPaymentAmount >= Number(order.finalPrice);
 
   return (
     <div className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
@@ -117,11 +128,32 @@ export default function OrderItem({ order }: OrderItemProps) {
               {order.discount > 0 && (
                 <p>تخفیف: {formatPrice(order.discount)} تومان</p>
               )}
+              {walletPaymentAmount > 0 && (
+                <p>
+                  پرداخت از کیف پول: {formatPrice(walletPaymentAmount)} تومان
+                </p>
+              )}
               <p className="font-semibold text-base">
                 قابل پرداخت: {formatPrice(order.finalPrice)} تومان
               </p>
             </div>
           </div>
+
+          {needsWalletRetry && (
+            <div className="flex items-center justify-between gap-3 border-t pt-3">
+              <p className="text-xs text-gray-500">
+                این سفارش با کیف پول پوشش داده شده؛ تأیید آن را دوباره امتحان
+                کنید.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => confirmFromWallet.mutate(order.id)}
+                loading={confirmFromWallet.isPending}
+              >
+                تأیید مجدد با کیف پول
+              </Button>
+            </div>
+          )}
 
           {canCancel && (
             <div className="flex justify-end">

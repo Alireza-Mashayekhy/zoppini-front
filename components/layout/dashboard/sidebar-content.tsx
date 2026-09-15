@@ -1,6 +1,13 @@
 'use client';
 
-import { Flag, Heart, LayoutDashboard, ShoppingBag, User } from 'lucide-react';
+import {
+  Flag,
+  Heart,
+  LayoutDashboard,
+  ShoppingBag,
+  User,
+  Wallet,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -9,6 +16,7 @@ import { cn } from '@/lib/utils';
 const menuItems = [
   { icon: LayoutDashboard, label: 'داشبورد', href: '/dashboard' },
   { icon: ShoppingBag, label: 'سفارشات', href: '/dashboard/orders' },
+  { icon: Wallet, label: 'کیف پول', href: '/dashboard/wallet' },
   { icon: User, label: 'پروفایل', href: '/dashboard/profile' },
   { icon: Heart, label: 'علاقه‌مندی‌ها', href: '/dashboard/wishlist' },
   { icon: Flag, label: 'آدرس ها', href: '/dashboard/addresses' },
