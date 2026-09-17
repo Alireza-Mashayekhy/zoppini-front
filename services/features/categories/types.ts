@@ -2,6 +2,7 @@ export interface CategoriesResponse {
   id: number;
   name: string;
   image: string;
+  secondImages: string[];
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -18,6 +19,7 @@ export interface createCategoryDto {
   id?: string;
   name: string;
   image: File;
+  secondImages?: (File | string)[];
   description: string;
   slug: string;
   parentId: string | null;

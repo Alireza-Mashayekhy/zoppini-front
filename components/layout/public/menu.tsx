@@ -57,7 +57,28 @@ export default function Menu({
     null,
   );
 
+  const [hoveredCategory, setHoveredCategory] = useState<CategoryNode | null>(
+    null,
+  );
+
   const tree = buildCategoryTree(categories);
+
+  const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_URL ?? '';
+
+  const promoImages = hoveredCategory
+    ? [0, 1].map(slot => {
+        const filename =
+          (hoveredCategory.secondImages ?? [])[slot] || hoveredCategory.image;
+
+        return {
+          src: `${imageBaseUrl}${filename}`,
+          alt: hoveredCategory.name,
+        };
+      })
+    : [
+        { src: '/home/category_1.webp', alt: 'محصولات زنانه' },
+        { src: '/home/category_2.webp', alt: 'محصولات مردانه' },
+      ];
 
   /*
    * ============================================
@@ -125,6 +146,7 @@ export default function Menu({
         onMouseLeave={() => {
           setIsProductsOpen(false);
           setActiveCategory(null);
+          setHoveredCategory(null);
         }}
       >
         <button
@@ -154,7 +176,10 @@ export default function Menu({
                 <div className="space-y-1">
                   <Link
                     href={`/discounted-products`}
-                    onMouseEnter={() => setActiveCategory(null)}
+                    onMouseEnter={() => {
+                      setActiveCategory(null);
+                      setHoveredCategory(null);
+                    }}
                     className={`group flex items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-white hover:text-black hover:shadow-sm text-gray-700`}
                   >
                     <span>فروش ویژه</span>
@@ -166,9 +191,10 @@ export default function Menu({
                       <Link
                         key={category.id}
                         href={`/product-category/${category.slug}`}
-                        onMouseEnter={() =>
-                          setActiveCategory(hasChildren ? category : null)
-                        }
+                        onMouseEnter={() => {
+                          setActiveCategory(hasChildren ? category : null);
+                          setHoveredCategory(category);
+                        }}
                         className={`group flex items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors ${
                           activeCategory?.id === category.id
                             ? 'bg-white text-black shadow-sm'
@@ -248,37 +274,29 @@ export default function Menu({
 
               {/* تصاویر تبلیغاتی */}
               <div className="flex w-[210px] shrink-0 flex-col gap-3 border-r p-3">
-                <Link
-                  href="#"
-                  className="group relative aspect-square overflow-hidden"
-                >
-                  <Image
-                    src="/home/category_1.webp"
-                    alt="محصولات زنانه"
-                    fill
-                    sizes="180px"
-                    loading="lazy"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                {promoImages.map((promoImage, index) => (
+                  <Link
+                    key={index}
+                    href={
+                      hoveredCategory
+                        ? `/product-category/${hoveredCategory.slug}`
+                        : '#'
+                    }
+                    className="group relative aspect-square overflow-hidden"
+                  >
+                    <Image
+                      key={promoImage.src}
+                      src={promoImage.src}
+                      alt={promoImage.alt}
+                      fill
+                      sizes="180px"
+                      loading="lazy"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105 animate-in fade-in-0 duration-300"
+                    />
 
-                  <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20" />
-                </Link>
-
-                <Link
-                  href="#"
-                  className="group relative aspect-square overflow-hidden"
-                >
-                  <Image
-                    src="/home/category_2.webp"
-                    alt="محصولات مردانه"
-                    fill
-                    sizes="180px"
-                    loading="lazy"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-
-                  <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20" />
-                </Link>
+                    <div className="absolute inset-0 bg-black/10 transition-colors group-hover:bg-black/20" />
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

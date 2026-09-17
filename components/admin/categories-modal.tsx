@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -26,6 +26,11 @@ import {
 import FormProvider from '../form/form-provider';
 import { RHFImageUploader } from '../form/rhf-image-uploader';
 import RHFInput from '../form/rhf-input';
+import {
+  RHFSecondImagesUploader,
+  SECOND_IMAGES_ACCEPTED_TYPES,
+  SECOND_IMAGES_MAX_SIZE,
+} from '../form/rhf-second-images-uploade';
 import RHFSelect from '../form/rhf-select';
 import RHFSwitch from '../form/rhf-switch';
 import { RHFTextEditor } from '../form/rhf-text-editor';
@@ -61,6 +66,24 @@ export default function CategoriesModal({
               file => ['image/webp'].includes(file.type),
               'فقط فرمت‌ webp مجازند',
             ),
+      secondImages: z
+        .array(
+          z.union([
+            z.string(),
+            z
+              .instanceof(File)
+              .refine(
+                file => file.size <= SECOND_IMAGES_MAX_SIZE,
+                'حداکثر حجم هر عکس دوم ۲ مگابایت است',
+              )
+              .refine(
+                file => SECOND_IMAGES_ACCEPTED_TYPES.includes(file.type),
+                'فقط فرمت‌های jpeg / png / webp مجازند',
+              ),
+          ]),
+        )
+        .max(2, 'حداکثر ۲ تصویر دوم برای هر دسته‌بندی مجاز است.')
+        .optional(),
       description: z.string().nonempty('این فیلد اجباری است'),
       slug: z.string().nonempty('این فیلد اجباری است'),
       parentId: z.string().nullable(),
@@ -109,6 +132,7 @@ export default function CategoriesModal({
     defaultValues: {
       name: '',
       image: undefined,
+      secondImages: [] as (File | string)[],
       description: '',
       slug: '',
       parentId: '',
@@ -132,6 +156,21 @@ export default function CategoriesModal({
   const isInHome = watch('isInHome');
   const isInHeroSection = watch('isInHeroSection');
 
+  // نام فایل‌های تصویر دوم فعلی (از سرور) برای تشخیص تغییرات هنگام ویرایش
+  const initialSecondImages = useMemo<string[]>(
+    () => (selectedData ? (selectedData.secondImages ?? []) : []),
+    [selectedData],
+  );
+
+  // آدرس کامل عکس‌های فعلی برای نمایش در آپلودر (حالت ویرایش)
+  const secondImageDefaults = useMemo<string[]>(
+    () =>
+      initialSecondImages.map(
+        filename => `${process.env.NEXT_PUBLIC_IMAGE_URL ?? ''}${filename}`,
+      ),
+    [initialSecondImages],
+  );
+
   useEffect(() => {
     if (selectedData) {
       reset({
@@ -144,6 +183,7 @@ export default function CategoriesModal({
         orderInHome: selectedData.orderInHome ?? null,
         orderInHero: selectedData.orderInHero ?? null,
         isActive: selectedData.isActive,
+        secondImages: secondImageDefaults,
       });
     } else {
       reset({
@@ -157,9 +197,10 @@ export default function CategoriesModal({
         orderInHome: null,
         orderInHero: null,
         isActive: true,
+        secondImages: [],
       });
     }
-  }, [selectedData, reset]);
+  }, [selectedData, reset, secondImageDefaults]);
 
   const onSubmit = async (data: createCategoryDto) => {
     try {
@@ -181,6 +222,56 @@ export default function CategoriesModal({
       }
       if (data.orderInHero && data.orderInHero > 0) {
         formData.append('orderInHero', data.orderInHero.toString());
+      }
+
+      const imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_URL ?? '';
+      const currentSecondImages = data.secondImages ?? [];
+
+      const newSecondImageFiles = currentSecondImages.filter(
+        (item): item is File => item instanceof File,
+      );
+      const keptSecondImageUrls = currentSecondImages.filter(
+        (item): item is string => typeof item === 'string',
+      );
+
+      const keptFilenames = keptSecondImageUrls.map(url =>
+        url.startsWith(imageBaseUrl) ? url.slice(imageBaseUrl.length) : url,
+      );
+      const isSecondImagesUnchanged =
+        isEdit &&
+        newSecondImageFiles.length === 0 &&
+        keptFilenames.length === initialSecondImages.length &&
+        initialSecondImages.every(filename => keptFilenames.includes(filename));
+
+      if (!isSecondImagesUnchanged) {
+        if (currentSecondImages.length === 0) {
+          if (initialSecondImages.length > 0) {
+            formData.append('removeSecondImages', 'true');
+          }
+        } else {
+          for (const item of currentSecondImages) {
+            if (item instanceof File) {
+              formData.append('secondImages', item);
+              continue;
+            }
+
+            try {
+              const response = await fetch(item);
+              if (!response.ok) throw new Error('fetch failed');
+              const blob = await response.blob();
+              const filename = item.split('/').pop() || 'second-image.jpg';
+              formData.append(
+                'secondImages',
+                new File([blob], filename, { type: blob.type }),
+              );
+            } catch {
+              toast.error(
+                'خطا در بازخوانی عکس‌های فعلی برای ارسال مجدد. لطفاً همهٔ عکس‌های دوم را دوباره آپلود کنید.',
+              );
+              return;
+            }
+          }
+        }
       }
 
       if (isEdit && selectedData.id) {
@@ -281,6 +372,27 @@ export default function CategoriesModal({
                   : null
               }
             />
+
+            <div className="col-span-2 flex flex-col gap-2">
+              <RHFSecondImagesUploader
+                key={selectedData ? `edit-${selectedData.id}` : 'create'}
+                name="secondImages"
+                label="تصاویر دوم (نمایش در منو محصولات - حداکثر ۲ عکس)"
+                setValue={setValue}
+                error={errors.secondImages as { message?: string } | undefined}
+                defaultValues={secondImageDefaults}
+                maxSize={SECOND_IMAGES_MAX_SIZE}
+                accept="image/jpeg,image/png,image/webp"
+                maxFiles={2}
+              />
+              <p className="text-xs text-gray-400">
+                این تصاویر هنگام نگه‌داشتن روی دسته‌بندی در منو محصولات نمایش
+                داده می‌شوند. در حالت ویرایش، عکس‌های نهایی (عکس‌های
+                نگه‌داشته‌شده به‌همراه عکس‌های جدید) جایگزین لیست قبلی می‌شوند؛
+                برای حذف کامل، همهٔ عکس‌ها را پاک کنید.
+              </p>
+            </div>
+
             <Button
               type="submit"
               loading={
