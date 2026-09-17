@@ -50,6 +50,20 @@ export default async function Header() {
               >
                 فروش سازمانی
               </Link>
+
+              <Link
+                href="https://zoppiniclub.dayaclub.com/"
+                className="text-sm transition-colors hover:text-black/50"
+              >
+                باشگاه مشتریان{' '}
+              </Link>
+
+              <Link
+                href="/landing/opening"
+                className="text-sm transition-colors hover:text-black/50"
+              >
+                افتتاحیه{' '}
+              </Link>
             </nav>
           </div>
 
