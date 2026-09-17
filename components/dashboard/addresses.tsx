@@ -48,27 +48,23 @@ export default function Addresses({
         <h2 className="text-xl font-light tracking-wide">
           {mode === 'checkout' ? 'انتخاب آدرس' : 'آدرس‌های من'}
         </h2>
-        {mode === 'default' && (
-          <Button variant="dark" size="sm" onClick={() => setIsFormOpen(true)}>
-            <Plus className="w-4 h-4 mr-1" /> افزودن آدرس
-          </Button>
-        )}
+        <Button variant="dark" size="sm" onClick={() => setIsFormOpen(true)}>
+          <Plus className="w-4 h-4 mr-1" /> افزودن آدرس
+        </Button>
       </div>
 
       {!addresses?.data || addresses?.data?.length === 0 ? (
         <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
           <MapPin className="w-12 h-12 mx-auto stroke-1 text-gray-300 mb-2" />
           <p>هیچ آدرسی ثبت نشده است</p>
-          {mode === 'default' && (
-            <Button
-              variant="dark"
-              size="sm"
-              className="mt-2"
-              onClick={() => setIsFormOpen(true)}
-            >
-              افزودن آدرس جدید
-            </Button>
-          )}
+          <Button
+            variant="dark"
+            size="sm"
+            className="mt-2"
+            onClick={() => setIsFormOpen(true)}
+          >
+            افزودن آدرس جدید
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

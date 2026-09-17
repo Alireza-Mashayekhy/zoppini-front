@@ -58,20 +58,27 @@ export default function OrderSummary({
             </div>
 
             <div className="flex flex-col">
-              <span className="text-sm font-semibold whitespace-nowrap">
-                {(
-                  Number(item.variant.discountedPrice) * item.quantity
-                ).toLocaleString()}{' '}
-                تومان
-              </span>
+              {!!item.variant.discount &&
+                item.variant?.discountedPrice !==
+                  item.variant.originalPrice && (
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    {(
+                      Number(item.variant.discountedPrice) * item.quantity
+                    ).toLocaleString()}{' '}
+                    تومان
+                  </span>
+                )}
               <span
                 className={
-                  item.variant.discountedPrice
+                  item.variant.discount &&
+                  item.variant?.discountedPrice !== item.variant.originalPrice
                     ? 'text-xs font-semibold whitespace-nowrap line-through'
                     : 'text-sm font-semibold whitespace-nowrap'
                 }
               >
-                {(Number(item.variant.price) * item.quantity).toLocaleString()}{' '}
+                {(
+                  Number(item.variant.originalPrice) * item.quantity
+                ).toLocaleString()}{' '}
                 تومان
               </span>
             </div>
@@ -96,7 +103,7 @@ export default function OrderSummary({
 
         {/* تخفیف */}
 
-        {pricing?.discountPrice && pricing?.discountPrice > 0 && (
+        {!!pricing?.discountPrice && pricing?.discountPrice > 0 && (
           <div className="flex justify-between text-green-600">
             <span>تخفیف</span>
 
@@ -117,7 +124,7 @@ export default function OrderSummary({
           <span>
             {shippingCost > 0
               ? `${shippingCost.toLocaleString()} تومان`
-              : 'رایگان'}
+              : 'پسکرایه'}
           </span>
         </div>
 
@@ -127,8 +134,11 @@ export default function OrderSummary({
           <span>قابل پرداخت</span>
 
           <span>
-            {appliedDiscount?.summary?.finalPrice.toLocaleString() ||
-              pricing?.finalPrice.toLocaleString()}{' '}
+            {(
+              (appliedDiscount?.summary?.finalPrice ||
+                pricing?.finalPrice ||
+                0) + shippingCost
+            ).toLocaleString()}{' '}
             تومان
           </span>
         </div>

@@ -28,6 +28,7 @@ export interface VariantResponse {
   stock: number;
   sku?: string;
   discountedPrice?: number;
+  originalPrice?: number;
   discount?: number;
   color: ColorResponse;
   size: SizeResponse;
