@@ -4,13 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
+import { VisitTracker } from '@/components/shared/visit-tracker';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { VisitTracker } from '@/components/shared/visit-tracker';
 import { Button } from '@/components/ui/button';
 
 const INSTAGRAM_URL = 'https://www.instagram.com/zoppini.official/';
