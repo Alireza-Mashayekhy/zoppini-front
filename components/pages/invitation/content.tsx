@@ -29,7 +29,7 @@ export default function InvitationPage() {
         `}
       >
         <Image
-          src="/invitation/desktop.webp"
+          src="/invitation/desktop_2.jpg"
           alt="desktop invitation"
           width={2560}
           height={2049}
@@ -51,7 +51,7 @@ export default function InvitationPage() {
         `}
       >
         <Image
-          src="/invitation/mobile.webp"
+          src="/invitation/mobile_2.jpg"
           alt="mobile invitation"
           width={2560}
           height={2049}
