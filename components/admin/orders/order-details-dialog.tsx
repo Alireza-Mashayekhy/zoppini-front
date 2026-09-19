@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -257,9 +258,11 @@ export default function OrderDetailsDialog({
               <div className="divide-y">
                 {currentOrder.items?.length ? (
                   currentOrder.items.map(item => (
-                    <div
+                    <Link
+                      href={`/product/${item?.variant?.product?.slug}`}
                       key={item.id}
                       className="flex items-center justify-between gap-4 p-4"
+                      target="_blank"
                     >
                       <div className="min-w-0">
                         <div className="font-medium">
@@ -291,7 +294,7 @@ export default function OrderDetailsDialog({
                           {formatPrice(Number(item.price) * item.quantity)}
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <div className="p-8 text-center text-sm text-muted-foreground">
