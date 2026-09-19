@@ -24,6 +24,7 @@ export interface OrderProduct {
   title: string;
   productCode?: string;
   image?: string | null;
+  slug: string;
 }
 
 export interface OrderVariant {
