@@ -67,6 +67,16 @@ export interface AdminOrder {
 
   items?: OrderItem[];
 
+  paymentBreakdown?: {
+    walletAmount?: number;
+    gatewayAmount: number;
+    gateways: {
+      id: string;
+      gateway: string;
+      amount: number;
+    }[];
+  };
+
   payment?: {
     id: number;
     status?: string;
