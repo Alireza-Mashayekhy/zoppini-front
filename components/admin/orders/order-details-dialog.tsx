@@ -304,6 +304,55 @@ export default function OrderDetailsDialog({
               </div>
             </div>
 
+            <div className="rounded-xl border">
+              <div className="border-b p-4">
+                <h3 className="font-semibold">نحوه پرداخت</h3>
+              </div>
+
+              <div className="divide-y">
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <div className="font-medium">کیف پول</div>
+
+                  <div className="shrink-0 text-left">
+                    <div className="font-medium">
+                      {formatPrice(
+                        currentOrder?.paymentBreakdown?.walletAmount,
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <div className="font-medium">درگاه پرداخت</div>
+
+                  <div className="shrink-0 text-left">
+                    <div className="font-medium">
+                      {formatPrice(
+                        currentOrder?.paymentBreakdown?.gatewayAmount,
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {currentOrder?.paymentBreakdown?.gateways?.length ? (
+                  currentOrder?.paymentBreakdown?.gateways.map(item => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-4 p-4"
+                    >
+                      <div className="font-medium">{item?.gateway}</div>
+
+                      <div className="font-medium">
+                        {formatPrice(item?.amount)}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    محصولی برای این سفارش ثبت نشده است.
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* ================================================= */}
             {/* خلاصه مبلغ */}
             {/* ================================================= */}

@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { AdminOrder, OrderStatus } from '@/services/features/orders/admin.api';
 
 interface Props {
@@ -76,7 +77,12 @@ export default function OrdersTable({ orders, onView, onCancel }: Props) {
             </TableRow>
           ) : (
             orders.map(order => (
-              <TableRow key={order.id}>
+              <TableRow
+                key={order.id}
+                className={cn(
+                  order.status === OrderStatus.PAID && 'bg-green-600/30',
+                )}
+              >
                 <TableCell>{order.id}</TableCell>
 
                 <TableCell>{order.orderNumber || `#${order.id}`}</TableCell>
