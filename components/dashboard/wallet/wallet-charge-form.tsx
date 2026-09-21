@@ -19,11 +19,11 @@ const GATEWAYS: {
   title: string;
   description: string;
 }[] = [
-  {
-    value: PaymentGateway.MELLAT,
-    title: 'بانک ملت',
-    description: 'درگاه شتاب',
-  },
+  // {
+  //   value: PaymentGateway.MELLAT,
+  //   title: 'بانک ملت',
+  //   description: 'درگاه شتاب',
+  // },
   {
     value: PaymentGateway.ZARINPAL,
     title: 'زرین‌پال',
