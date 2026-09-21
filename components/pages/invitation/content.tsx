@@ -51,7 +51,7 @@ export default function InvitationPage() {
         `}
       >
         <Image
-          src="/invitation/mobile_2.jpg"
+          src="/invitation/mobile_3.jpeg"
           alt="mobile invitation"
           width={2560}
           height={2049}

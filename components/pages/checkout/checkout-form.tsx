@@ -712,13 +712,13 @@ export default function CheckoutForm() {
                 }`}
               >
                 {' '}
-                <GatewayCard
+                {/* <GatewayCard
                   gateway={PaymentGateway.MELLAT}
                   title="بانک ملت"
                   description="درگاه شتاب"
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
-                />
+                /> */}
                 <GatewayCard
                   gateway={PaymentGateway.ZARINPAL}
                   title="زرین‌پال"

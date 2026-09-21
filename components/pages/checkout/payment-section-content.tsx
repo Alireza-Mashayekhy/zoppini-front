@@ -76,7 +76,7 @@ export default function PaymentSelectionContent() {
       </p>
 
       <div className="space-y-4">
-        <Card
+        {/* <Card
           className={`cursor-pointer border-2 transition-all ${
             selectedGateway === PaymentGateway.MELLAT
               ? 'border-blue-500 bg-blue-50'
@@ -94,7 +94,7 @@ export default function PaymentSelectionContent() {
             <span className="font-medium">بانک ملت</span>
             <span className="text-sm text-gray-500">(درگاه شتاب)</span>
           </CardContent>
-        </Card>
+        </Card> */}
         <Card
           className={`cursor-pointer border-2 transition-all ${
             selectedGateway === PaymentGateway.ZARINPAL
