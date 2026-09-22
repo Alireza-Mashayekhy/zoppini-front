@@ -31,9 +31,9 @@ export default function InformationPage() {
           <InformationCard
             name="شعبه هدیش مال"
             address="تهران, هدیش مال, طبقه سوم, پلاک 343"
-            phoneDisplay="021-66745520"
-            phoneHref="+982166745520"
-            image={`/home/store-02.webp`}
+            phoneDisplay="021-26879141"
+            phoneHref="+982126879141"
+            image={`/information/hadish.webp`}
             lat={35.76543938319641}
             lng={51.48074636594069}
           />
