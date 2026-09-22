@@ -3,6 +3,7 @@
 
 import { memo, useCallback, useState } from 'react';
 
+import { CareGuideView } from '@/components/pages/product/product-guides';
 import {
   Sheet,
   SheetContent,
@@ -11,10 +12,12 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import { ProductsResponse } from '@/services/features/products/type';
 
 interface ProductInfoProps {
   product: ProductsResponse;
+  guides?: ProductGuidesForCustomer | null;
 }
 
 // کامپوننت محتوای شیت با memo برای جلوگیری از رندر مجدد
@@ -22,9 +25,11 @@ const SheetContentBody = memo(
   ({
     content,
     product,
+    guides,
   }: {
     content: 'description' | 'careInstructions' | null;
     product: ProductsResponse;
+    guides?: ProductGuidesForCustomer | null;
   }) => {
     if (content === 'description') {
       return (
@@ -35,6 +40,23 @@ const SheetContentBody = memo(
       );
     }
     if (content === 'careInstructions') {
+      if (guides?.careGuide?.instructions?.length) {
+        return (
+          <div className="space-y-4">
+            <CareGuideView careGuide={guides.careGuide} />
+
+            {product.careInstructionsHtml && (
+              <div
+                className="prose prose-sm max-w-none border-t pt-4 text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: product.careInstructionsHtml,
+                }}
+              />
+            )}
+          </div>
+        );
+      }
+
       return (
         <div
           className="text-sm leading-relaxed prose prose-sm max-w-none"
@@ -49,7 +71,7 @@ const SheetContentBody = memo(
 );
 SheetContentBody.displayName = 'SheetContentBody';
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({ product, guides }: ProductInfoProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetContent, setSheetContent] = useState<
     'description' | 'careInstructions' | null
@@ -141,7 +163,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           </SheetHeader>
 
           <div className="flex-1 overflow-y-auto p-4">
-            <SheetContentBody content={sheetContent} product={product} />
+            <SheetContentBody
+              content={sheetContent}
+              product={product}
+              guides={guides}
+            />{' '}
           </div>
 
           <SheetFooter className="border-t pt-4">

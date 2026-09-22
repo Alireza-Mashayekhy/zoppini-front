@@ -7,6 +7,7 @@ import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
 import { useAddToCart } from '@/services/features/cart/hooks';
+import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import {
   ColorResponse,
   ProductResponse,
@@ -19,8 +20,10 @@ import WishlistButton from './wishlist-button';
 
 export default function ProductContent({
   products,
+  guides,
 }: {
   products: ProductResponse;
+  guides?: ProductGuidesForCustomer | null;
 }) {
   const product = products.product;
 
@@ -143,6 +146,7 @@ export default function ProductContent({
 
             <ProductSizes
               product={product}
+              guides={guides}
               selectedSizeId={selectedSizeId}
               onSizeSelect={setSelectedSizeId}
             />
@@ -173,7 +177,7 @@ export default function ProductContent({
               <WishlistButton productId={product.id} />
             </div>
           </div>
-          <ProductInfo product={product} />
+          <ProductInfo product={product} guides={guides} />
         </div>
       </div>
       <RelatedSlider

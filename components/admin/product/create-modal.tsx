@@ -34,6 +34,7 @@ import {
 
 import FormProvider from '../../form/form-provider';
 import { Button } from '../../ui/button';
+import ProductGuideEditor from '../product-guides/product-guide-editor';
 import CreateColorModal from './create-color-modal';
 import CreateSizeModal from './create-size-modal';
 
@@ -507,6 +508,18 @@ export default function ProductCreateModal({
             <div className="col-span-2">
               <RHFTextEditor name="careInstructionsHtml" label="نحوه شستشو" />
             </div>
+
+            {isEdit &&
+              selectedData &&
+              'id' in selectedData &&
+              selectedData.id && (
+                <div className="col-span-2 mt-4 border-t pt-6">
+                  <h3 className="mb-4 text-lg font-semibold">راهنمای محصول</h3>
+
+                  <ProductGuideEditor productId={Number(selectedData.id)} />
+                </div>
+              )}
+
             <RHFImageUploader
               name="image"
               label="تصویر محصول"
