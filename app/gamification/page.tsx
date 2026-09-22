@@ -17,7 +17,10 @@ import {
 } from '@/components/ui/select';
 import { cn, persianDateToISO } from '@/lib/utils';
 import { useCreateGamification } from '@/services/features/gamification/hooks';
-import { GamificationDto } from '@/services/features/gamification/type';
+import {
+  GamificationDto,
+  StyleProfile,
+} from '@/services/features/gamification/type';
 
 type Question = {
   id: number;
