@@ -28,19 +28,18 @@ export const metadata: Metadata = {
 
 export default function B2bSalePage() {
   return (
-    <div className="min-h-screen pt-[80px] pb-12">
+    <div className="min-h-screen pt-[52px] pb-12">
+      {/* Hero Banner - فقط عکس (بدون متن روی آن) */}
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-lg">
+        <Image
+          src="/b2b/banner_2.webp"
+          alt="همکاری سازمانی زوپینی"
+          fill
+          className="object-cover object-bottom"
+          priority
+        />
+      </div>
       <div className="custom-container">
-        {/* Hero Banner - فقط عکس (بدون متن روی آن) */}
-        <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-lg">
-          <Image
-            src="/b2b/banner.webp"
-            alt="همکاری سازمانی زوپینی"
-            fill
-            className="object-cover object-bottom"
-            priority
-          />
-        </div>
-
         {/* متن معرفی (جایگزین متن روی بنر) */}
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-12 border-r-4 border-[#D4A373]">
           <h1 className="text-2xl md:text-4xl font-light text-[#1A1A1A] mb-3">

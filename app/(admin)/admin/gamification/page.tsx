@@ -45,6 +45,8 @@ import {
 } from '@/services/features/gamification/hooks';
 import { GamificationResponse } from '@/services/features/gamification/type';
 
+const STYLE_COLORS = ['#43AA8B', '#254441', '#FF6F59', '#DB504A'];
+
 export default function Users() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -130,6 +132,8 @@ export default function Users() {
 
                   <TableHead>تلفن</TableHead>
 
+                  <TableHead className="w-44">استایل</TableHead>
+
                   <TableHead className="w-32 text-center">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -144,6 +148,25 @@ export default function Users() {
                     <TableCell>{game.fullName}</TableCell>
 
                     <TableCell>{game.phone}</TableCell>
+
+                    <TableCell>
+                      {game.styleProfile ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">
+                            {game.styleProfile.titleFa}
+                          </span>
+
+                          <span
+                            dir="ltr"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {game.styleProfile.titleEn}
+                          </span>
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
 
                     <TableCell className="text-center">
                       <DropdownMenu>
@@ -172,7 +195,7 @@ export default function Users() {
                 {!data?.data?.length && (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={5}
                       className="h-32 text-center text-muted-foreground"
                     >
                       موردی پیدا نشد
@@ -183,7 +206,7 @@ export default function Users() {
 
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4}>
+                  <TableCell colSpan={5}>
                     <CustomPagination
                       totalPages={data?.pagination?.totalPages ?? 1}
                       currentPage={page}
@@ -224,6 +247,47 @@ export default function Users() {
               <CardContent>
                 <div className="text-3xl font-bold">
                   {stats?.data?.totalAnswers ?? 0}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle>توزیع استایل شرکت‌کنندگان</CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <div className="space-y-4">
+                  {(stats?.data?.styleProfiles ?? []).map((profile, index) => (
+                    <div key={profile.key} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2">
+                          <span className="font-medium">{profile.titleFa}</span>
+
+                          <span
+                            dir="ltr"
+                            className="text-xs tracking-wider text-muted-foreground"
+                          >
+                            {profile.titleEn}
+                          </span>
+                        </span>
+
+                        <span className="font-medium">
+                          {profile.count} نفر ({profile.percentage}%)
+                        </span>
+                      </div>
+
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${profile.percentage}%`,
+                            backgroundColor: STYLE_COLORS[index],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -374,6 +438,24 @@ export default function Users() {
             {/* USER INFO */}
 
             <div className="grid grid-cols-2 gap-4 rounded-xl bg-muted/40 p-4">
+              <div className="col-span-2 flex items-center justify-between rounded-lg bg-background/70 px-3 py-2">
+                <div className="text-xs text-muted-foreground">استایل</div>
+
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">
+                    {selectedInfo?.styleProfile?.titleFa || '-'}
+                  </span>
+
+                  {selectedInfo?.styleProfile?.titleEn && (
+                    <span
+                      dir="ltr"
+                      className="text-xs tracking-wider text-muted-foreground"
+                    >
+                      {selectedInfo.styleProfile.titleEn}
+                    </span>
+                  )}
+                </div>
+              </div>
               <div>
                 <div className="mb-1 text-xs text-muted-foreground">
                   نام و نام خانوادگی

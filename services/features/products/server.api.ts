@@ -1,6 +1,7 @@
 import { serverFetch } from '@/services/api/server';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
+import { ProductGuidesForCustomer } from '../product-guides/type';
 import {
   FeaturedProductResponse,
   ProductResponse,
@@ -40,6 +41,18 @@ export async function getProducts(params: GetProductsParams = {}) {
 
 export async function getProduct(slug: string) {
   return serverFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
+}
+
+export async function getProductGuides(slug: string): Promise<{
+  data: ProductGuidesForCustomer;
+} | null> {
+  try {
+    return await serverFetch<ApiSingleResponse<ProductGuidesForCustomer>>(
+      `product-guides/product-slug/${encodeURIComponent(slug)}`,
+    );
+  } catch {
+    return null;
+  }
 }
 
 export async function getFeaturedProducts() {

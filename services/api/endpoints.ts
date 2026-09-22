@@ -159,4 +159,56 @@ export const endpoints = {
     list: '/admin/visits',
     delete: (id: number) => `/admin/visits/${id}`,
   },
+
+  productGuides: {
+    // مشتری
+    publicBySlug: (slug: string) => `/product-guides/product-slug/${slug}`,
+
+    // جدول‌های سایزبندی
+    sizeTables: '/admin/product-guides/size-tables',
+    sizeTable: (id: number) => `/admin/product-guides/size-tables/${id}`,
+    sizeTableDuplicate: (id: number) =>
+      `/admin/product-guides/size-tables/${id}/duplicate`,
+    sizeTableArchive: (id: number) =>
+      `/admin/product-guides/size-tables/${id}/archive`,
+
+    // راهنماهای شست‌وشو
+    careGuides: '/admin/product-guides/care-guides',
+    careGuide: (id: number) => `/admin/product-guides/care-guides/${id}`,
+    careGuideDuplicate: (id: number) =>
+      `/admin/product-guides/care-guides/${id}/duplicate`,
+    careGuideArchive: (id: number) =>
+      `/admin/product-guides/care-guides/${id}/archive`,
+
+    // تصاویر روش اندازه‌گیری
+    measurementGuides: '/admin/product-guides/measurement-guides',
+    measurementGuide: (id: number) =>
+      `/admin/product-guides/measurement-guides/${id}`,
+    measurementGuideDuplicate: (id: number) =>
+      `/admin/product-guides/measurement-guides/${id}/duplicate`,
+    measurementGuideArchive: (id: number) =>
+      `/admin/product-guides/measurement-guides/${id}/archive`,
+    measurementImage: (guideId: number, imageId: number) =>
+      `/admin/product-guides/measurement-guides/${guideId}/images/${imageId}`,
+    measurementImageOrder: (guideId: number) =>
+      `/admin/product-guides/measurement-guides/${guideId}/images/order`,
+
+    // کاربرد و اختصاص
+    usage: (type: string, id: number) =>
+      `/admin/product-guides/usage/${type}/${id}`,
+    assignmentPreview: '/admin/product-guides/assignments/preview',
+    assignment: '/admin/product-guides/assignments',
+
+    // راهنمای یک محصول
+    productState: (productId: number) =>
+      `/admin/product-guides/products/${productId}`,
+    productSetting: (productId: number) =>
+      `/admin/product-guides/products/${productId}/setting`,
+    productOverrides: (productId: number) =>
+      `/admin/product-guides/products/${productId}/overrides`,
+    productOverride: (productId: number, overrideId: number) =>
+      `/admin/product-guides/products/${productId}/overrides/${overrideId}`,
+    productOverrideRebase: (productId: number, overrideId: number) =>
+      `/admin/product-guides/products/${productId}/overrides/${overrideId}/rebase`,
+  },
 };

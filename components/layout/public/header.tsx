@@ -23,12 +23,12 @@ export default async function Header() {
             <Menu categories={categories?.data ?? []} />
 
             <nav className="hidden items-center gap-5 lg:flex">
-              <Link
+              {/* <Link
                 href="/blog"
                 className="text-sm transition-colors hover:text-black/50"
               >
                 مقالات
-              </Link>
+              </Link> */}
 
               <Link
                 href="/about-us"

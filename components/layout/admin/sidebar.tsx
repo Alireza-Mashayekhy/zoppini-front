@@ -85,6 +85,11 @@ export default function AdminSidebar({
       { name: 'رنگ‌ها', link: '/admin/colors', icon: Palette },
       { name: 'سایزها', link: '/admin/sizes', icon: Ruler },
       {
+        name: 'راهنمای محصولات',
+        link: '/admin/product-guides',
+        icon: Ruler,
+      },
+      {
         link: '/admin/orders',
         icon: ListOrdered,
         name: 'سفارشات',

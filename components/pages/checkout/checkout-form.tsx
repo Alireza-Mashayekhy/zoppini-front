@@ -227,11 +227,19 @@ export default function CheckoutForm() {
     } catch (error: any) {
       setAppliedDiscount(null);
 
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          'کد تخفیف معتبر نیست',
-      );
+      if (
+        error?.response?.data?.message ===
+          'این کد تخفیف شامل محصولات سبد خرید شما نمی‌شود.' &&
+        (code === 'opening' || code === 'OPENING')
+      ) {
+        toast.error('این تخفیف شامل اکسسوری ها نمی شود.');
+      } else {
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            'کد تخفیف معتبر نیست',
+        );
+      }
 
       console.error(error);
     }

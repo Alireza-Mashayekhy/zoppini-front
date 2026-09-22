@@ -125,6 +125,8 @@ export default function StyleQuizPage() {
   const [birthYear, setBirthYear] = useState('');
   const [followedInstagram, setFollowedInstagram] = useState(false);
 
+  const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
+
   const [errors, setErrors] = useState<{
     name?: string;
     phone?: string;
@@ -232,7 +234,10 @@ export default function StyleQuizPage() {
       ],
     };
     try {
-      await gamificationMutation.mutateAsync(data);
+      const response = await gamificationMutation.mutateAsync(data);
+
+      setStyleProfile(response?.data?.styleProfile ?? null);
+
       setStep('result');
 
       window.scrollTo({
@@ -682,6 +687,37 @@ export default function StyleQuizPage() {
                     YOUR STYLE
                   </div>
 
+                  {styleProfile && (
+                    <>
+                      <div className="text-[clamp(0.85rem,3.4vw,0.95rem)] text-[#9a9690]">
+                        نتیجه تست استایل شما
+                      </div>
+
+                      <h2
+                        dir="ltr"
+                        className="mt-3 text-[clamp(1.45rem,6vw,1.9rem)] font-bold tracking-[0.08em] text-[#f5f3ef]"
+                      >
+                        {styleProfile.titleEn}
+                      </h2>
+
+                      <div
+                        aria-hidden="true"
+                        className="mx-auto mt-4 h-px w-12 bg-linear-to-r from-transparent via-[#c9a96e] to-transparent"
+                      />
+
+                      <div className="mt-5 flex flex-col gap-2.5">
+                        {styleProfile.descriptions.map(description => (
+                          <p
+                            key={description}
+                            className="text-[clamp(0.85rem,3.4vw,0.95rem)] leading-[1.9] text-[#9a9690]"
+                          >
+                            {description}
+                          </p>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
                   {/* Credit */}
                   <div className="mt-6 rounded-[20px] border border-[#c9a96e]/40 bg-linear-to-br from-[#c9a96e]/15 to-[#c9a96e]/5 p-4 sm:p-6">
                     <div className="mb-2 text-[clamp(1.15rem,5.5vw,1.5rem)] font-bold text-[#e0c992]">
@@ -716,6 +752,16 @@ export default function StyleQuizPage() {
                       مشاهده فروشگاه زوپینی
                     </Link>
                   </div>
+
+                  {styleProfile && (
+                    <p className="mt-6 text-[clamp(0.85rem,3.4vw,0.95rem)] leading-[1.9] text-[#9a9690]">
+                      {fullName} عزیز، استایل شما{' '}
+                      <strong className="font-semibold text-[#e0c992]">
+                        {styleProfile.titleFa}
+                      </strong>{' '}
+                      است.
+                    </p>
+                  )}
                 </div>
               </section>
             )}

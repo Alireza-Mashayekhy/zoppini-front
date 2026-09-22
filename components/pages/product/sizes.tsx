@@ -2,25 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import ProductGuidesSheet from '@/components/pages/product/product-guides';
 import { cn } from '@/lib/utils';
+import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import { ProductsResponse } from '@/services/features/products/type';
 
 interface ProductSizesProps {
   product: ProductsResponse;
+  guides?: ProductGuidesForCustomer | null;
   selectedSizeId?: number;
   onSizeSelect?: (sizeId: number) => void;
 }
 
 export default function ProductSizes({
   product,
+  guides,
   selectedSizeId,
   onSizeSelect,
 }: ProductSizesProps) {
@@ -29,7 +25,6 @@ export default function ProductSizes({
   >(selectedSizeId);
 
   const [hoveredSizeId, setHoveredSizeId] = useState<number | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const uniqueSizes =
     product.variants
@@ -84,21 +79,7 @@ export default function ProductSizes({
       <div className="flex items-center justify-between">
         {' '}
         <span className="text-sm font-medium">سایز</span>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-sm">
-              راهنمای سایز
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent side="right" className="w-full! max-w-[500px]!">
-            <SheetHeader>
-              <SheetTitle>راهنمای سایز</SheetTitle>
-            </SheetHeader>
-
-            {/* محتوای راهنمای سایز */}
-          </SheetContent>
-        </Sheet>
+        <ProductGuidesSheet guides={guides} />
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-6">

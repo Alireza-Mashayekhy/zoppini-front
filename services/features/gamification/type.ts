@@ -1,3 +1,11 @@
+export interface StyleProfile {
+  key: string;
+  slug: string;
+  titleEn: string;
+  titleFa: string;
+  descriptions: string[];
+}
+
 export interface GamificationResponse {
   id: number;
   fullName: string;
@@ -7,6 +15,7 @@ export interface GamificationResponse {
     questionNumber: number;
     optionNumber: number;
   }[];
+  styleProfile?: StyleProfile | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -24,6 +33,7 @@ export interface GamificationStats {
     totalAnswers: number;
     options: { optionNumber: number; count: number }[];
   }[];
+  styleProfiles?: (StyleProfile & { count: number; percentage: number })[];
   totalParticipations: number;
   totalAnswers: number;
   totalQuestions: number;
