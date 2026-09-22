@@ -34,10 +34,10 @@ export default function SaleBanner() {
 
   if (isMobile) {
     return (
-      <Link href="/discounted-products">
+      <Link href="/gamification">
         <div className="relative w-full aspect-[9/16] max-h-[80vh] overflow-hidden">
           <Image
-            src="/home/mobile_sale_2.webp"
+            src="/home/gamification_mobile.webp"
             alt="محصولات تخفیف‌دار زوپینی"
             fill
             sizes="100vw"
@@ -51,10 +51,10 @@ export default function SaleBanner() {
   }
 
   return (
-    <Link href="/discounted-products">
+    <Link href="/gamification">
       <div className="relative w-full aspect-[16/9] overflow-hidden">
         <Image
-          src="/home/sale_2.webp"
+          src="/home/gamification_desktop.webp"
           alt="محصولات تخفیف‌دار زوپینی"
           fill
           sizes="100vw"
