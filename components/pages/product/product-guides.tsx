@@ -1,8 +1,10 @@
 'use client';
 
 import { Ruler, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 import { CareIcon } from '@/components/shared/care-icon';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
@@ -106,15 +108,16 @@ export function MeasurementImages({
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4">
         {measurementGuide.images.map(image => (
-          <figure key={image.id} className="space-y-2">
-            <div className="overflow-hidden rounded-lg border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+          <figure key={image.id} className="space-y-2 w-full">
+            <div className="overflow-hidden rounded-lg w-[70%] aspect-square mx-auto relative">
+              {}
+              <Image
                 src={`${imageBaseUrl}${image.file}`}
                 alt={image.caption ?? 'روش اندازه‌گیری'}
-                className="h-auto w-full object-contain"
+                fill
+                objectFit="cover"
                 loading="lazy"
               />
             </div>
@@ -176,21 +179,17 @@ export default function ProductGuidesSheet({
 }) {
   const hasSizeTable = Boolean(guides?.sizeTable);
   const hasMeasurement = Boolean(guides?.measurementGuide?.images.length);
+  const hasCare = Boolean(guides?.careGuide);
 
+  console.log(guides);
   if (!hasSizeTable && !hasMeasurement) return null;
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            'text-sm font-medium underline-offset-4 hover:underline',
-            className,
-          )}
-        >
-          راهنمای سایز
-        </button>
+        <Button type="button" variant="ghost" className={cn(className)}>
+          راهنمای محصول
+        </Button>
       </SheetTrigger>
 
       <SheetContent
@@ -200,7 +199,7 @@ export default function ProductGuidesSheet({
         <SheetHeader className="border-b px-4 py-3">
           <SheetTitle className="flex items-center gap-2 text-right text-base">
             <Ruler className="size-4" />
-            راهنمای سایز
+            راهنمای محصول
           </SheetTitle>
         </SheetHeader>
 
@@ -214,6 +213,10 @@ export default function ProductGuidesSheet({
               {hasMeasurement && (
                 <TabsTrigger value="measurement">روش اندازه‌گیری</TabsTrigger>
               )}
+
+              {hasCare && (
+                <TabsTrigger value="careInstructions">نحوه شستشو</TabsTrigger>
+              )}
             </TabsList>
 
             {hasSizeTable && guides?.sizeTable && (
@@ -225,6 +228,49 @@ export default function ProductGuidesSheet({
             {hasMeasurement && guides?.measurementGuide && (
               <TabsContent value="measurement">
                 <MeasurementImages measurementGuide={guides.measurementGuide} />
+              </TabsContent>
+            )}
+
+            {hasCare && guides?.careGuide && (
+              <TabsContent value="careInstructions">
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    <h2 className="text-base font-semibold">
+                      {guides.careGuide.name}
+                    </h2>
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      برای حفظ کیفیت و دوام محصول، دستورهای زیر را رعایت کنید.
+                    </p>
+                  </div>
+                  {/* دستورالعمل‌ها */}
+                  {guides.careGuide.instructions?.length > 0 && (
+                    <div className="space-y-2.5">
+                      {guides.careGuide.instructions.map((item, idx) => (
+                        <div
+                          key={item.id}
+                          className="flex items-start gap-3 rounded-xl border bg-background p-3.5"
+                        >
+                          {/* شماره */}
+                          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                            {toPersianNum(idx + 1)}
+                          </div>
+                          {/* متن */}
+                          <p className="pt-0.5 text-sm leading-7 text-foreground">
+                            {item.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* نکات */}
+                  {guides.careGuide.notes && (
+                    <div className="rounded-xl bg-muted/50 p-3.5">
+                      <p className="text-xs leading-6 text-muted-foreground">
+                        {guides.careGuide.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
             )}
           </Tabs>
