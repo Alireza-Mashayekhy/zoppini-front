@@ -121,33 +121,6 @@ export default function ProductInfo({ product, guides }: ProductInfoProps) {
             }}
           />
         </button>
-
-        {/* دکمه نحوه شستشو */}
-        <button
-          onClick={() => openSheet('careInstructions')}
-          onMouseEnter={() => handleHover('careInstructions')}
-          onMouseLeave={() => handleHover(null)}
-          className="relative text-sm font-medium pb-1"
-        >
-          نحوه شستشو
-          <span
-            className={cn(
-              'absolute bottom-0 left-0 h-px bg-black w-full transition-transform duration-300 ease-in-out',
-            )}
-            style={{
-              transform:
-                sheetContent === 'careInstructions' ||
-                hoveredItem === 'careInstructions'
-                  ? 'scaleX(1)'
-                  : 'scaleX(0)',
-              transformOrigin:
-                sheetContent === 'careInstructions' ||
-                hoveredItem === 'careInstructions'
-                  ? 'left'
-                  : 'right',
-            }}
-          />
-        </button>
       </div>
 
       {/* شیت سایدبار */}
@@ -192,33 +165,6 @@ export default function ProductInfo({ product, guides }: ProductInfoProps) {
                     transformOrigin:
                       sheetContent === 'description' ||
                       hoveredItem === 'description'
-                        ? 'left'
-                        : 'right',
-                  }}
-                />
-              </button>
-
-              {/* دکمه نحوه شستشو */}
-              <button
-                onClick={() => openSheet('careInstructions')}
-                onMouseEnter={() => handleHover('careInstructions')}
-                onMouseLeave={() => handleHover(null)}
-                className="relative text-sm font-medium pb-1"
-              >
-                نحوه شستشو
-                <span
-                  className={cn(
-                    'absolute bottom-0 left-0 h-px bg-black w-full transition-transform duration-300 ease-in-out',
-                  )}
-                  style={{
-                    transform:
-                      sheetContent === 'careInstructions' ||
-                      hoveredItem === 'careInstructions'
-                        ? 'scaleX(1)'
-                        : 'scaleX(0)',
-                    transformOrigin:
-                      sheetContent === 'careInstructions' ||
-                      hoveredItem === 'careInstructions'
                         ? 'left'
                         : 'right',
                   }}
