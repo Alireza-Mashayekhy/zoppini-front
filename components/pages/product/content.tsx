@@ -14,7 +14,6 @@ import {
 } from '@/services/features/products/type';
 import { useCartStore } from '@/store/cart.store';
 
-import ProductInfo from './description';
 import RelatedSlider from './relatedSlider';
 import WishlistButton from './wishlist-button';
 
@@ -132,7 +131,7 @@ export default function ProductContent({
           <ProductGallery product={product} colorImages={product.colorImages} />
         </div>
 
-        <div className="order-2 md:order-1 px-4 md:px-0 md:pt-5 flex flex-col gap-10 justify-between w-full md:w-1/2 mx-auto">
+        <div className="order-2 md:order-1 px-4 md:px-0 md:pt-5 flex flex-col gap-4 w-full md:w-1/2 mx-auto">
           <div>
             <h1 className="text-2xl font-bold mb-4">{product.title}</h1>
             <div className="mb-4">کد محصول: {product?.productCode}</div>
@@ -177,7 +176,12 @@ export default function ProductContent({
               <WishlistButton productId={product.id} />
             </div>
           </div>
-          <ProductInfo product={product} guides={guides} />
+          {product?.description && (
+            <div
+              className="text-sm font-sans!"
+              dangerouslySetInnerHTML={{ __html: product.description || '' }}
+            />
+          )}
         </div>
       </div>
       <RelatedSlider

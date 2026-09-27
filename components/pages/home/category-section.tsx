@@ -105,7 +105,7 @@ export default function CategoriesSection({
         {/* تصویر اول */}
         <div className="relative col-span-2 aspect-square hidden sm:block bg-gray-200">
           <Image
-            src="/home/category_1.webp"
+            src="/home/category_1_2.webp"
             fill
             alt="image category 1"
             className="object-cover"
@@ -117,7 +117,7 @@ export default function CategoriesSection({
         {/* تصویر دوم */}
         <div className="relative col-span-2 aspect-square bg-gray-200">
           <Image
-            src="/home/category_2.webp"
+            src="/home/category_2_2.webp"
             fill
             alt="image category 2"
             className="object-cover"

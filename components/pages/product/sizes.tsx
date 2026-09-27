@@ -79,7 +79,7 @@ export default function ProductSizes({
       <div className="flex items-center justify-between">
         {' '}
         <span className="text-sm font-medium">سایز</span>
-        <ProductGuidesSheet guides={guides} />
+        <ProductGuidesSheet guides={guides} product={product} />
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-6">
