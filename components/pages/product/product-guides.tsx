@@ -15,6 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
+import { ProductsResponse } from '@/services/features/products/type';
 
 const toPersianNum = (input: string | number) => {
   const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -173,13 +174,15 @@ export function CareGuideView({
 export default function ProductGuidesSheet({
   guides,
   className,
+  product,
 }: {
   guides?: ProductGuidesForCustomer | null;
   className?: string;
+  product: ProductsResponse;
 }) {
   const hasSizeTable = Boolean(guides?.sizeTable);
   const hasMeasurement = Boolean(guides?.measurementGuide?.images.length);
-  const hasCare = Boolean(guides?.careGuide);
+  const hasCare = Boolean(guides?.careGuide || product?.careInstructionsHtml);
 
   console.log(guides);
   if (!hasSizeTable && !hasMeasurement) return null;
@@ -231,48 +234,59 @@ export default function ProductGuidesSheet({
               </TabsContent>
             )}
 
-            {hasCare && guides?.careGuide && (
-              <TabsContent value="careInstructions">
-                <div className="space-y-5">
-                  <div className="space-y-1.5">
-                    <h2 className="text-base font-semibold">
-                      {guides.careGuide.name}
-                    </h2>
-                    <p className="text-xs leading-6 text-muted-foreground">
-                      برای حفظ کیفیت و دوام محصول، دستورهای زیر را رعایت کنید.
-                    </p>
-                  </div>
-                  {/* دستورالعمل‌ها */}
-                  {guides.careGuide.instructions?.length > 0 && (
-                    <div className="space-y-2.5">
-                      {guides.careGuide.instructions.map((item, idx) => (
-                        <div
-                          key={item.id}
-                          className="flex items-start gap-3 rounded-xl border bg-background p-3.5"
-                        >
-                          {/* شماره */}
-                          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
-                            {toPersianNum(idx + 1)}
-                          </div>
-                          {/* متن */}
-                          <p className="pt-0.5 text-sm leading-7 text-foreground">
-                            {item.text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {/* نکات */}
-                  {guides.careGuide.notes && (
-                    <div className="rounded-xl bg-muted/50 p-3.5">
+            {hasCare &&
+              (guides?.careGuide || product?.careInstructionsHtml) && (
+                <TabsContent value="careInstructions">
+                  <div className="space-y-5">
+                    <div className="space-y-1.5">
+                      <h2 className="text-base font-semibold">
+                        {guides?.careGuide?.name || ''}
+                      </h2>
                       <p className="text-xs leading-6 text-muted-foreground">
-                        {guides.careGuide.notes}
+                        برای حفظ کیفیت و دوام محصول، دستورهای زیر را رعایت کنید.
                       </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-            )}
+                    {/* دستورالعمل‌ها */}
+                    {guides?.careGuide?.instructions &&
+                      guides?.careGuide?.instructions?.length > 0 && (
+                        <div className="space-y-2.5">
+                          {guides.careGuide.instructions.map((item, idx) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start gap-3 rounded-xl border bg-background p-3.5"
+                            >
+                              {/* شماره */}
+                              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                                {toPersianNum(idx + 1)}
+                              </div>
+                              {/* متن */}
+                              <p className="pt-0.5 text-sm leading-7 text-foreground">
+                                {item.text}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    {/* نکات */}
+                    {guides?.careGuide && guides?.careGuide.notes && (
+                      <div className="rounded-xl bg-muted/50 p-3.5">
+                        <p className="text-xs leading-6 text-muted-foreground">
+                          {guides.careGuide.notes}
+                        </p>
+                      </div>
+                    )}
+                    {product?.careInstructionsHtml && !guides?.careGuide && (
+                      <div>
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: product.careInstructionsHtml || '',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              )}
           </Tabs>
 
           <p className="mt-6 flex items-center gap-2 rounded-lg bg-muted/60 p-3 text-[11px] leading-6 text-muted-foreground">
