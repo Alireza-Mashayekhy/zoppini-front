@@ -17,28 +17,20 @@ const fixLeafletIcons = () => {
   });
 };
 
-const locations: {
-  id: string;
+interface locationsPropes {
   name: string;
   address: string;
+  phone?: string | null;
+  tel?: string | null;
+  email?: string | null;
   coords: [number, number];
-}[] = [
-  {
-    id: 'tehran',
-    name: 'دفتر مرکزی زوپینی (تهران)',
-    address:
-      'تهران، خیابان فردوسی، خیابان منوچهری، خیابان ارباب جمشید، پلاک ۱۷، واحد ۲۹',
-    coords: [35.69776219399375, 51.42114981432789],
-  },
-  {
-    id: 'kerman',
-    name: 'شعبه کرمان زوپینی',
-    address: 'کرمان، خیابان هزار و یک شب، نبش کوچه ۶',
-    coords: [30.286455507638387, 57.03517457530013],
-  },
-];
+}
 
-export default function BranchesMap({ location }: { location: number }) {
+export default function BranchesMap({
+  location,
+}: {
+  location: locationsPropes;
+}) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -55,7 +47,7 @@ export default function BranchesMap({ location }: { location: number }) {
 
   return (
     <MapContainer
-      center={locations?.[location]?.coords}
+      center={location?.coords}
       zoom={11}
       className="w-full h-full rounded-xl"
       scrollWheelZoom={false}
@@ -64,17 +56,12 @@ export default function BranchesMap({ location }: { location: number }) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <Marker
-        key={locations[location].id}
-        position={locations[location].coords as L.LatLngExpression}
-      >
+      <Marker position={location?.coords as L.LatLngExpression}>
         <Popup>
           <div className="text-sm max-w-[200px]">
-            <h3 className="font-semibold text-base">
-              {locations[location].name}
-            </h3>
+            <h3 className="font-semibold text-base">{location.name}</h3>
             <p className="text-gray-600 text-xs mt-1 leading-relaxed">
-              {locations[location].address}
+              {location.address}
             </p>
           </div>
         </Popup>
