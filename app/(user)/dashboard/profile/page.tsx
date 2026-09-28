@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (isSuccess && meData) {
-      setUser(meData);
+      setUser(meData?.data);
     }
   }, [meData, setUser, isSuccess]);
 
@@ -79,7 +79,9 @@ export default function ProfilePage() {
       setUser(updatedUser);
       toast.success('اطلاعات با موفقیت به‌روزرسانی شد');
     } catch (error: any) {
-      toast.error(error?.message || 'خطا در به‌روزرسانی اطلاعات');
+      toast.error(
+        error?.response?.data?.message || 'خطا در به‌روزرسانی اطلاعات',
+      );
     }
   };
 

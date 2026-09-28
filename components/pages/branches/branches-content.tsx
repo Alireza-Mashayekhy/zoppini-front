@@ -12,7 +12,45 @@ const BranchesMap = dynamic(
   },
 );
 
+interface locationsPropes {
+  name: string;
+  address: string;
+  phone?: string | null;
+  tel?: string | null;
+  email?: string | null;
+  coords: [number, number];
+}
+
 export default function BranchesContent() {
+  const items: locationsPropes[] = [
+    {
+      name: 'دفتر مرکزی (تهران)',
+      address:
+        'تهران، خیابان فردوسی، خیابان منوچهری، خیابان ارباب جمشید پلاک ۱۷، واحد ۲۹، طبقه ۲',
+      phone: '۰۹۱۹۴۱۳۱۳۱۶',
+      tel: '۰۲۱-۶۶۷۴۵۵۲۱',
+      email: 'zoppini.collection1@gmail.com',
+      coords: [35.69776219399375, 51.42114981432789],
+    },
+    {
+      name: 'شعبه کرمان',
+      address: 'کرمان، خیابان هزار و یک شب، نبش کوچه ۶',
+      phone: null,
+      tel: '۰۳۴-۳۲۴۸۷۸۷۶',
+      email: null,
+      coords: [30.286455507638387, 57.03517457530013],
+    },
+    {
+      name: 'شعبه تهران',
+      address:
+        'تهران , پاسداران، میدان هروی، خیابان موسوی شرقی، پلاک۱۴ مرکز خرید هدیش مال, طبقه سوم, پلاک 343',
+      phone: null,
+      tel: '021-26879141',
+      email: null,
+      coords: [35.7654305, 51.4807367],
+    },
+  ];
+
   return (
     <div className="min-h-screen pt-[52px] pb-12">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -26,77 +64,40 @@ export default function BranchesContent() {
           </p>
         </div>
 
-        {/* Contact Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          {/* Tehran Office */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 border-r-4 border-[#D4A373]">
-            <h2 className="text-xl font-medium text-[#1A1A1A] mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#D4A373]" />
-              دفتر مرکزی (تهران)
-            </h2>
-            <div className="space-y-3 text-sm md:text-base">
-              <p className="text-gray-700 leading-relaxed">
-                تهران، خیابان فردوسی، خیابان منوچهری، خیابان ارباب جمشید
-                <br />
-                پلاک ۱۷، واحد ۲۹، طبقه ۲
-              </p>
-              <div className="flex items-center gap-2 text-gray-700">
-                <Phone className="w-4 h-4 text-[#D4A373]" />
-                <span>۰۲۱-۶۶۷۴۵۵۲۱</span>
-                <span className="text-gray-400 mx-1">|</span>
-                <span>۰۹۱۹۴۱۳۱۳۱۶</span>
+        <div className="space-y-4">
+          {items?.map(item => (
+            <div key={item.name} className="grid gap-2 sm:grid-cols-2">
+              <div className="bg-white flex flex-col justify-around rounded-2xl shadow-sm p-6 md:p-8 border-r-4 border-[#D4A373]">
+                <h2 className="text-xl font-medium text-[#1A1A1A] mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-[#D4A373]" />
+                  {item.name}
+                </h2>
+                <p className="text-gray-700 leading-relaxed">{item.address}</p>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Phone className="w-4 h-4 text-[#D4A373]" />
+                  <span>{item.tel}</span>
+                  {item?.phone && <span className="text-gray-400 mx-1">|</span>}
+                  {item?.phone && <span>{item?.phone}</span>}
+                </div>
+                {item?.email && (
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Mail className="w-4 h-4 text-[#D4A373]" />
+                    <a
+                      href={`mailto:${item?.email}`}
+                      className="hover:text-[#D4A373] transition-colors"
+                    >
+                      {item?.email}
+                    </a>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <Mail className="w-4 h-4 text-[#D4A373]" />
-                <a
-                  href="mailto:zoppini.collection1@gmail.com"
-                  className="hover:text-[#D4A373] transition-colors"
-                >
-                  zoppini.collection1@gmail.com
-                </a>
-              </div>
+              <section className="bg-white rounded-2xl shadow-sm">
+                <div className="w-full h-full min-h-[400px] rounded-xl overflow-hidden bg-gray-100">
+                  <BranchesMap location={item} />
+                </div>
+              </section>
             </div>
-          </div>
-
-          {/* Kerman Branch */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 border-r-4 border-[#D4A373]">
-            <h2 className="text-xl font-medium text-[#1A1A1A] mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#D4A373]" />
-              شعبه کرمان
-            </h2>
-            <div className="space-y-3 text-sm md:text-base">
-              <p className="text-gray-700 leading-relaxed">
-                کرمان، خیابان هزار و یک شب، نبش کوچه ۶
-              </p>
-              <div className="flex items-center gap-2 text-gray-700">
-                <Phone className="w-4 h-4 text-[#D4A373]" />
-                <span>۰۳۴-۳۲۴۸۷۸۷۶</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <Mail className="w-4 h-4 text-[#D4A373]" />
-                <a
-                  href="mailto:zoppini.collection1@gmail.com"
-                  className="hover:text-[#D4A373] transition-colors"
-                >
-                  zoppini.collection1@gmail.com
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Map Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          <section className="bg-white rounded-2xl shadow-sm">
-            <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden bg-gray-100">
-              <BranchesMap location={0} />
-            </div>
-          </section>
-          <section className="bg-white rounded-2xl shadow-sm">
-            <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden bg-gray-100">
-              <BranchesMap location={1} />
-            </div>
-          </section>
+          ))}
         </div>
       </div>
     </div>
