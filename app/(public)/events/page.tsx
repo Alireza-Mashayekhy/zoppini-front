@@ -136,6 +136,49 @@ export default function EventsPage() {
           </div>
         </section>
 
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-[#D4A373] text-2xl">✦</span>
+            <h2 className="text-2xl md:text-3xl font-light text-[#1A1A1A]">
+              افتتاحیه شعبه تهران زوپینی
+            </h2>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+            <p className="text-gray-700 leading-relaxed text-sm md:text-base mb-6">
+              زوپینی حالا در هدیش مال؛ جایی برای کشف انتخاب‌های تازه در استایل
+              مردانه.
+              <br />
+              <br />
+              شعبه جدید زوپینی با نگاهی تازه به پوشش مردانه شکل گرفته؛ فضایی که
+              در آن طراحی، جزئیات و انتخاب‌های متنوع در کنار هم قرار گرفته‌اند
+              تا هر حضور، بخشی از تجربه استایلی متفاوت باشد.
+              <br />
+              <br />
+              افتتاح این شعبه را آغاز فصل تازه‌ای برای زوپینی می‌دانیم؛ فصلی که
+              در آن، بیش از همیشه برای خلق تجربه‌ای متمایز و نزدیک‌تر به
+              مخاطبانمان و دنیای فروش خرده تلاش خواهیم کرد.
+              <br />
+              <br />
+              📍پاسداران - هروی - هدیش مال - طبقه ۳ - پلاک ۳۴۳
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {tehranOpeningImages.map((img, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-video rounded-lg overflow-hidden bg-gray-100"
+                >
+                  <Image
+                    src={img}
+                    alt={`افتتاحیه شعبه تهران ${index + 1}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Closing Message */}
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 text-center border border-[#E8DCCC]">
           <p className="text-gray-700 leading-relaxed text-base md:text-lg font-light">
@@ -166,4 +209,11 @@ const kermanOpeningImages = [
   '/events/kerman_3.png',
   '/events/kerman_4.png',
   '/events/kerman_5.png',
+];
+
+const tehranOpeningImages = [
+  '/events/tehran_1.webp',
+  '/events/tehran_2.webp',
+  '/events/tehran_3.webp',
+  '/events/tehran_4.webp',
 ];
