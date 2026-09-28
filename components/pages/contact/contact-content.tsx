@@ -57,6 +57,43 @@ const contactSchema = z.object({
     .max(5000, 'پیام بیش از حد طولانی است'),
 });
 
+interface locationsPropes {
+  name: string;
+  address: string;
+  phone?: string | null;
+  tel?: string | null;
+  email?: string | null;
+  coords: [number, number];
+}
+const items: locationsPropes[] = [
+  {
+    name: 'دفتر مرکزی (تهران)',
+    address:
+      'تهران، خیابان فردوسی، خیابان منوچهری، خیابان ارباب جمشید پلاک ۱۷، واحد ۲۹، طبقه ۲',
+    phone: '۰۹۱۹۴۱۳۱۳۱۶',
+    tel: '۰۲۱-۶۶۷۴۵۵۲۱',
+    email: 'zoppini.collection1@gmail.com',
+    coords: [35.69776219399375, 51.42114981432789],
+  },
+  {
+    name: 'شعبه کرمان',
+    address: 'کرمان، خیابان هزار و یک شب، نبش کوچه ۶',
+    phone: null,
+    tel: '۰۳۴-۳۲۴۸۷۸۷۶',
+    email: null,
+    coords: [30.286455507638387, 57.03517457530013],
+  },
+  {
+    name: 'شعبه تهران',
+    address:
+      'تهران , پاسداران، میدان هروی، خیابان موسوی شرقی، پلاک۱۴ مرکز خرید هدیش مال, طبقه سوم, پلاک 343',
+    phone: null,
+    tel: '021-26879141',
+    email: null,
+    coords: [35.7654305, 51.4807367],
+  },
+];
+
 export default function ContactContent() {
   const createContact = useCreateContact();
 
@@ -124,48 +161,32 @@ export default function ContactContent() {
         {/* Contact Info */}
         {/* ================================================= */}
 
-        <section className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-2">
-          <ContactInfoCard icon={<MapPin />} title="دفتر مرکزی تهران">
-            <p className="leading-7">
-              تهران، خیابان فردوسی، خیابان منوچهری،
-              <br />
-              خیابان ارباب جمشید، پلاک ۱۷، واحد ۲۹، طبقه ۲
-            </p>
-
-            <ContactItem icon={<Phone />} href="tel:02166745521">
-              ۰۲۱-۶۶۷۴۵۵۲۱
-            </ContactItem>
-
-            <ContactItem icon={<Phone />} href="tel:09352715016">
-              ۰۹۳۵۲۷۱۵۰۱۶
-            </ContactItem>
-
-            <ContactItem
-              icon={<Mail />}
-              href="mailto:zoppini.collection1@gmail.com"
+        <section className="mb-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+          {items?.map(item => (
+            <ContactInfoCard
+              key={item.name}
+              icon={<MapPin />}
+              title={item.name}
             >
-              zoppini.collection1@gmail.com
-            </ContactItem>
-          </ContactInfoCard>
+              <p className="leading-7">{item.address}</p>
 
-          <ContactInfoCard icon={<MapPin />} title="شعبه کرمان">
-            <p className="leading-7">
-              کرمان، خیابان هزار و یک شب،
-              <br />
-              نبش کوچه ۶
-            </p>
+              <ContactItem icon={<Phone />} href="tel:02166745521">
+                {item.tel}
+              </ContactItem>
 
-            <ContactItem icon={<Phone />} href="tel:03432487876">
-              ۰۳۴-۳۲۴۸۷۸۷۶
-            </ContactItem>
+              {item?.phone && (
+                <ContactItem icon={<Phone />} href="tel:09352715016">
+                  {item.phone}
+                </ContactItem>
+              )}
 
-            <ContactItem
-              icon={<Mail />}
-              href="mailto:zoppini.collection1@gmail.com"
-            >
-              zoppini.collection1@gmail.com
-            </ContactItem>
-          </ContactInfoCard>
+              {item?.email && (
+                <ContactItem icon={<Mail />} href={`mailto:${item?.email}`}>
+                  {item?.email}
+                </ContactItem>
+              )}
+            </ContactInfoCard>
+          ))}
         </section>
 
         {/* ================================================= */}
@@ -279,18 +300,13 @@ export default function ContactContent() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <MapCard title="دفتر مرکزی تهران" location={0} />
-              <DirectionsMenu lat={35.69776219399375} lng={51.42114981432789} />
-            </div>
-            <div className="space-y-2">
-              <MapCard title="شعبه کرمان" location={1} />
-              <DirectionsMenu
-                lat={30.286455507638387}
-                lng={57.03517457530013}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {items?.map(item => (
+              <div key={item?.name} className="space-y-2">
+                <MapCard location={item} />
+                <DirectionsMenu lat={item?.coords[0]} lng={item?.coords[1]} />
+              </div>
+            ))}
           </div>
         </section>
       </div>
@@ -372,14 +388,16 @@ function ContactFeature({ text }: { text: string }) {
 /* Map Card */
 /* ================================================= */
 
-function MapCard({ title, location }: { title: string; location: number }) {
+function MapCard({ location }: { location: locationsPropes }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-[#D4A373]" />
 
-          <h3 className="text-sm font-medium text-gray-800">{title}</h3>
+          <h3 className="text-sm font-medium text-gray-800">
+            {location?.name}
+          </h3>
         </div>
       </div>
 
