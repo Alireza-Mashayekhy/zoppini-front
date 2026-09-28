@@ -1,15 +1,19 @@
 'use client';
 
+import { Wallet } from 'lucide-react';
+import Link from 'next/link';
+
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/lib/utils';
 import { useOrders } from '@/services/features/orders/hooks';
-import { Wallet } from 'lucide-react';
-import Link from 'next/link';
 import { useWallet } from '@/services/features/wallet/hooks';
+import { useAuthStore } from '@/store/auth.store';
 
 export default function DashboardPage() {
+  const { user } = useAuthStore();
+
   const { data: orders, isLoading } = useOrders();
   const { data: wallet, isLoading: walletLoading } = useWallet();
 
@@ -17,7 +21,7 @@ export default function DashboardPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-3xl font-light tracking-wide text-[#1A1A1A]">
-          خوش آمدید، رضا
+          خوش آمدید {user?.fullName}
         </h1>
         <p className="text-[#8A8580] text-sm mt-1">
           خلاصه‌ای از فعالیت‌های شما در پنل
