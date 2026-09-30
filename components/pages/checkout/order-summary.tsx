@@ -12,6 +12,10 @@ interface OrderSummaryProps {
 
   shippingCost: number;
 
+  isFreeShipping: boolean;
+
+  hasSelectedAddress: boolean;
+
   pricing?: CartResponse['pricing'] | null;
 }
 
@@ -20,6 +24,8 @@ export default function OrderSummary({
   pricing,
   appliedDiscount,
   shippingCost,
+  isFreeShipping,
+  hasSelectedAddress,
 }: OrderSummaryProps) {
   return (
     <div dir="rtl" className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
@@ -122,9 +128,13 @@ export default function OrderSummary({
           <span className="text-gray-600">هزینه ارسال</span>
 
           <span>
-            {shippingCost > 0
-              ? `${shippingCost.toLocaleString()} تومان`
-              : 'پسکرایه'}
+            {isFreeShipping
+              ? 'رایگان'
+              : !hasSelectedAddress
+                ? 'پس از انتخاب آدرس'
+                : shippingCost > 0
+                  ? `${shippingCost.toLocaleString()} تومان`
+                  : 'پس‌کرایه'}
           </span>
         </div>
 

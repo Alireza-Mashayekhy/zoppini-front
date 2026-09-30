@@ -32,6 +32,7 @@ import { PaymentGateway } from '@/services/features/payment/type';
 import { useWallet } from '@/services/features/wallet/hooks';
 
 import OrderSummary from './order-summary';
+import { calculateCheckoutShipping } from './shipping';
 
 const checkoutSchema = z.object({
   addressId: z.number().min(1, 'انتخاب آدرس الزامی است'),
@@ -74,8 +75,6 @@ export default function CheckoutForm() {
     number | undefined
   >();
 
-  const [shippingCost, setShippingCost] = useState(0);
-
   const [availableMethods, setAvailableMethods] = useState<ShippingMethod[]>([
     ShippingMethod.POST,
     ShippingMethod.TIBAX,
@@ -106,6 +105,12 @@ export default function CheckoutForm() {
   const { handleSubmit, watch, setValue, register, getValues } = methods;
 
   const selectedShipping = watch('shippingMethod');
+
+  const { isFreeShipping, shippingCost } = calculateCheckoutShipping(
+    cartItems,
+    selectedShipping,
+    !!selectedAddressId,
+  );
 
   const baseFinalPrice = Number(
     appliedDiscount?.summary?.finalPrice ??
@@ -158,36 +163,6 @@ export default function CheckoutForm() {
       });
     }
   }, [selectedAddressId, addresses, selectedShipping, setValue]);
-
-  /**
-   * ==========================================
-   * هزینه ارسال
-   * ==========================================
-   */
-
-  useEffect(() => {
-    if (!selectedAddressId) {
-      setShippingCost(0);
-      return;
-    }
-
-    switch (selectedShipping) {
-      case ShippingMethod.POST:
-        setShippingCost(170000);
-        break;
-
-      case ShippingMethod.COURIER:
-      case ShippingMethod.TIBAX:
-        /**
-         * هزینه توسط مشتری پرداخت می‌شود
-         */
-        setShippingCost(0);
-        break;
-
-      default:
-        setShippingCost(0);
-    }
-  }, [selectedShipping, selectedAddressId]);
 
   /**
    * ==========================================
@@ -522,7 +497,7 @@ export default function CheckoutForm() {
                         <div className="font-medium">پست</div>
 
                         <div className="text-xs text-gray-500">
-                          ۱۷۰,۰۰۰ تومان
+                          {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
                         </div>
                       </div>
                     </label>
@@ -540,7 +515,7 @@ export default function CheckoutForm() {
                         <div className="font-medium">پیک</div>
 
                         <div className="text-xs text-green-600">
-                          هزینه با مشتری
+                          {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
                         </div>
                       </div>
                     </label>
@@ -558,7 +533,7 @@ export default function CheckoutForm() {
                         <div className="font-medium">تیباکس</div>
 
                         <div className="text-xs text-green-600">
-                          هزینه با مشتری
+                          {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
                         </div>
                       </div>
                     </label>
@@ -782,6 +757,8 @@ export default function CheckoutForm() {
           pricing={cartData?.data?.pricing || null}
           appliedDiscount={appliedDiscount}
           shippingCost={shippingCost}
+          isFreeShipping={isFreeShipping}
+          hasSelectedAddress={!!selectedAddressId}
         />
       </div>
     </div>
