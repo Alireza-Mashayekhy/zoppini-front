@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -18,6 +18,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { useCallbackUrl } from '@/hooks/use-callback-url';
+import { withCallbackUrl } from '@/lib/callback-url';
 import {
   useForgotPassword,
   useResetPassword,
@@ -26,6 +28,14 @@ import {
 import { ResetPasswordDto, sendOtpDto } from '@/services/features/auth/types';
 
 export default function ForgotPassword() {
+  return (
+    <Suspense fallback={null}>
+      <ForgotPasswordContent />
+    </Suspense>
+  );
+}
+
+function ForgotPasswordContent() {
   const [step, setStep] = useState<number>(1);
   const [phone, setPhone] = useState('');
   const [timeLeft, setTimeLeft] = useState(120);
@@ -35,6 +45,7 @@ export default function ForgotPassword() {
   const forgotPasswordMutation = useForgotPassword();
   const resetPasswordMutation = useResetPassword();
   const router = useRouter();
+  const callbackUrl = useCallbackUrl();
 
   // شمای مرحله اول (شماره تلفن)
   const schemaStep1 = z.object({
@@ -121,7 +132,7 @@ export default function ForgotPassword() {
     try {
       await resetPasswordMutation.mutateAsync(payload);
       toast.success('رمز عبور با موفقیت تغییر کرد');
-      router.push('/login');
+      router.push(withCallbackUrl('/login', callbackUrl));
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||

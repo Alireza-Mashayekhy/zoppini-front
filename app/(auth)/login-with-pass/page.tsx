@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -12,6 +13,8 @@ import * as z from 'zod';
 import FormProvider from '@/components/form/form-provider';
 import RHFInput from '@/components/form/rhf-input';
 import { Button } from '@/components/ui/button';
+import { useCallbackUrl } from '@/hooks/use-callback-url';
+import { withCallbackUrl } from '@/lib/callback-url';
 import { useLoginPassword } from '@/services/features/auth/hooks';
 import { LoginWithPasswordDto } from '@/services/features/auth/types';
 
@@ -24,8 +27,17 @@ const schema = z.object({
 });
 
 export default function LoginWithPassword() {
+  return (
+    <Suspense fallback={null}>
+      <LoginWithPasswordContent />
+    </Suspense>
+  );
+}
+
+function LoginWithPasswordContent() {
   const router = useRouter();
   const loginMutation = useLoginPassword();
+  const callbackUrl = useCallbackUrl();
 
   const methods = useForm<LoginWithPasswordDto>({
     defaultValues: {
@@ -39,7 +51,7 @@ export default function LoginWithPassword() {
     try {
       await loginMutation.mutateAsync(data);
       toast.success('ورود موفق');
-      router.push('/');
+      router.push(callbackUrl ?? '/');
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error.message || 'خطا در ورود';
@@ -66,8 +78,10 @@ export default function LoginWithPassword() {
           ورود
         </Button>
         <div className="flex items-center justify-between">
-          <Link href="/forgot-pass">فراموشی رمز عبور</Link>
-          <Link href="/login">ورود با کد</Link>
+          <Link href={withCallbackUrl('/forgot-pass', callbackUrl)}>
+            فراموشی رمز عبور
+          </Link>
+          <Link href={withCallbackUrl('/login', callbackUrl)}>ورود با کد</Link>
         </div>
         <Link href="/" className="flex items-center justify-center gap-2">
           بازگشت به خانه <ArrowLeft className="size-4" />

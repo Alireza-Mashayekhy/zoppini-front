@@ -1,21 +1,8 @@
 import { decodeJwt } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 
-// مسیرهای گروه (auth) که کاربرِ دارای توکن نباید به آن‌ها دسترسی داشته باشد
-const AUTH_ROUTES = ['/login', '/login-with-pass', '/sign-up', '/forgot-pass'];
+import { isAuthRoute, sanitizeCallbackUrl } from './lib/callback-url';
 
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some(
-    route => pathname === route || pathname.startsWith(`${route}/`),
-  );
-}
-
-/**
- * خواندن کوکی‌های توکن (access_token / refresh_token) داخل proxy.
- * کوکی HttpOnly فقط جلوی دسترسی جاوااسکریپت را می‌گیرد؛ سمت سرور (proxy) از هدر
- * Cookie قابل خواندن است. اول از Request.cookies استفاده می‌کنیم و اگر نبود،
- * هدر خام Cookie را خودمان پارس می‌کنیم تا در شرایط خاص هم توکن پیدا شود.
- */
 function readCookie(request: NextRequest, name: string): string | undefined {
   const value = request.cookies.get(name)?.value;
   if (value !== undefined) return value;
@@ -73,32 +60,16 @@ function getRoles(token: string | undefined): string[] {
 }
 
 /**
- * callbackUrl فقط باید مسیر همین دامنه باشد تا open redirect پیش نیاید
- * (جلوی //evil.com و /\evil.com گرفته می‌شود).
- */
-function getSafeCallbackPath(callbackUrl: string | null): string | null {
-  if (!callbackUrl) return null;
-  if (!callbackUrl.startsWith('/')) return null;
-  if (callbackUrl.startsWith('//') || callbackUrl.startsWith('/\\'))
-    return null;
-  return callbackUrl;
-}
-
-/**
- * مقصد هدایت کاربرِ لاگین‌شده از صفحات Auth:
- * اگر callbackUrl سالم بود به همان برمی‌گردد، وگرنه به صفحه اصلی.
- * اگر خودِ callbackUrl یک صفحه Auth باشد تا لوپ ایجاد نشود به / می‌رویم.
+ * مقصد هدایت کاربرِ دارای توکن از صفحات Auth:
+ * اگر callbackUrl سالم بود به همان برمی‌گردد، وگرنه به صفحه داشبورد.
+ * sanitizeCallbackUrl خودش callbackهای خارج از دامنه و callbackهایی که
+ * خودشان صفحه Auth باشند (لوپ) را رد می‌کند.
  */
 function resolveAuthRedirectTarget(request: NextRequest): string {
-  const callback = getSafeCallbackPath(
-    request.nextUrl.searchParams.get('callbackUrl'),
+  return (
+    sanitizeCallbackUrl(request.nextUrl.searchParams.get('callbackUrl')) ??
+    '/dashboard'
   );
-  if (!callback) return '/';
-
-  const targetPath = callback.split('?')[0].split('#')[0];
-  if (isAuthRoute(targetPath)) return '/';
-
-  return callback;
 }
 
 export default function proxy(request: NextRequest) {
@@ -165,5 +136,10 @@ export const config = {
     '/dashboard/:path*',
     '/checkout',
     '/checkout/:path*',
+
+    '/login',
+    '/login-with-pass',
+    '/sign-up',
+    '/forgot-pass',
   ],
 };
