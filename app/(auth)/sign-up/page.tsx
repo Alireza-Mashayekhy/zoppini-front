@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -18,11 +18,21 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { useCallbackUrl } from '@/hooks/use-callback-url';
+import { withCallbackUrl } from '@/lib/callback-url';
 import { persianDateToISO } from '@/lib/utils';
 import { useSendOtp, useSignUp } from '@/services/features/auth/hooks';
 import { SignUpDto } from '@/services/features/auth/types';
 
 export default function SignUp() {
+  return (
+    <Suspense fallback={null}>
+      <SignUpContent />
+    </Suspense>
+  );
+}
+
+function SignUpContent() {
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState('');
   const [timeLeft, setTimeLeft] = useState(120);
@@ -31,6 +41,7 @@ export default function SignUp() {
   const sendOtpMutation = useSendOtp();
   const signUpMutation = useSignUp();
   const router = useRouter();
+  const callbackUrl = useCallbackUrl();
 
   // شمای اعتبارسنجی مرحله اول
   const schemaStep1 = z.object({
@@ -106,7 +117,7 @@ export default function SignUp() {
     try {
       await signUpMutation.mutateAsync(payload);
       toast.success('ثبت‌نام موفق');
-      router.push('/');
+      router.push(callbackUrl ?? '/');
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error.message || 'خطا در ثبت‌نام';
@@ -161,8 +172,10 @@ export default function SignUp() {
             دریافت کد تایید
           </Button>
           <div className="flex items-center justify-between">
-            <Link href="/login">ورود</Link>
-            <Link href="/login-with-pass">ورود با رمز عبور</Link>
+            <Link href={withCallbackUrl('/login', callbackUrl)}>ورود</Link>
+            <Link href={withCallbackUrl('/login-with-pass', callbackUrl)}>
+              ورود با رمز عبور
+            </Link>
           </div>
           <Link href="/" className="flex items-center justify-center gap-2">
             بازگشت به خانه <ArrowLeft className="size-4" />

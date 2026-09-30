@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -17,10 +17,20 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { useCallbackUrl } from '@/hooks/use-callback-url';
+import { withCallbackUrl } from '@/lib/callback-url';
 import { useLogin, useSendOtp } from '@/services/features/auth/hooks';
 import { sendOtpDto } from '@/services/features/auth/types';
 
 export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState('');
   const [timeLeft, setTimeLeft] = useState(120); // ۲ دقیقه به ثانیه
@@ -29,6 +39,7 @@ export default function Login() {
   const sendOtpMutation = useSendOtp();
   const loginMutation = useLogin();
   const router = useRouter();
+  const callbackUrl = useCallbackUrl();
 
   const schema = z.object({
     phone: z
@@ -83,7 +94,7 @@ export default function Login() {
         phone: methods.getValues().phone,
       });
 
-      router.push('/');
+      router.push(callbackUrl ?? '/');
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error.message || 'خطا در ارسال کد';
@@ -129,8 +140,10 @@ export default function Login() {
             ارسال کد
           </Button>
           <div className="flex items-center justify-between">
-            <Link href="/sign-up">ثبت نام</Link>
-            <Link href="/login-with-pass">ورود با رمز عبور</Link>
+            <Link href={withCallbackUrl('/sign-up', callbackUrl)}>ثبت نام</Link>
+            <Link href={withCallbackUrl('/login-with-pass', callbackUrl)}>
+              ورود با رمز عبور
+            </Link>
           </div>
           <Link href="/" className="flex items-center justify-center gap-2">
             بازگشت به خانه <ArrowLeft className="size-4" />
