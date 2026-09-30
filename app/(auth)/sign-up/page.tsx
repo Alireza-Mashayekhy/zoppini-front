@@ -117,7 +117,8 @@ function SignUpContent() {
     try {
       await signUpMutation.mutateAsync(payload);
       toast.success('ثبت‌نام موفق');
-      router.push(callbackUrl ?? '/');
+      await router.push(callbackUrl ?? '/');
+      router.refresh();
     } catch (error: any) {
       const message =
         error?.response?.data?.message || error.message || 'خطا در ثبت‌نام';
