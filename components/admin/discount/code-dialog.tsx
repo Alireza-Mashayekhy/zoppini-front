@@ -24,7 +24,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { persianDateToISO, toPersianDate } from '@/lib/utils';
 import { useAdminDiscount } from '@/services/features/discounts/admin.hooks';
 import {
   CreateDiscountDto,
@@ -33,6 +32,7 @@ import {
 } from '@/services/features/discounts/types';
 
 import DiscountSelectDialog from './select-dialog';
+import { persianDateToISO, toPersianDate } from './utils';
 
 type CodeFormValues = {
   code: string;
