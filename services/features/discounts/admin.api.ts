@@ -2,12 +2,18 @@ import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
-import { CreateDiscountDto, Discount, UpdateDiscountDto } from './types';
+import {
+  CreateDiscountDto,
+  Discount,
+  DiscountKind,
+  UpdateDiscountDto,
+} from './types';
 
 export interface GetAdminDiscountsParams {
   page?: number;
   limit?: number;
   search?: string;
+  kind?: DiscountKind;
 }
 
 export async function getAdminDiscounts(

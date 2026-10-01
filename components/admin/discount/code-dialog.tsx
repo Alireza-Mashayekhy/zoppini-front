@@ -2,9 +2,8 @@
 
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import DateObject from 'react-date-object';
-import persian from 'react-date-object/calendars/persian';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { PersianDatePicker } from '@/components/form/persian-date-picker';
 import RHFPriceInput from '@/components/form/rhf-price-input';
@@ -25,15 +24,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { persianDateToISO, toPersianDate } from '@/lib/utils';
 import { useAdminDiscount } from '@/services/features/discounts/admin.hooks';
 import {
   CreateDiscountDto,
+  DiscountKind,
   DiscountType,
 } from '@/services/features/discounts/types';
 
 import DiscountSelectDialog from './select-dialog';
 
-type DiscountFormValues = {
+type CodeFormValues = {
   code: string;
 
   type: DiscountType;
@@ -50,11 +51,37 @@ type DiscountFormValues = {
 
   isActive: boolean;
 
+  maxUsesPerUser: number | '';
+
+  unlimitedPerUser: boolean;
+
+  maxTotalUses: number | '';
+
+  excludeSaleItems: boolean;
+
   userIds: number[];
 
-  productIds: number[];
+  excludedProductIds: number[];
 
-  categoryIds: number[];
+  excludedCategoryIds: number[];
+};
+
+const EMPTY_VALUES: CodeFormValues = {
+  code: '',
+  type: DiscountType.PERCENTAGE,
+  value: '',
+  maxDiscountAmount: '',
+  minOrderAmount: '',
+  startsAt: '',
+  expiresAt: '',
+  isActive: true,
+  maxUsesPerUser: 1,
+  unlimitedPerUser: false,
+  maxTotalUses: '',
+  excludeSaleItems: false,
+  userIds: [],
+  excludedProductIds: [],
+  excludedCategoryIds: [],
 };
 
 interface Props {
@@ -69,7 +96,7 @@ interface Props {
   isPending?: boolean;
 }
 
-export default function DiscountDialog({
+export default function DiscountCodeDialog({
   open,
   onOpenChange,
   discountId,
@@ -80,44 +107,14 @@ export default function DiscountDialog({
 
   const { data: discount } = useAdminDiscount(discountId);
 
-  // =========================================================
-  // Selection dialogs
-  // =========================================================
-
   const [userDialogOpen, setUserDialogOpen] = useState(false);
 
   const [productDialogOpen, setProductDialogOpen] = useState(false);
 
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
-  // =========================================================
-  // RHF
-  // =========================================================
-
-  const methods = useForm<DiscountFormValues>({
-    defaultValues: {
-      code: '',
-
-      type: DiscountType.PERCENTAGE,
-
-      value: '',
-
-      maxDiscountAmount: '',
-
-      minOrderAmount: '',
-
-      startsAt: '',
-
-      expiresAt: '',
-
-      isActive: true,
-
-      userIds: [],
-
-      productIds: [],
-
-      categoryIds: [],
-    },
+  const methods = useForm<CodeFormValues>({
+    defaultValues: EMPTY_VALUES,
   });
 
   const {
@@ -134,48 +131,30 @@ export default function DiscountDialog({
     formState: { errors },
   } = methods;
 
-  // =========================================================
-  // Watch
-  // =========================================================
+  const type = useWatch({ control, name: 'type' });
 
-  const type = useWatch({
+  const userIds = useWatch({ control, name: 'userIds' });
+
+  const excludedProductIds = useWatch({
     control,
 
-    name: 'type',
+    name: 'excludedProductIds',
   });
 
-  const userIds = useWatch({
+  const excludedCategoryIds = useWatch({
     control,
 
-    name: 'userIds',
-  });
-
-  const productIds = useWatch({
-    control,
-
-    name: 'productIds',
-  });
-
-  const categoryIds = useWatch({
-    control,
-
-    name: 'categoryIds',
-  });
-
-  const isActive = useWatch({
-    control,
-
-    name: 'isActive',
+    name: 'excludedCategoryIds',
   });
 
   // =========================================================
   // Selection state
   // =========================================================
+  const isActive = useWatch({ control, name: 'isActive' });
 
-  const hasUsers = userIds?.length > 0;
+  const unlimitedPerUser = useWatch({ control, name: 'unlimitedPerUser' });
 
-  const hasProductsOrCategories =
-    productIds?.length > 0 || categoryIds?.length > 0;
+  const excludeSaleItems = useWatch({ control, name: 'excludeSaleItems' });
 
   // =========================================================
   // Edit / Create reset
@@ -184,81 +163,68 @@ export default function DiscountDialog({
   useEffect(() => {
     if (!open) return;
 
-    if (discount) {
+    const data = discount?.data;
+
+    if (data && isEdit) {
       reset({
-        code: discount?.data?.code ?? '',
+        code: data.code ?? '',
 
-        type: discount?.data?.type,
+        type: data.type,
 
-        value:
-          discount?.data?.value != null ? Number(discount?.data?.value) : '',
+        value: data.value != null ? Number(data.value) : '',
 
         maxDiscountAmount:
-          discount?.data?.maxDiscountAmount != null
-            ? Number(discount?.data?.maxDiscountAmount)
-            : '',
+          data.maxDiscountAmount != null ? Number(data.maxDiscountAmount) : '',
 
         minOrderAmount:
-          discount?.data?.minOrderAmount != null
-            ? Number(discount?.data?.minOrderAmount)
-            : '',
+          data.minOrderAmount != null ? Number(data.minOrderAmount) : '',
 
-        startsAt: toPersianDate(discount?.data?.startsAt),
+        startsAt: toPersianDate(data.startsAt),
 
-        expiresAt: toPersianDate(discount?.data?.expiresAt),
+        expiresAt: toPersianDate(data.expiresAt),
 
-        isActive: discount?.data?.isActive,
+        isActive: data.isActive,
 
-        userIds: discount?.data?.users?.map(user => user.id) ?? [],
+        unlimitedPerUser: data.maxUsesPerUser == null,
 
-        productIds: discount?.data?.products?.map(product => product.id) ?? [],
+        maxUsesPerUser:
+          data.maxUsesPerUser != null ? Number(data.maxUsesPerUser) : 1,
 
-        categoryIds:
-          discount?.data?.categories?.map(category => category.id) ?? [],
+        maxTotalUses:
+          data.maxTotalUses != null ? Number(data.maxTotalUses) : '',
+
+        excludeSaleItems: !!data.excludeSaleItems,
+
+        userIds: data.users?.map(user => user.id) ?? [],
+
+        excludedProductIds: data.excludedProducts?.map(item => item.id) ?? [],
+
+        excludedCategoryIds:
+          data.excludedCategories?.map(item => item.id) ?? [],
       });
 
       return;
     }
-
-    reset({
-      code: '',
-
-      type: DiscountType.PERCENTAGE,
-
-      value: '',
-
-      maxDiscountAmount: '',
-
-      minOrderAmount: '',
-
-      startsAt: '',
-
-      expiresAt: '',
-
-      isActive: true,
-
-      userIds: [],
-
-      productIds: [],
-
-      categoryIds: [],
-    });
-  }, [discount, open, reset]);
+    reset(EMPTY_VALUES);
+  }, [discount, isEdit, open, reset]);
 
   // =========================================================
   // Submit
   // =========================================================
 
-  const submit = (values: DiscountFormValues) => {
+  const submit = (values: CodeFormValues) => {
     if (!values.code.trim()) {
+      toast.error('کد تخفیف الزامی است.');
       return;
     }
 
     if (values.value === '' || values.value === undefined) {
+      toast.error('مقدار تخفیف را وارد کنید.');
       return;
     }
 
-    if (!values.startsAt || !values.expiresAt) {
+    if (Number(values.value) <= 0) {
+      toast.error('مقدار تخفیف باید بیشتر از صفر باشد.');
       return;
     }
 
@@ -267,26 +233,45 @@ export default function DiscountDialog({
     // -------------------------------------------------------
 
     if (values.type === DiscountType.PERCENTAGE && Number(values.value) > 100) {
+      toast.error('درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد.');
       return;
     }
 
-    // -------------------------------------------------------
-    // Validate dates
-    // -------------------------------------------------------
+    if (!values.startsAt || !values.expiresAt) {
+      toast.error('بازهٔ اعتبار را مشخص کنید.');
+      return;
+    }
 
     const startsAt = persianDateToISO(values.startsAt, false);
 
     const expiresAt = persianDateToISO(values.expiresAt, true);
 
     if (!startsAt || !expiresAt) {
+      toast.error('تاریخ وارد شده معتبر نیست.');
       return;
     }
 
-    // -------------------------------------------------------
-    // DTO
-    // -------------------------------------------------------
+    if (new Date(expiresAt) <= new Date(startsAt)) {
+      toast.error('تاریخ پایان باید بعد از تاریخ شروع باشد.');
+      return;
+    }
+
+    if (
+      !values.unlimitedPerUser &&
+      (values.maxUsesPerUser === '' || Number(values.maxUsesPerUser) < 1)
+    ) {
+      toast.error('تعداد دفعات مجاز برای هر کاربر باید حداقل ۱ باشد.');
+      return;
+    }
+
+    if (values.maxTotalUses !== '' && Number(values.maxTotalUses) < 1) {
+      toast.error('سقف کل استفاده باید حداقل ۱ باشد.');
+      return;
+    }
 
     const dto: CreateDiscountDto = {
+      kind: DiscountKind.CODE,
+
       code: values.code.trim().toUpperCase(),
 
       type: values.type,
@@ -294,6 +279,7 @@ export default function DiscountDialog({
       value: Number(values.value),
 
       maxDiscountAmount:
+        values.type === DiscountType.PERCENTAGE &&
         values.maxDiscountAmount !== ''
           ? Number(values.maxDiscountAmount)
           : undefined,
@@ -309,15 +295,22 @@ export default function DiscountDialog({
 
       isActive: values.isActive,
 
+      maxUsesPerUser: values.unlimitedPerUser
+        ? null
+        : Number(values.maxUsesPerUser),
+
+      maxTotalUses:
+        values.maxTotalUses !== '' ? Number(values.maxTotalUses) : null,
+
+      excludeSaleItems: values.excludeSaleItems,
+
       // خالی = همه کاربران
-      userIds: values.userIds.length > 0 ? values.userIds : undefined,
+      userIds: values.userIds,
 
       // خالی = همه محصولات
-      productIds: values.productIds.length > 0 ? values.productIds : undefined,
+      excludedProductIds: values.excludedProductIds,
 
-      // خالی = همه دسته‌ها
-      categoryIds:
-        values.categoryIds.length > 0 ? values.categoryIds : undefined,
+      excludedCategoryIds: values.excludedCategoryIds,
     };
 
     onSubmit(dto);
@@ -454,9 +447,81 @@ export default function DiscountDialog({
                 </div>
               </section>
 
-              {/* ================================================= */}
-              {/* زمان */}
-              {/* ================================================= */}
+              {/* دفعات استفاده */}
+
+              <section className="space-y-4">
+                <div>
+                  <h3 className="font-semibold">دفعات استفاده</h3>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    مشخص کنید هر کاربر چند بار می‌تواند از این کد استفاده کند.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">
+                        استفادهٔ نامحدود برای هر کاربر
+                      </div>
+
+                      <div className="text-sm text-muted-foreground">
+                        در غیر این صورت سقف دفعات هر کاربر را وارد کنید.
+                      </div>
+                    </div>
+
+                    <Switch
+                      checked={unlimitedPerUser}
+                      onCheckedChange={value =>
+                        setValue('unlimitedPerUser', value, {
+                          shouldDirty: true,
+                        })
+                      }
+                    />
+                  </div>
+
+                  {!unlimitedPerUser && (
+                    <div className="space-y-2">
+                      <Label htmlFor="maxUsesPerUser">
+                        حداکثر دفعات استفادهٔ هر کاربر
+                      </Label>
+
+                      <Input
+                        id="maxUsesPerUser"
+                        type="number"
+                        min={1}
+                        step={1}
+                        dir="ltr"
+                        placeholder="1"
+                        {...register('maxUsesPerUser')}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maxTotalUses">
+                    سقف کل دفعات استفاده (اختیاری)
+                  </Label>
+
+                  <Input
+                    id="maxTotalUses"
+                    type="number"
+                    min={1}
+                    step={1}
+                    dir="ltr"
+                    placeholder="خالی = نامحدود"
+                    {...register('maxTotalUses')}
+                  />
+
+                  <p className="text-xs text-muted-foreground">
+                    مجموع دفعات استفادهٔ همهٔ کاربران؛ بعد از رسیدن به این عدد
+                    کد غیرقابل استفاده می‌شود.
+                  </p>
+                </div>
+              </section>
+
+              {/* بازه اعتبار */}
 
               <section className="space-y-4">
                 <h3 className="font-semibold">بازه اعتبار</h3>
@@ -505,68 +570,24 @@ export default function DiscountDialog({
 
               <section className="space-y-4">
                 <div>
-                  <h3 className="font-semibold">محدوده اعمال تخفیف</h3>
+                  <h3 className="font-semibold">محدوده اعمال کد</h3>
 
                   <p className="mt-1 text-sm text-muted-foreground">
-                    کد تخفیف یا برای کاربران خاص است، یا روی محصولات و
-                    دسته‌بندی‌های انتخابی اعمال می‌شود.
+                    به‌صورت پیش‌فرض کد روی همهٔ محصولات و برای همهٔ کاربران قابل
+                    استفاده است. می‌توانید محصولات یا دسته‌بندی‌هایی را مستثنا
+                    کنید یا کد را به کاربران خاصی محدود کنید.
                   </p>
                 </div>
 
-                {/* ================================================= */}
-                {/* Users */}
-                {/* ================================================= */}
-
-                <div
-                  className={[
-                    'rounded-lg border p-4 transition',
-                    hasProductsOrCategories ? 'bg-muted/40 opacity-60' : '',
-                  ].join(' ')}
-                >
-                  <div className="mb-3">
-                    <div className="font-medium">کاربران مجاز</div>
-
-                    <div className="text-sm text-muted-foreground">
-                      اگر کاربر انتخاب شود، کد فقط برای همان کاربران قابل
-                      استفاده است.
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    disabled={hasProductsOrCategories}
-                    onClick={() => setUserDialogOpen(true)}
-                  >
-                    {userIds.length > 0
-                      ? `${userIds.length} کاربر انتخاب شده`
-                      : 'انتخاب کاربران'}
-                  </Button>
-
-                  {hasProductsOrCategories && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      ابتدا محصولات و دسته‌بندی‌ها را حذف کنید تا بتوانید
-                      کاربران را انتخاب کنید.
-                    </p>
-                  )}
-                </div>
-
-                {/* ================================================= */}
-                {/* Products + Categories */}
-                {/* ================================================= */}
-
-                <div
-                  className={[
-                    'rounded-lg border p-4 transition',
-                    hasUsers ? 'bg-muted/40 opacity-60' : '',
-                  ].join(' ')}
-                >
+                {/* محصولات و دسته‌های مستثنا */}
+                <div className="rounded-lg border p-4">
                   <div className="mb-4">
-                    <div className="font-medium">محصولات و دسته‌بندی‌ها</div>
-
+                    <div className="font-medium">
+                      محصولات و دسته‌بندی‌های مستثنا
+                    </div>
                     <div className="text-sm text-muted-foreground">
-                      می‌توانید محصول و دسته‌بندی را همزمان انتخاب کنید.
+                      کد روی این موارد اعمال نمی‌شود (زیرمجموعهٔ دسته‌ها هم
+                      مستثنا می‌شوند).{' '}
                     </div>
                   </div>
 
@@ -577,12 +598,11 @@ export default function DiscountDialog({
                       type="button"
                       variant="outline"
                       className="w-full"
-                      disabled={hasUsers}
                       onClick={() => setProductDialogOpen(true)}
                     >
-                      {productIds.length > 0
-                        ? `${productIds.length} محصول انتخاب شده`
-                        : 'انتخاب محصولات'}
+                      {excludedProductIds.length > 0
+                        ? `${excludedProductIds.length} محصول مستثنا`
+                        : 'انتخاب محصولات مستثنا'}
                     </Button>
 
                     {/* Category */}
@@ -591,33 +611,59 @@ export default function DiscountDialog({
                       type="button"
                       variant="outline"
                       className="w-full"
-                      disabled={hasUsers}
                       onClick={() => setCategoryDialogOpen(true)}
                     >
-                      {categoryIds.length > 0
-                        ? `${categoryIds.length} دسته‌بندی انتخاب شده`
-                        : 'انتخاب دسته‌بندی‌ها'}
+                      {excludedCategoryIds.length > 0
+                        ? `${excludedCategoryIds.length} دسته‌بندی مستثنا`
+                        : 'انتخاب دسته‌بندی‌های مستثنا'}
                     </Button>
                   </div>
-
-                  {hasUsers && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      ابتدا کاربران را حذف کنید تا بتوانید محصول یا دسته‌بندی
-                      انتخاب کنید.
-                    </p>
-                  )}
                 </div>
 
-                {/* ================================================= */}
-                {/* Empty */}
-                {/* ================================================= */}
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <div className="font-medium">
+                      عدم اعمال روی محصولات فروش ویژه
+                    </div>
 
-                {!hasUsers && !hasProductsOrCategories && (
-                  <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-                    در صورت عدم انتخاب کاربر، محصول یا دسته‌بندی، کد برای همه
-                    کاربران و همه محصولات قابل استفاده خواهد بود.
+                    <div className="text-sm text-muted-foreground">
+                      محصولاتی که در لحظهٔ خرید در فروش ویژه هستند مشمول این کد
+                      نمی‌شوند.
+                    </div>
                   </div>
-                )}
+
+                  <Switch
+                    checked={excludeSaleItems}
+                    onCheckedChange={value =>
+                      setValue('excludeSaleItems', value, {
+                        shouldDirty: true,
+                      })
+                    }
+                  />
+                </div>
+
+                {/* کاربران */}
+
+                <div className="rounded-lg border p-4">
+                  <div className="mb-3">
+                    <div className="font-medium">کاربران مجاز</div>
+
+                    <div className="text-sm text-muted-foreground">
+                      اگر کاربر انتخاب شود، کد فقط برای همان کاربران قابل
+                      استفاده است. در غیر این صورت برای همه آزاد است.
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setUserDialogOpen(true)}
+                  >
+                    {userIds.length > 0
+                      ? `${userIds.length} کاربر انتخاب شده`
+                      : 'انتخاب کاربران'}
+                  </Button>
+                </div>
               </section>
 
               {/* ================================================= */}
@@ -653,115 +699,30 @@ export default function DiscountDialog({
         type="users"
         title="انتخاب کاربران"
         selectedIds={userIds}
-        onConfirm={ids => {
-          setValue('userIds', ids);
-
-          // User OR Product/Category
-          if (ids.length > 0) {
-            setValue('productIds', []);
-            setValue('categoryIds', []);
-          }
-        }}
+        onConfirm={ids => setValue('userIds', ids, { shouldDirty: true })}
       />
 
       <DiscountSelectDialog
         open={productDialogOpen}
         onOpenChange={setProductDialogOpen}
         type="products"
-        title="انتخاب محصولات"
-        selectedIds={productIds}
-        onConfirm={ids => {
-          setValue('productIds', ids);
-
-          // اگر محصول انتخاب شد، User پاک شود
-          if (ids.length > 0) {
-            setValue('userIds', []);
-          }
-        }}
+        title="انتخاب محصولات مستثنا"
+        selectedIds={excludedProductIds}
+        onConfirm={ids =>
+          setValue('excludedProductIds', ids, { shouldDirty: true })
+        }
       />
 
       <DiscountSelectDialog
         open={categoryDialogOpen}
         onOpenChange={setCategoryDialogOpen}
         type="categories"
-        title="انتخاب دسته‌بندی‌ها"
-        selectedIds={categoryIds}
-        onConfirm={ids => {
-          setValue('categoryIds', ids);
-
-          // اگر دسته‌بندی انتخاب شد، User پاک شود
-          if (ids.length > 0) {
-            setValue('userIds', []);
-          }
-        }}
+        title="انتخاب دسته‌بندی‌های مستثنا"
+        selectedIds={excludedCategoryIds}
+        onConfirm={ids =>
+          setValue('excludedCategoryIds', ids, { shouldDirty: true })
+        }
       />
     </>
   );
-}
-
-/* ============================================================= */
-/* Helpers                                                        */
-/* ============================================================= */
-
-/**
- * تبدیل تاریخ میلادی به تاریخ شمسی
- * برای مقدار اولیه PersianDatePicker
- */
-function toPersianDate(value: string | Date) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const formatter = new Intl.DateTimeFormat('fa-IR-u-nu-latn', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  const parts = formatter.formatToParts(date);
-
-  const year = parts.find(part => part.type === 'year')?.value;
-
-  const month = parts.find(part => part.type === 'month')?.value;
-
-  const day = parts.find(part => part.type === 'day')?.value;
-
-  if (!year || !month || !day) {
-    return '';
-  }
-
-  return `${year}/${month}/${day}`;
-}
-
-/**
- * تبدیل تاریخ شمسی ذخیره‌شده در فرم
- * به ISO برای ارسال به NestJS
- */
-function persianDateToISO(value: string, isEndOfDay = false) {
-  if (!value) {
-    return '';
-  }
-
-  const [year, month, day] = value.split('/').map(Number);
-
-  if (!year || !month || !day) {
-    return '';
-  }
-
-  const date = new DateObject({
-    calendar: persian,
-    year,
-    month,
-    day,
-  }).toDate();
-
-  if (isEndOfDay) {
-    date.setHours(23, 59, 59, 999);
-  } else {
-    date.setHours(0, 0, 0, 0);
-  }
-
-  return date.toISOString();
 }
