@@ -1,9 +1,11 @@
 // app/product/[productSlug]/page.tsx
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 import ProductContent from '@/components/pages/product/content';
 import ProductJsonLd from '@/components/pages/product/product-jsonld';
 import Breadcrumb from '@/components/shared/breadcrumb';
+import { ApiError } from '@/services/api/server';
 import {
   getProduct,
   getProductGuides,
@@ -71,7 +73,20 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { productSlug } = await params;
-  const product = await getProduct(productSlug);
+  let product;
+
+  try {
+    product = await getProduct(productSlug);
+  } catch (error) {
+    console.error('Product error:', error);
+
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+
+    throw error;
+  }
+
   const productData = product.data;
 
   const guides = await getProductGuides(productData.product.slug);
