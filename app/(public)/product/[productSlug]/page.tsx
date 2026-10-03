@@ -59,7 +59,7 @@ export async function generateMetadata({
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
-        canonical: `/product/${productData.slug}`,
+        canonical: `https://zoppinico.com/product/${productData.slug}`,
       },
     };
   } catch (error) {

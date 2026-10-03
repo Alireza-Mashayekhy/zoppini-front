@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: 'همه محصولات - زوپینی',
   description:
     'خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار از زوپینی',
-  alternates: { canonical: '/products' },
+  alternates: { canonical: 'https://zoppinico.com/products' },
 };
 
 export default async function ProductsPage({

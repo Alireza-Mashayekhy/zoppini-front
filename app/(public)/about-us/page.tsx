@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'برند زوپینی فعالیت خود را از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه با کیفیت و متفاوت آغاز کرد.طی بیش از دو دهه همواره کوشیده ایم فراتر از یک تولید کننده باشیم ،',
   alternates: {
-    canonical: '/about-us',
+    canonical: 'https://zoppinico.com/about-us',
   },
 };
 

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: 'آدرس و شماره تماس فروشگاه زوپینی',
   },
   alternates: {
-    canonical: '/branches',
+    canonical: 'https://zoppinico.com/branches',
   },
 };
 

@@ -1,3 +1,5 @@
+import { Metadata } from 'next';
+
 import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
@@ -12,6 +14,15 @@ import {
   getFeaturedProducts,
   getStyleProducts,
 } from '@/services/features/products/server.api';
+
+export const metadata: Metadata = {
+  title: 'فروشگاه پوشاک مردانه - زوپینی',
+  description:
+    'فروشگاه آنلاین پوشاک مردانه زوپینی | خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار- خرید حضوری و اینترنتی | پرداخت در محل✓ امکان بازگشت کالا✓',
+  alternates: {
+    canonical: 'https://zoppinico.com',
+  },
+};
 
 export const revalidate = 300;
 

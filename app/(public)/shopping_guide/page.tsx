@@ -23,7 +23,7 @@ export const metadata: Metadata = {
       'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
   },
   alternates: {
-    canonical: '/shopping_guide',
+    canonical: 'https://zoppinico.com/shopping_guide',
   },
 };
 
