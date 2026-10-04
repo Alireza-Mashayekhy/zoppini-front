@@ -28,7 +28,7 @@ export const metadata: Metadata = {
       'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
   },
   alternates: {
-    canonical: '/frequently-asked-questions',
+    canonical: 'https://zoppinico.com/frequently-asked-questions',
   },
 };
 

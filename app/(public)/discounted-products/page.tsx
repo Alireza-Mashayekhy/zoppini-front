@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: 'فروش ویژه - زوپینی',
   },
   alternates: {
-    canonical: '/discounted-products',
+    canonical: 'https://zoppinico.com/discounted-products',
   },
 };
 

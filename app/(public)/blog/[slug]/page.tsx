@@ -55,7 +55,7 @@ export async function generateMetadata({
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
-        canonical: `/blog/${data.slug}`,
+        canonical: `https://zoppinico.com/blog/${data.slug}`,
       },
     };
   } catch {

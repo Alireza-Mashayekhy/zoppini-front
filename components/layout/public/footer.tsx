@@ -67,12 +67,12 @@ export default function Footer() {
           className="sm:hidden"
         >
           <Image
-            src="/footer/enamad.webp"
+            src="/footer/enamd_1.webp"
             alt="نماد اعتماد الکترونیکی زوپینی"
-            width={100}
-            height={110}
+            width={130}
+            height={130}
             loading="lazy"
-            sizes="100px"
+            sizes="130px"
           />
         </a>
         {/* <div className="flex flex-col gap-5 max-w-72">
@@ -103,12 +103,12 @@ export default function Footer() {
             className="hidden sm:block"
           >
             <Image
-              src="/footer/enamad.webp"
+              src="/footer/enamd_1.webp"
               alt="نماد اعتماد الکترونیکی زوپینی"
-              width={35}
-              height={35}
+              width={55}
+              height={55}
               loading="lazy"
-              sizes="35px"
+              sizes="55px"
             />
           </a>
           <Image

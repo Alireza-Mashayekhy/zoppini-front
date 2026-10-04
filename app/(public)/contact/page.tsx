@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'آدرس و شماره تماس فروشگاه زوپینی',
   },
   alternates: {
-    canonical: '/contact',
+    canonical: 'https://zoppinico.com/contact',
   },
 };
 

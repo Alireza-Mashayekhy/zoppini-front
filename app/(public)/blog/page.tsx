@@ -11,7 +11,7 @@ interface BlogPageProps {
 export const metadata: Metadata = {
   title: 'وبلاگ - زوپینی',
   alternates: {
-    canonical: '/blog',
+    canonical: 'https://zoppinico.com/blog',
   },
 };
 

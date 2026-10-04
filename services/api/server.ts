@@ -10,6 +10,16 @@ interface ServerRequestOptions {
   next?: NextFetchRequestConfig;
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 const BASE_URL =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
@@ -71,7 +81,10 @@ export async function serverFetch<T>(
   if (!res.ok) {
     const error = await res.json().catch(() => null);
 
-    throw new Error(error?.message ?? `Request failed: ${res.status}`);
+    throw new ApiError(
+      error?.message ?? `Request failed: ${res.status}`,
+      res.status,
+    );
   }
 
   return res.json();

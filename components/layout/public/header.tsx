@@ -58,9 +58,11 @@ export default async function Header() {
                 باشگاه مشتریان{' '}
               </Link>
 
+              <span className="h-5 w-px bg-black" />
+
               <Link
                 href="/landing/opening"
-                className="text-sm transition-colors hover:text-black/50"
+                className="text-sm transition-colors text-red-600 hover:text-red-800"
               >
                 افتتاحیه{' '}
               </Link>
