@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ویدیوهای سورس (حجیم) — بیرون از git و بیلد نگه داشته می‌شوند
+# انکود: pnpm video:encode --mute assets/video-sources/<name>.mp4
+assets/video-sources/

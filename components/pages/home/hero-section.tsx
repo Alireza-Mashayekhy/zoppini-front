@@ -78,6 +78,31 @@ export default function HeroSection(
 
   return (
     <section className="relative h-full overflow-hidden">
+      {/*
+        پوستر ویدیوها از همان ابتدای لود HTML دانلود می‌شود
+        تا تا رسیدن فریم اول ویدیو، جای آن مشکی نباشد.
+      */}
+      <link
+        rel="preload"
+        as="image"
+        href="/home/hero_section_1/poster.webp"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/home/hero_section_2/poster.webp"
+        fetchPriority="high"
+      />
+
+      {/*
+        شروع دانلود master.m3u8 موازی با دانلود JS صفحه:
+        hls.js بعد از hydration همین URL را می‌خواهد و پاسخ از کش
+        مرورگر می‌آید → یک رفت‌وبرگشت (RTT) زودتر شروع می‌شود.
+      */}
+      <link rel="preload" as="fetch" href="/home/hero_section_1/master.m3u8" />
+      <link rel="preload" as="fetch" href="/home/hero_section_2/master.m3u8" />
+
       <h1 className="sr-only">
         فروشگاه آنلاین پوشاک مردانه زوپینی - کت شلوار، پالتو و پیراهن مردانه
       </h1>
@@ -88,10 +113,11 @@ export default function HeroSection(
           <HlsVideo
             ref={video1Ref}
             src="/home/hero_section_1/master.m3u8"
+            poster="/home/hero_section_1/poster.webp"
+            lazy={false}
             muted
             loop
             playsInline
-            lowQualityFirst
             className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
@@ -125,10 +151,11 @@ export default function HeroSection(
           <HlsVideo
             ref={video2Ref}
             src="/home/hero_section_2/master.m3u8"
+            poster="/home/hero_section_2/poster.webp"
+            lazy={false}
             muted
             loop
             playsInline
-            lowQualityFirst
             className="h-full w-full object-cover"
             onMouseEnter={() =>
               handleMouseEnter(
