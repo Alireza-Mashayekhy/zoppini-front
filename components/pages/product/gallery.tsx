@@ -2,7 +2,7 @@
 
 import { ArrowDown } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import {
@@ -10,13 +10,23 @@ import {
   ProductsResponse,
 } from '@/services/features/products/type';
 
+const AUTOPLAY_INTERVAL = 3000; // هر ۳ ثانیه
+
 interface ProductGalleryProps {
   product: ProductsResponse;
   colorImages: ColorImageResponse[];
 }
 
 // کامپوننت تصویر با قابلیت زوم
-function ZoomableImage({ src, alt }: { src: string; alt: string }) {
+function ZoomableImage({
+  src,
+  alt,
+  onZoomChange,
+}: {
+  src: string;
+  alt: string;
+  onZoomChange?: (zoomed: boolean) => void;
+}) {
   const [zoom, setZoom] = useState(false);
   const [position, setPosition] = useState({ x: 50, y: 50 });
 
@@ -34,7 +44,11 @@ function ZoomableImage({ src, alt }: { src: string; alt: string }) {
   };
 
   const handleClick = () => {
-    setZoom(prev => !prev);
+    setZoom(prev => {
+      const next = !prev;
+      onZoomChange?.(next);
+      return next;
+    });
   };
 
   return (
@@ -74,9 +88,22 @@ export default function ProductGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
 
+  const [isPaused, setIsPaused] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const autoplayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const images = colorImages;
   const displayImages =
     images.length > 0 ? images : [{ url: product.image, id: 0 }];
+
+  const scrollTo = useCallback((index: number) => {
+    if (!scrollRef.current) return;
+    const { clientHeight } = scrollRef.current;
+    scrollRef.current.scrollTo({
+      top: index * clientHeight,
+      behavior: 'smooth',
+    });
+  }, []);
 
   // مدیریت اسکرول عمودی و به‌روزرسانی dots
   useEffect(() => {
@@ -84,10 +111,12 @@ export default function ProductGallery({
     if (!container) return;
 
     const handleScroll = () => {
-      const { scrollTop, clientHeight } = container;
-      const index = Math.round(scrollTop / clientHeight);
-      currentIndexRef.current = index;
+      const { scrollTop, clientHeight, scrollHeight } = container;
+      let index = Math.round(scrollTop / clientHeight);
+      // جلوگیری از عبور از محدوده
+      index = Math.max(0, Math.min(index, displayImages.length - 1));
       setCurrentIndex(index);
+      void scrollHeight;
     };
 
     container.addEventListener('scroll', handleScroll);
@@ -112,18 +141,40 @@ export default function ProductGallery({
     return () => observer.disconnect();
   }, []);
 
-  const scrollTo = (index: number) => {
-    if (scrollRef.current) {
-      const { clientHeight } = scrollRef.current;
-      scrollRef.current.scrollTo({
-        top: index * clientHeight,
-        behavior: 'smooth',
-      });
+  useEffect(() => {
+    if (displayImages.length <= 1) return;
+    if (isPaused || isZoomed) {
+      if (autoplayTimerRef.current) {
+        clearInterval(autoplayTimerRef.current);
+        autoplayTimerRef.current = null;
+      }
+      return;
     }
-  };
+    autoplayTimerRef.current = setInterval(() => {
+      setCurrentIndex(prev => {
+        const nextIndex = (prev + 1) % displayImages.length;
+        scrollTo(nextIndex);
+        return nextIndex;
+      });
+    }, AUTOPLAY_INTERVAL);
+
+    return () => {
+      if (autoplayTimerRef.current) {
+        clearInterval(autoplayTimerRef.current);
+        autoplayTimerRef.current = null;
+      }
+    };
+  }, [displayImages.length, isPaused, isZoomed, scrollTo]);
 
   return (
-    <div className="relative w-full md:w-auto md:h-[calc(100vh-70px)] aspect-13/16 select-none">
+    <div
+      className="relative w-full md:w-auto md:h-[calc(100vh-70px)] aspect-13/16 select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
+      {' '}
       {/* کانتینر اسکرول عمودی */}
       <div
         ref={scrollRef}
@@ -144,11 +195,11 @@ export default function ProductGallery({
             <ZoomableImage
               src={process.env.NEXT_PUBLIC_IMAGE_URL + img.url}
               alt={product.title}
+              onZoomChange={setIsZoomed}
             />
           </div>
         ))}
       </div>
-
       {/* نقاط ناوبری (عمودی) */}
       {displayImages.length > 1 && (
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2">
@@ -167,7 +218,6 @@ export default function ProductGallery({
           ))}
         </div>
       )}
-
       {displayImages.length > 1 && (
         <div className="absolute bottom-4 right-4">
           <ArrowDown />

@@ -1,143 +1,164 @@
 'use client';
 
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useKeenSlider } from 'keen-slider/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
 import LuxuryTitle from '@/components/shared/luxury-title';
 import { FeaturedProductResponse } from '@/services/features/products/type';
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function SuggestedStyle({
   products,
 }: {
   products: FeaturedProductResponse[];
 }) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      if (!sectionRef.current || !trackRef.current) return;
-
-      const section = sectionRef.current;
-      const track = trackRef.current;
-
-      const getScrollDistance = () => {
-        return Math.max(0, track.scrollWidth - section.clientWidth);
-      };
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-
-          start: 'top 0px',
-
-          end: () => `+=${Math.max(1, getScrollDistance())}`,
-
-          scrub: 1,
-
-          pin: true,
-
-          anticipatePin: 1,
-
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // حرکت افقی محصولات
-      tl.to(track, {
-        x: () => getScrollDistance(),
-
-        duration: 1,
-
-        ease: 'none',
-      });
-
-      // استپ کوچک انتهایی
-      tl.to(
-        {},
-        {
-          duration: 0.2,
-        },
-      );
-
-      return () => {
-        tl.scrollTrigger?.kill();
-        tl.kill();
-      };
-    },
+  const [loaded, setLoaded] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>(
     {
-      scope: sectionRef,
+      loop: true,
+      rtl: true,
+      slides: {
+        perView: 'auto',
+        spacing: 2,
+      },
+      slideChanged(slider) {
+        setCurrentSlide(slider.track.details.rel);
+      },
+      created() {
+        setLoaded(true);
+      },
     },
+    [
+      slider => {
+        let timeout: ReturnType<typeof setTimeout>;
+        let mouseOver = false;
+        function clearNextTimeout() {
+          clearTimeout(timeout);
+        }
+        function nextTimeout() {
+          clearTimeout(timeout);
+          if (mouseOver) return;
+          timeout = setTimeout(() => {
+            slider.next();
+          }, 4000);
+        }
+        slider.on('created', () => {
+          slider.container.addEventListener('mouseover', () => {
+            mouseOver = true;
+            clearNextTimeout();
+          });
+          slider.container.addEventListener('mouseout', () => {
+            mouseOver = false;
+            nextTimeout();
+          });
+          nextTimeout();
+        });
+        slider.on('dragStarted', clearNextTimeout);
+        slider.on('animationEnded', nextTimeout);
+        slider.on('updated', nextTimeout);
+      },
+    ],
   );
 
+  const totalSlides = products.length + 1; // +1 for video
+
   return (
-    <section
-      ref={sectionRef}
-      className="relative flex items-center h-screen w-full overflow-hidden bg-white"
-    >
-      <div className="flex h-[80%] sm:h-full w-full flex-col">
-        <LuxuryTitle className="mb-6 mt-4 px-6 shrink-0">
-          پیشنهاد استایل
-        </LuxuryTitle>
+    <section className="relative flex h-screen w-full flex-col overflow-hidden bg-white">
+      <LuxuryTitle className="mb-6 mt-4 shrink-0 px-6">
+        پیشنهاد استایل
+      </LuxuryTitle>
 
-        {/* viewport */}
-        <div className="min-h-0 flex-1 overflow-hidden">
-          {/* track */}
-          <div
-            ref={trackRef}
-            dir="rtl"
-            className="flex h-full w-max flex-row gap-0.5"
-          >
-            {/* ویدیو - راست‌ترین آیتم */}
-            <div className="h-full w-[98vw] shrink-0 sm:w-[40vw] lg:w-[28.57vw]">
-              <HlsVideo
-                src="/home/style/master.m3u8"
-                poster="/home/style/poster.webp"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            {/* محصولات - سمت چپ ویدیو */}
-            {products.map(product => {
-              const colorImage = product.product.colorImages?.find(
-                img => img?.color?.id === product?.colorId,
-              );
-
-              const image = colorImage?.url || '';
-
-              return (
-                <Link
-                  href={`/product/${product.product.slug}`}
-                  key={product.id}
-                  className="flex h-full w-[80vw] shrink-0 flex-col sm:w-[40vw] lg:w-[28.57vw]"
-                >
-                  <div className="relative min-h-0 flex-1">
-                    <Image
-                      src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
-                      fill
-                      alt={product.product.title}
-                      className="object-cover"
-                      sizes="(min-width: 1024px) 28.57vw, (min-width: 640px) 40vw, 80vw"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="w-full shrink-0 bg-primary px-4 py-2 text-sm text-center items-center text-white flex flex-col">
-                    <span>{product.enTitle.toUpperCase()}</span>
-                    <span>{product.faTitle}</span>
-                  </div>
-                </Link>
-              );
-            })}
+      <div className="relative min-h-0 flex-1 group">
+        {/* Slider */}
+        <div ref={sliderRef} className="keen-slider h-full" dir="rtl">
+          {/* ویدیو - اولین اسلاید */}
+          <div className="keen-slider__slide h-full! min-w-[90vw]! sm:min-w-[45vw]! lg:min-w-[32vw]!">
+            <HlsVideo
+              src="/home/style/master.m3u8"
+              poster="/home/style/poster.webp"
+              className="h-full w-full object-cover"
+            />
           </div>
+
+          {/* محصولات */}
+          {products.map(product => {
+            const colorImage = product.product.colorImages?.find(
+              img => img?.color?.id === product?.colorId,
+            );
+
+            const image = colorImage?.url || '';
+
+            return (
+              <Link
+                href={`/product/${product.product.slug}`}
+                key={product.id}
+                className="keen-slider__slide h-full! min-w-[80vw]! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+              >
+                <div className="relative min-h-0 flex-1">
+                  <Image
+                    src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
+                    fill
+                    alt={product.product.title}
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 32vw, (min-width: 640px) 45vw, 80vw"
+                    loading="lazy"
+                  />
+                </div>
+
+                <div className="w-full shrink-0 bg-primary px-4 py-2 text-sm text-center items-center text-white flex flex-col">
+                  <span>{product.enTitle.toUpperCase()}</span>
+                  <span>{product.faTitle}</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
+
+        {/* کنترل‌ها */}
+        {loaded && totalSlides > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => instanceRef.current?.prev()}
+              className="absolute left-5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white"
+              aria-label="اسلاید قبلی"
+            >
+              <ChevronLeft className="size-6" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => instanceRef.current?.next()}
+              className="absolute right-5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white"
+              aria-label="اسلاید بعدی"
+            >
+              <ChevronRight className="size-6" />
+            </button>
+          </>
+        )}
+
+        {/* Dots */}
+        {loaded && totalSlides > 1 && (
+          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+            {Array.from({ length: totalSlides }).map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => instanceRef.current?.moveToIdx(idx)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  currentSlide === idx
+                    ? 'w-6 bg-primary'
+                    : 'w-2 bg-primary/40 hover:bg-primary/70'
+                }`}
+                aria-label={`رفتن به اسلاید ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
