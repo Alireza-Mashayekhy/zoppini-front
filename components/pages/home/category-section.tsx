@@ -38,13 +38,13 @@ export default function CategoriesSection({
         const firstSection = firstSectionRef.current!;
         const secondSection = secondSectionRef.current!;
 
-        const firstSectionHeight = firstSection.offsetHeight;
+        const getStart = () => `+=${firstSection.offsetHeight} bottom`;
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: wrapperRef.current,
 
-            start: `+=${firstSectionHeight} bottom`,
+            start: getStart,
             end: '+=1600',
 
             scrub: 1,

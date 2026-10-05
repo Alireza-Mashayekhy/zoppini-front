@@ -8,11 +8,14 @@ import { useState } from 'react';
 
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
+import { useSliderResize } from '@/hooks/use-slider-resize';
 import { FeaturedProductResponse } from '@/services/features/products/type';
 
 interface NewInProps {
   products: FeaturedProductResponse[];
 }
+
+const SLIDE_SPACING = 16;
 
 export default function NewIn({ products }: NewInProps) {
   const [loaded, setLoaded] = useState(false);
@@ -24,8 +27,17 @@ export default function NewIn({ products }: NewInProps) {
       rtl: true,
 
       slides: {
-        perView: 'auto',
-        spacing: 16,
+        perView: 2,
+        spacing: SLIDE_SPACING,
+      },
+
+      breakpoints: {
+        '(min-width: 640px)': {
+          slides: { perView: 3, spacing: SLIDE_SPACING },
+        },
+        '(min-width: 1024px)': {
+          slides: { perView: 4, spacing: SLIDE_SPACING },
+        },
       },
 
       created() {
@@ -64,6 +76,8 @@ export default function NewIn({ products }: NewInProps) {
     ],
   );
 
+  const resizeRef = useSliderResize(sliderRef, instanceRef);
+
   return (
     <section className="relative flex h-full w-full flex-col overflow-hidden bg-white">
       {/* Title */}
@@ -74,7 +88,7 @@ export default function NewIn({ products }: NewInProps) {
       </div>
 
       {/* Slider */}
-      <div ref={sliderRef} className="keen-slider group min-h-0 flex-1">
+      <div ref={resizeRef} className="keen-slider group min-h-0 flex-1">
         {products.map(product => {
           const colorImage = product.product.colorImages?.find(
             image => image?.color?.id === product?.colorId,
@@ -91,7 +105,7 @@ export default function NewIn({ products }: NewInProps) {
           return (
             <div
               key={product.id}
-              className="keen-slider__slide h-full! w-[calc(50%-8px)]! shrink-0 sm:w-[calc(33.333%-11px)]! lg:w-[calc(25%-12px)]!"
+              className="keen-slider__slide h-full! w-[calc(50%-8px)] shrink-0 sm:w-[calc(33.333%-10.67px)] lg:w-[calc(25%-12px)]"
             >
               <ProductCard
                 slider

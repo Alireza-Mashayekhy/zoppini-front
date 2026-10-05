@@ -38,7 +38,7 @@ export default function SuggestedStyle({
 
           start: 'top 0px',
 
-          end: () => `+=${getScrollDistance()}`,
+          end: () => `+=${Math.max(1, getScrollDistance())}`,
 
           scrub: 1,
 

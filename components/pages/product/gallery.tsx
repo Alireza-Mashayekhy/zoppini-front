@@ -72,6 +72,7 @@ export default function ProductGallery({
 }: ProductGalleryProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndexRef = useRef(0);
 
   const images = colorImages;
   const displayImages =
@@ -85,6 +86,7 @@ export default function ProductGallery({
     const handleScroll = () => {
       const { scrollTop, clientHeight } = container;
       const index = Math.round(scrollTop / clientHeight);
+      currentIndexRef.current = index;
       setCurrentIndex(index);
     };
 
@@ -93,6 +95,22 @@ export default function ProductGallery({
 
     return () => container.removeEventListener('scroll', handleScroll);
   }, [displayImages.length]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => {
+      const top = currentIndexRef.current * container.clientHeight;
+      if (Math.abs(container.scrollTop - top) > 1) {
+        container.scrollTop = top;
+      }
+    });
+
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, []);
 
   const scrollTo = (index: number) => {
     if (scrollRef.current) {
