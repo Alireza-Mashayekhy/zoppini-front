@@ -86,7 +86,7 @@ export default async function ProductsCategoryPage({
   // ۲. ساخت پارامترهای query برای دریافت محصولات
   const queryParams = {
     page: search.page ? Number(search.page) : 1,
-    limit: search.limit ? Number(search.limit) : 10,
+    limit: search.limit ? Number(search.limit) : 24,
     search: search.search || '',
     sort: search.sort || '',
     categoryIds: category?.data ? [category?.data.id] : [],
