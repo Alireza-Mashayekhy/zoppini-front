@@ -13,11 +13,8 @@ export function useHorizontalScroll(
   trackRef: RefObject<HTMLDivElement | null>,
   onActiveIndexChange?: (index: number | null) => void,
 ) {
-  const tweenRef = useRef<gsap.core.Tween | null>(null);
-  const triggerRef = useRef<ScrollTrigger | null>(null);
   const cardTargetXRef = useRef<number[]>([]);
 
-  // محاسبه موقعیت x مورد نیاز برای مرکزیت هر کارت
   const calculateCardTargets = useCallback(() => {
     const container = containerRef.current;
     const track = trackRef.current;
@@ -28,26 +25,24 @@ export function useHorizontalScroll(
 
     const containerRect = container.getBoundingClientRect();
     const containerCenterRelative = containerRect.width / 2;
-    const cardCentersRelative: number[] = [];
+
+    const currentX = Number(gsap.getProperty(track, 'x')) || 0;
+
+    const targetXForEach: number[] = [];
 
     cards.forEach(card => {
       const cardRect = card.getBoundingClientRect();
-      const cardCenterRelative =
-        cardRect.left + cardRect.width / 2 - containerRect.left;
-      cardCentersRelative.push(cardCenterRelative);
+      const cardCenter =
+        cardRect.left + cardRect.width / 2 - containerRect.left - currentX;
+      targetXForEach.push(containerCenterRelative - cardCenter);
     });
 
-    // x مورد نیاز برای انتقال هر کارت به مرکز = containerCenterRelative - cardCenterRelative
-    const targetXForEach = cardCentersRelative.map(
-      center => containerCenterRelative - center,
-    );
     const startX = targetXForEach[0];
     const endX = targetXForEach[targetXForEach.length - 1];
 
     return { startX, endX, targetXForEach };
   }, [containerRef, trackRef]);
 
-  // به‌روزرسانی ایندکس بر اساس مقدار x فعلی track
   const updateActiveIndexFromX = useCallback(
     (currentX: number) => {
       if (!onActiveIndexChange) return;
@@ -68,76 +63,52 @@ export function useHorizontalScroll(
     [onActiveIndexChange],
   );
 
-  // راه‌اندازی اسکرول
-  const setupScroll = useCallback(() => {
+  useGSAP(() => {
     const container = containerRef.current;
     const track = trackRef.current;
     if (!container || !track) return;
 
-    const result = calculateCardTargets();
-    if (!result) return;
+    const targets = calculateCardTargets();
+    if (!targets) return;
 
-    const { startX, endX, targetXForEach } = result;
-    cardTargetXRef.current = targetXForEach;
-    const scrollDistance = Math.abs(endX - startX);
+    cardTargetXRef.current = targets.targetXForEach;
 
-    // پاکسازی قبلی
-    if (tweenRef.current) {
-      tweenRef.current.kill();
-      tweenRef.current = null;
-    }
-    if (triggerRef.current) {
-      triggerRef.current.kill();
-      triggerRef.current = null;
-    }
+    const getStartX = () => calculateCardTargets()?.startX ?? 0;
+    const getEndX = () => calculateCardTargets()?.endX ?? 0;
+    const getScrollDistance = () => Math.abs(getEndX() - getStartX()) || 1;
 
-    // موقعیت اولیه
-    gsap.set(track, { x: startX });
-    // خواندن مقدار واقعی اولیه (به دلیل rounded ممکن است)
-    const initialX = parseFloat(gsap.getProperty(track, 'x') as string);
-    updateActiveIndexFromX(initialX);
-
-    // ساخت تویین
     const tween = gsap.fromTo(
       track,
-      { x: startX },
+      { x: getStartX },
       {
-        x: endX,
+        x: getEndX,
         ease: 'none',
         scrollTrigger: {
           trigger: container,
           start: 'top top',
-          end: () => `+=${scrollDistance}`,
+          end: () => `+=${getScrollDistance()}`,
           scrub: 1,
           pin: true,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
+          onRefresh: () => {
+            const next = calculateCardTargets();
+            cardTargetXRef.current = next?.targetXForEach ?? [];
+          },
           onUpdate: () => {
             // دریافت مقدار فعلی x از track
-            const currentX = parseFloat(gsap.getProperty(track, 'x') as string);
+            const currentX = Number(gsap.getProperty(track, 'x')) || 0;
             updateActiveIndexFromX(currentX);
           },
         },
       },
     );
 
-    tweenRef.current = tween;
-    triggerRef.current = tween.scrollTrigger as ScrollTrigger;
-    ScrollTrigger.refresh();
-  }, [containerRef, trackRef, calculateCardTargets, updateActiveIndexFromX]);
-
-  useGSAP(() => {
-    setupScroll();
-
-    const handleResize = () => {
-      setupScroll();
-    };
-    window.addEventListener('resize', handleResize);
+    updateActiveIndexFromX(getStartX());
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      if (tweenRef.current) tweenRef.current.kill();
-      if (triggerRef.current) triggerRef.current.kill();
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      tween.scrollTrigger?.kill();
+      tween.kill();
     };
-  }, [setupScroll]);
+  }, [containerRef, trackRef, calculateCardTargets, updateActiveIndexFromX]);
 }

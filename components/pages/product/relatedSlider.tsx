@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
+import { useSliderResize } from '@/hooks/use-slider-resize';
 import { ProductsResponse } from '@/services/features/products/type';
 
 interface RelatedSliderProps {
@@ -47,6 +48,13 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
     },
   });
 
+  const resizeRef = useSliderResize(sliderRef, instanceRef, {
+    onResized: slider => {
+      setCurrentSlide(slider.track.details.rel);
+      setSlidesCount(slider.track.details.slides.length);
+    },
+  });
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
@@ -77,7 +85,7 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
       <LuxuryTitle className="mb-4 px-4">{label}</LuxuryTitle>
 
       <div className="relative group">
-        <div ref={sliderRef} className="keen-slider">
+        <div ref={resizeRef} className="keen-slider">
           {products?.map(product => (
             <div
               key={product.id}

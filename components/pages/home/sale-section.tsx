@@ -8,6 +8,9 @@ import { useState } from 'react';
 
 import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
+import { useSliderResize } from '@/hooks/use-slider-resize';
+
+const resizeRef = useSliderResize(sliderRef, instanceRef);
 
 export default function SaleSection() {
   const [loaded, setLoaded] = useState(false);
@@ -35,7 +38,7 @@ export default function SaleSection() {
   return (
     <div>
       <LuxuryTitle className="p-10">فروش ویژه</LuxuryTitle>
-      <div ref={sliderRef} className="keen-slider group">
+      <div ref={resizeRef} className="keen-slider group">
         {[1, 2, 3, 4, 5].map(product => (
           <div key={product} className="keen-slider__slide number-slide1">
             <ProductCard

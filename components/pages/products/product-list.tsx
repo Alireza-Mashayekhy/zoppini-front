@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
@@ -41,6 +42,22 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.API_URL ||
   'http://localhost:3000/api/';
+
+function ProductCardSkeleton() {
+  return (
+    <div className="flex h-full min-h-0 flex-col" aria-hidden="true">
+      {/* تصویر - نسبت 9/16 مثل ProductCard */}
+      <Skeleton className="relative aspect-9/16 w-full rounded-none" />
+      {/* اطلاعات محصول */}
+      <div className="flex flex-col sm:flex-row shrink-0 items-center justify-between gap-1 sm:gap-3 px-2 pb-12 pt-3 sm:px-5">
+        <Skeleton className="h-3 sm:h-4 w-2/3 self-start rounded" />
+        <div className="flex self-end flex-col items-end gap-1">
+          <Skeleton className="h-3 sm:h-4 w-16 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Dot({
   col,
@@ -114,7 +131,7 @@ export default function ProductList({
       const nextPage = page + 1;
       const params = {
         page: nextPage,
-        limit: initialParams.limit || 10,
+        limit: initialParams.limit || 24,
         search: initialParams.search || '',
         sort,
         categoryIds: initialParams.categoryIds,
@@ -156,7 +173,16 @@ export default function ProductList({
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, sort, colorIds, sizeIds, initialParams]);
+  }, [
+    page,
+    loading,
+    hasMore,
+    sort,
+    colorIds,
+    sizeIds,
+    initialParams,
+    discounted,
+  ]);
 
   // تنظیم Intersection Observer
   useEffect(() => {
@@ -169,7 +195,11 @@ export default function ProductList({
           loadMore();
         }
       },
-      { threshold: 0.1 },
+      {
+        threshold: 0,
+        // لود زودتر از رسیدن کاربر به انتها (۶۰۰ پیکسل مانده به پایین viewport)
+        rootMargin: '0px 0px 1000px 0px',
+      },
     );
 
     observer.observe(currentLoader);
@@ -180,7 +210,7 @@ export default function ProductList({
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(initialData.data || []);
-    setPage(1);
+    setPage(initialParams.page || 1);
     setHasMore(
       initialData.pagination
         ? initialData.pagination.page < initialData.pagination.totalPages
@@ -225,6 +255,13 @@ export default function ProductList({
     initialParams.limit,
   ]);
 
+  const gridClass =
+    rows === 3
+      ? 'grid-cols-2 sm:grid-cols-3'
+      : rows === 4
+        ? 'grid-cols-2 sm:grid-cols-4'
+        : 'grid-cols-2 sm:grid-cols-6';
+
   return (
     <div className="flex flex-col">
       {/* نوار بالایی */}
@@ -234,7 +271,6 @@ export default function ProductList({
           isScrollingDown ? 'top-0' : 'top-[52px]',
         )}
       >
-        {' '}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -307,40 +343,31 @@ export default function ProductList({
 
       {/* لیست محصولات */}
       <main className="flex-1">
-        {items.length === 0 ? (
+        {items.length === 0 && !loading ? (
           <div className="text-center py-12 text-gray-500">محصولی یافت نشد</div>
         ) : (
-          <div
-            className={`grid gap-1 ${
-              rows === 3
-                ? 'grid-cols-2 sm:grid-cols-3'
-                : rows === 4
-                  ? 'grid-cols-2 sm:grid-cols-4'
-                  : 'grid-cols-2 sm:grid-cols-6'
-            }`}
-          >
-            {' '}
+          <div className={`grid gap-1 ${gridClass}`}>
             {items.map(product => (
               <ProductCard
                 key={product.id}
                 image={product.image}
                 title={product.title}
-                price={product.variants[0]?.price || 0}
+                price={product.variants?.[0]?.price || 0}
                 slug={product.slug}
                 discount={product?.discount}
               />
             ))}
+
+            {loading &&
+              Array.from({ length: initialParams.limit || 10 }).map(
+                (_, idx) => <ProductCardSkeleton key={`skeleton-${idx}`} />,
+              )}
           </div>
         )}
 
-        {/* المنت observer */}
-        <div ref={loaderRef} className="h-10 flex justify-center items-center">
-          {loading && (
-            <span className="text-sm text-gray-500">در حال بارگذاری...</span>
-          )}
-        </div>
+        <div ref={loaderRef} aria-hidden="true" className="h-px" />
 
-        {hasMore && (
+        {!loading && hasMore && (
           <div className="mt-10 flex justify-center">
             <Link href={`?page=${page + 1}`} className="text-sm underline">
               محصولات بیشتر

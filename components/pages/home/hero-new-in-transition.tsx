@@ -33,13 +33,15 @@ export default function HeroNewInTransition({
 
       const mm = gsap.matchMedia();
 
+      const PIN_SCROLL_DISTANCE = 1600;
+
       // فقط دسکتاپ
       mm.add('(min-width: 768px)', () => {
         const timeline = gsap.timeline({
           scrollTrigger: {
             trigger: wrapperRef.current,
             start: 'top top',
-            end: '+=1600',
+            end: () => `+=${PIN_SCROLL_DISTANCE}`,
             scrub: 1,
             pin: true,
             anticipatePin: 1,

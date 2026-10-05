@@ -32,25 +32,33 @@ export default function EndVideo() {
   }, []);
 
   useGSAP(() => {
-    if (!sectionRef.current) return;
+    const section = sectionRef.current;
+    if (!section) return;
 
     const mm = gsap.matchMedia();
 
     mm.add('(min-width: 768px)', () => {
-      gsap.to(sectionRef.current, {
-        ease: 'none',
+      const pinDuration = 500;
+
+      const timeline = gsap.timeline({
         scrollTrigger: {
-          trigger: sectionRef.current,
+          trigger: section,
           start: 'top 52px',
-          end: '+=500',
+          end: () => `+=${pinDuration}`,
           scrub: 0.5,
           pin: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
         },
       });
+
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+      };
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
       mm.revert();
     };
   }, []);
@@ -67,9 +75,7 @@ export default function EndVideo() {
             isMobile ? '/home/mobile_end/master.m3u8' : '/home/end/master.m3u8'
           }
           poster={
-            isMobile
-              ? '/home/mobile_end/poster.webp'
-              : '/home/end/poster.webp'
+            isMobile ? '/home/mobile_end/poster.webp' : '/home/end/poster.webp'
           }
           preload="metadata"
           className="w-full h-full object-cover"

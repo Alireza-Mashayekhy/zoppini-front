@@ -1,5 +1,6 @@
 'use client';
 import { SearchIcon, X } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -19,6 +20,8 @@ export default function Search() {
   const debouncedQuery = useDebounce(query, 300); // 300ms تأخیر
   const pathname = usePathname();
 
+  const trimmedQuery = debouncedQuery.trim();
+
   const { data, isLoading } = useProducsList(
     {
       search: debouncedQuery,
@@ -26,8 +29,12 @@ export default function Search() {
       page: 1,
       limit: 20,
     },
-    { enabled: isSearchOpen && debouncedQuery.trim().length > 0 },
+    { enabled: isSearchOpen && trimmedQuery.length > 0 },
   );
+
+  const results = data?.data ?? [];
+  const hasResults = results.length > 0;
+  const showNoResults = !isLoading && trimmedQuery.length > 0 && !hasResults;
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
@@ -136,7 +143,7 @@ export default function Search() {
             <X className="w-6 h-6 text-gray-600" />
           </button>
 
-          <div className="flex flex-col items-center w-full">
+          <div className="flex flex-col items-center w-full min-h-0">
             <div className="relative w-full max-w-2xl">
               <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 size-5 pointer-events-none" />
               <input
@@ -154,10 +161,10 @@ export default function Search() {
             <div className="mt-6 max-h-[70vh] overflow-y-auto w-full">
               {isLoading ? (
                 <div className="text-center text-gray-400">در حال جستجو...</div>
-              ) : data?.data && data?.data.length > 0 ? (
-                query ? (
-                  <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                    {data?.data.map(product => (
+              ) : hasResults ? (
+                <div className="flex flex-col items-center gap-6">
+                  <div className="grid gap-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-5 w-full">
+                    {results.map(product => (
                       <ProductCard
                         key={product.id}
                         image={product.image}
@@ -167,12 +174,24 @@ export default function Search() {
                       />
                     ))}
                   </div>
-                ) : (
-                  ''
-                )
-              ) : query.trim() && !isLoading ? (
-                <div className="text-center text-gray-400">
-                  نتیجه‌ای یافت نشد
+                  <Link
+                    href={`/products?search=${encodeURIComponent(trimmedQuery)}`}
+                    className="text-sm text-gray-600 underline underline-offset-4 transition-colors hover:text-primary"
+                  >
+                    مشاهده همه نتایج «{trimmedQuery}»
+                  </Link>
+                </div>
+              ) : showNoResults ? (
+                <div className="flex flex-col items-center gap-8 pb-10">
+                  <p className="text-center text-gray-500">
+                    نتیجه‌ای برای «{trimmedQuery}» پیدا نشد
+                  </p>
+                  <Link
+                    href="/products"
+                    className="text-sm text-gray-600 underline underline-offset-4 transition-colors hover:text-primary"
+                  >
+                    مشاهده همه محصولات
+                  </Link>
                 </div>
               ) : null}
             </div>

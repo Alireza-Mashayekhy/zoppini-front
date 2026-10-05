@@ -8,6 +8,7 @@ import {
 import dynamic from 'next/dynamic';
 import NextTopLoader from 'nextjs-toploader';
 
+import ScrollTriggerLayoutGuard from '@/components/shared/scroll-trigger-layout-guard';
 import { DirectionProvider } from '@/components/ui/direction';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -53,6 +54,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       <NextTopLoader color="#1E2939" showSpinner={false} />
+      <ScrollTriggerLayoutGuard />
       <PWAModal />
       <Toaster theme="light" richColors position="top-right" />
 
