@@ -24,7 +24,6 @@ import {
   getStyleProducts,
   productsList,
   rahkaranProductsList,
-  searchSuggestions,
   siezList,
   syncProduct,
   syncProducts,
@@ -52,20 +51,6 @@ export const useSizeList = () => {
   return useQuery({
     queryKey: ['sizes'],
     queryFn: () => siezList(),
-  });
-};
-
-export const useSearchSuggestions = (
-  query: { search: string; limit?: number },
-  options?: { enabled?: boolean },
-) => {
-  return useQuery({
-    queryKey: ['product-search-suggestions', { ...query }],
-    queryFn: () => searchSuggestions(query),
-    enabled: (options?.enabled ?? true) && query.search.trim().length > 0,
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-    retry: 1,
   });
 };
 

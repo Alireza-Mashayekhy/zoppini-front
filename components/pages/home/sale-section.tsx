@@ -10,8 +10,6 @@ import LuxuryTitle from '@/components/shared/luxury-title';
 import ProductCard from '@/components/shared/product-card';
 import { useSliderResize } from '@/hooks/use-slider-resize';
 
-const resizeRef = useSliderResize(sliderRef, instanceRef);
-
 export default function SaleSection() {
   const [loaded, setLoaded] = useState(false);
 
@@ -34,6 +32,8 @@ export default function SaleSection() {
       setLoaded(true);
     },
   });
+
+  const resizeRef = useSliderResize(sliderRef, instanceRef);
 
   return (
     <div>
