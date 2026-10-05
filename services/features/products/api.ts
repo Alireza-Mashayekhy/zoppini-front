@@ -12,6 +12,7 @@ import {
   FeaturedProductResponse,
   ProductsResponse,
   RahkaranProductsResponse,
+  SearchSuggestionsResponse,
   SizeResponse,
 } from './type';
 
@@ -38,6 +39,20 @@ export async function productsList(query: {
 }) {
   const { data } = await api.get<ApiListResponse<ProductsResponse>>(
     endpoints.products.list,
+    {
+      params: query,
+    },
+  );
+
+  return data;
+}
+
+export async function searchSuggestions(query: {
+  search: string;
+  limit?: number;
+}) {
+  const { data } = await api.get<ApiSingleResponse<SearchSuggestionsResponse>>(
+    endpoints.products.searchSuggestions,
     {
       params: query,
     },

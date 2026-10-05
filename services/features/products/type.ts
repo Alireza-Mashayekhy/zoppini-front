@@ -197,3 +197,10 @@ export interface InitialProductData {
   colorImages: ColorImageResponse[];
   sameColorProducts: ProductsResponse[];
 }
+
+export interface SearchSuggestionsResponse {
+  term: string;
+  related: ProductsResponse[];
+  popular: ProductsResponse[];
+  categories: CategoriesResponse[];
+}
