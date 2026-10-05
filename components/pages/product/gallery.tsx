@@ -110,36 +110,33 @@ export default function ProductGallery({
     const container = scrollRef.current;
     if (!container) return;
 
+    let rafId: number | null = null;
+
     const handleScroll = () => {
-      const { scrollTop, clientHeight, scrollHeight } = container;
-      let index = Math.round(scrollTop / clientHeight);
-      // جلوگیری از عبور از محدوده
-      index = Math.max(0, Math.min(index, displayImages.length - 1));
-      setCurrentIndex(index);
-      void scrollHeight;
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const { scrollTop, clientHeight } = container;
+        // وقتی وسط اسلاید بعدی رد شد به‌عنوان اسلاید فعلی انتخاب می‌شود
+        const index = Math.floor(
+          (scrollTop + clientHeight * 0.5) / clientHeight,
+        );
+        const clampedIndex = Math.max(
+          0,
+          Math.min(index, displayImages.length - 1),
+        );
+        setCurrentIndex(clampedIndex);
+      });
     };
 
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    return () => container.removeEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, [displayImages.length]);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver(() => {
-      const top = currentIndexRef.current * container.clientHeight;
-      if (Math.abs(container.scrollTop - top) > 1) {
-        container.scrollTop = top;
-      }
-    });
-
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (displayImages.length <= 1) return;

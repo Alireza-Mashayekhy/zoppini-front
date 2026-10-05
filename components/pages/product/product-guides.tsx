@@ -40,51 +40,48 @@ export function SizeTable({
   sizeTable: NonNullable<ProductGuidesForCustomer['sizeTable']>;
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {sizeTable.notes && (
         <p className="text-xs leading-6 text-muted-foreground">
           {sizeTable.notes}
         </p>
       )}
 
-      <div className="w-full overflow-x-auto overscroll-x-contain rounded-lg border">
-        <table className="w-full min-w-max border-collapse text-center text-sm">
-          <thead className="bg-muted/60">
-            <tr>
-              <th className="sticky right-0 z-1 min-w-32 border-l bg-muted/60 p-2.5 text-right font-medium">
-                مشخصه (سانتی‌متر)
-              </th>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {sizeTable.columns.map(column => {
+          return (
+            <div
+              key={column.id}
+              className="overflow-hidden rounded-lg border bg-background"
+            >
+              {/* هدر کارت - نام سایز */}
+              <div className="bg-muted/70 px-3 py-2 text-center font-semibold text-sm">
+                سایز {toPersianNum(column.label)}
+              </div>
 
-              {sizeTable.columns.map(column => (
-                <th key={column.id} className="min-w-20 p-2.5 font-medium">
-                  {toPersianNum(column.label)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {sizeTable.rows.map(row => (
-              <tr key={row.id} className="border-t">
-                <td className="sticky right-0 z-1 border-l bg-background p-2.5 text-right text-muted-foreground">
-                  {row.label}
-                </td>
-
-                {sizeTable.columns.map(column => {
+              {/* لیست مشخصات */}
+              <ul className="divide-y">
+                {sizeTable.rows.map(row => {
                   const value = row.values.find(
                     item => item.columnId === column.id,
                   )?.value;
 
                   return (
-                    <td key={column.id} className="p-2.5 tabular-nums">
-                      {displayValue(value)}
-                    </td>
+                    <li
+                      key={row.id}
+                      className="flex items-center justify-between px-3 py-2 text-xs"
+                    >
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="font-medium tabular-nums">
+                        {displayValue(value)}
+                      </span>
+                    </li>
                   );
                 })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </ul>
+            </div>
+          );
+        })}
       </div>
 
       <p className="text-[11px] text-muted-foreground">
