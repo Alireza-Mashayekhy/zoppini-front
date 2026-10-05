@@ -76,7 +76,7 @@ export default function FAQPage() {
               rel="noopener noreferrer"
               className="font-medium text-[#D4A373] hover:underline"
             >
-              با پشتیبانی زوپینی تماس بگیرید
+              ارتباط با پشتیبانی زوپینی
             </Link>
           </p>
         </div>
