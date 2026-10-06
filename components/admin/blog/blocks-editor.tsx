@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { BlogBlockType } from '@/services/features/blog/types';
 
+import ContentBlockEditor from './content-block-editor';
 import FaqBlockEditor from './faq-block-editor';
 import MediaBlockEditor from './media-block-editor';
 import SliderBlockEditor from './slider-block-editor';
@@ -41,7 +42,7 @@ const BLOCK_ICONS: Record<BlogBlockType, ReactNode> = {
 };
 
 const BLOCK_HINTS: Record<BlogBlockType, string> = {
-  content: 'متن اصلی مقاله — در تب «محتوای مقاله» ویرایش می‌شود.',
+  content: 'یک قسمت از متن مقاله؛ می‌توانید هر تعداد بخش متن بین عکس، FAQ و اسلایدر اضافه کنید.',
   faq: 'سوال‌های متداول مرتبط با همین مقاله؛ در مقاله به شکل آکاردئون نمایش داده می‌شود.',
   slider: 'اسلایدر محصولات انتخابی از محصولات موجود فروشگاه.',
   media: 'عکس و فیلم‌هایی که از سیستم خودتان آپلود می‌کنید.',
@@ -120,7 +121,10 @@ export default function BlogBlocksEditor({
             index={index}
             onUpdate={nextBlock => updateBlock(block.key, nextBlock)}
             onRemove={
-              block.type === 'content' ? undefined : () => removeBlock(block.key)
+              block.type === 'content' &&
+              orderedBlocks.filter(item => item.type === 'content').length === 1
+                ? undefined
+                : () => removeBlock(block.key)
             }
           >
             {block.type === 'faq' && (
@@ -143,10 +147,10 @@ export default function BlogBlocksEditor({
             )}
 
             {block.type === 'content' && (
-              <p className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-xs text-gray-500">
-                <Info className="mt-0.5 size-4 shrink-0" />
-                {BLOCK_HINTS.content}
-              </p>
+              <ContentBlockEditor
+                block={block}
+                onChange={updateBlock.bind(null, block.key)}
+              />
             )}
           </SortableBlockCard>
         ))}
