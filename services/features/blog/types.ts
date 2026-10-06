@@ -32,6 +32,9 @@ export interface BlogSliderProductInfo {
 }
 
 export interface BlogBlockItem {
+  /** محتوای HTML یک بخش متن */
+  html?: string;
+
   /** سوالات متداول */
   question?: string;
   answer?: string;

@@ -90,14 +90,19 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
               />
             );
 
-          case 'content':
+          case 'content': {
+            // بلوک‌های جدید متن خودشان را دارند؛ بلوک قدیمی از post.content می‌خواند.
+            const blockHtml = block.items?.[0]?.html;
+            const prepared = blockHtml ? prepareContent(blockHtml).html : html;
+
             return (
               <div
                 key={key}
                 className={PROSE_CLASSES}
-                dangerouslySetInnerHTML={{ __html: html }}
+                dangerouslySetInnerHTML={{ __html: prepared }}
               />
             );
+          }
 
           case 'faq':
             return (

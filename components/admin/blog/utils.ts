@@ -26,7 +26,7 @@ export const BLOCK_LABELS: Record<BlogBlockType, string> = {
   toc: 'فهرست مطالب',
 };
 
-export const BLOCK_ADDABLE_TYPES: BlogBlockType[] = ['faq', 'slider', 'media', 'toc'];
+export const BLOCK_ADDABLE_TYPES: BlogBlockType[] = ['content', 'media', 'faq', 'slider', 'toc'];
 
 export { mediaUrl } from '@/lib/media';
 
@@ -34,6 +34,8 @@ export function createItem(type: BlogBlockType): BlockItemForm {
   const base = { key: nextKey() };
 
   switch (type) {
+    case 'content':
+      return { ...base, html: '' };
     case 'faq':
       return { ...base, question: '', answer: '' };
     case 'slider':
@@ -51,20 +53,30 @@ export function createBlock(type: BlogBlockType): BlockForm {
     type,
     title: BLOCK_DEFAULT_TITLES[type],
     settings: null,
-    items: [],
+    items: type === 'content' ? [createItem('content')] : [],
   };
 }
 
 /** تبدیل بلوک‌های دریافتی از سرور به فرم قابل ویرایش */
-export function toFormBlocks(blocks: BlogBlock[] = []): BlockForm[] {
+export function toFormBlocks(
+  blocks: BlogBlock[] = [],
+  legacyContent = '',
+): BlockForm[] {
   const formBlocks = blocks.map(block => ({
     ...block,
     key: nextKey(),
     items: (block.items ?? []).map(item => ({ ...item, key: nextKey() })),
   }));
 
-  // مقالات بدون بلوک (قدیمی) همیشه دست‌کم بخش متن اصلی را دارند
-  return ensureContentBlock(formBlocks);
+  const result = ensureContentBlock(formBlocks);
+  const firstContent = result.find(block => block.type === 'content');
+
+  // مهاجرت بی‌دردسر مقالات قدیمی: متن قبلی در اولین بلوک متن قرار می‌گیرد.
+  if (firstContent && !firstContent.items.some(item => item.html?.trim())) {
+    firstContent.items = [{ ...createItem('content'), html: legacyContent }];
+  }
+
+  return result;
 }
 
 /** فرم پیش‌فرض یک مقاله‌ی تازه */
@@ -84,7 +96,8 @@ export function ensureContentBlock(blocks: BlockForm[]): BlockForm[] {
 /** آیتم‌های ناقص که ادمین شروع کرده ولی کامل نکرده حذف می‌شوند */
 function hasMeaningfulItem(item: BlogBlockItem): boolean {
   return Boolean(
-    item.question?.trim() ||
+    item.html?.trim() ||
+      item.question?.trim() ||
       item.answer?.trim() ||
       item.url?.trim() ||
       item.poster?.trim() ||

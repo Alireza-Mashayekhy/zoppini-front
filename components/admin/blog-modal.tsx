@@ -29,7 +29,6 @@ import FormProvider from '../form/form-provider';
 import { RHFImageUploader } from '../form/rhf-image-uploader';
 import RHFInput from '../form/rhf-input';
 import RHFSwitch from '../form/rhf-switch';
-import { RHFTextEditor } from '../form/rhf-text-editor';
 import { Button } from '../ui/button';
 import BlogBlocksEditor from './blog/blocks-editor';
 import { BlockForm } from './blog/types';
@@ -77,6 +76,13 @@ export default function BlogModal({
 
   const setBlocks = (nextBlocks: BlockForm[]) => {
     setBlocksState({ postKey, blocks: nextBlocks });
+    // فیلد قدیمی content برای جستجو، SEO و سازگاری API از مجموع متن‌ها ساخته می‌شود.
+    const combinedContent = nextBlocks
+      .filter(block => block.type === 'content')
+      .map(block => block.items[0]?.html ?? '')
+      .filter(Boolean)
+      .join('\n');
+    setValue('content', combinedContent, { shouldValidate: true });
   };
 
   /**
@@ -84,7 +90,10 @@ export default function BlogModal({
    * فقط وقتی مقاله‌ی باز‌شده با state فعلی فرق دارد.
    */
   if (open && postKey !== 'new' && serverBlocks && blocksState.postKey !== postKey) {
-    setBlocksState({ postKey, blocks: toFormBlocks(serverBlocks) });
+    setBlocksState({
+      postKey,
+      blocks: toFormBlocks(serverBlocks, selectedData?.content ?? ''),
+    });
   }
 
   /** فقط برای رندرهای گذرا (پیش از رسیدن داده‌ی سرور) استفاده می‌شود */
@@ -191,7 +200,7 @@ export default function BlogModal({
           blocks: toPayloadBlocks(blocks),
         });
 
-        setBlocks(toFormBlocks(saved.data ?? []));
+        setBlocks(toFormBlocks(saved.data ?? [], data.content));
       } catch {
         toast.error(
           'مقاله ذخیره شد، ولی بخش‌ها (سوالات متداول/اسلایدر) ذخیره نشدند. دوباره تلاش کنید.',
@@ -248,9 +257,9 @@ export default function BlogModal({
               className="min-h-0 flex-1 flex-col"
             >
               <TabsList className="w-fit shrink-0">
-                <TabsTrigger value="content">محتوای مقاله</TabsTrigger>
+                <TabsTrigger value="content">مشخصات مقاله</TabsTrigger>
                 <TabsTrigger value="blocks">
-                  بخش‌ها و اسلایدرها
+                  ویرایشگر محتوا
                   {blocksCount > 0 && (
                     <span className="rounded bg-primary-100 px-1.5 text-xs text-primary-700">
                       {blocksCount}
@@ -274,14 +283,9 @@ export default function BlogModal({
                       className="col-span-2"
                     />
 
-                    <RHFTextEditor
-                      name="content"
-                      label="محتوا"
-                      setValue={methods.setValue}
-                      error={methods.formState.errors.content}
-                      placeholder="محتوای مقاله را اینجا بنویسید... با دکمه‌ی تصویر/ویدیو می‌توانید فایل را از سیستم خودتان آپلود کنید"
-                      className="col-span-2"
-                    />
+                    <div className="col-span-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+                      متن و تمام اجزای مقاله را در تب «ویرایشگر محتوا» به هر ترتیبی که می‌خواهید بچینید.
+                    </div>
 
                     <RHFImageUploader
                       name="image"
