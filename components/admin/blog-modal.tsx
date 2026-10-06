@@ -67,10 +67,8 @@ export default function BlogModal({
     blocks: BlockForm[];
   }>({ postKey: 'new', blocks: defaultFormBlocks() });
 
-  const { data: blocksResponse, isLoading: isBlocksLoading } = useAdminBlogBlocks(
-    selectedData?.id,
-    open,
-  );
+  const { data: blocksResponse, isLoading: isBlocksLoading } =
+    useAdminBlogBlocks(selectedData?.id, open);
 
   const postKey = selectedData ? String(selectedData.id) : 'new';
   const serverBlocks = blocksResponse?.data;
@@ -83,7 +81,12 @@ export default function BlogModal({
    * همگام‌سازی با داده‌ی سرور (الگوی رسمی «تنظیم state هنگام تغییر ورودی»):
    * فقط وقتی مقاله‌ی باز‌شده با state فعلی فرق دارد.
    */
-  if (open && postKey !== 'new' && serverBlocks && blocksState.postKey !== postKey) {
+  if (
+    open &&
+    postKey !== 'new' &&
+    serverBlocks &&
+    blocksState.postKey !== postKey
+  ) {
     setBlocksState({ postKey, blocks: toFormBlocks(serverBlocks) });
   }
 
@@ -259,7 +262,7 @@ export default function BlogModal({
                 </TabsTrigger>
               </TabsList>
 
-              <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin px-1 py-4">
+              <div className="min-h-0 flex-1 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin px-1 py-4">
                 <TabsContent value="content">
                   <div className="grid grid-cols-2 gap-4">
                     <RHFInput label="عنوان" name="title" isRequired />
@@ -312,9 +315,8 @@ export default function BlogModal({
                     <>
                       <BlogBlocksEditor blocks={blocks} onChange={setBlocks} />
                       <p className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-700">
-                        بخش‌ها همراه همین دکمه‌ی «ثبت مقاله» ذخیره می‌شوند؛
-                        برای مقالات جدید ابتدا مقاله ذخیره و سپس بخش‌ها ثبت
-                        می‌گردد.
+                        بخش‌ها همراه همین دکمه‌ی «ثبت مقاله» ذخیره می‌شوند؛ برای
+                        مقالات جدید ابتدا مقاله ذخیره و سپس بخش‌ها ثبت می‌گردد.
                       </p>
                     </>
                   )}
