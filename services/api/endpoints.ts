@@ -30,6 +30,14 @@ export const endpoints = {
     create: '/admin/blog',
     update: (id: number) => `/admin/blog/${id}`,
     delete: (id: number) => `/admin/blog/${id}`,
+    /** بخش‌های مقاله: سوالات متداول، اسلایدر محصولات، مدیا و فهرست مطالب */
+    blocks: (id: number) => `/admin/blog/${id}/blocks`,
+  },
+
+  files: {
+    image: '/admin/files/image',
+    video: '/admin/files/video',
+    audio: '/admin/files/audio',
   },
 
   products: {
