@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import { ProductsResponse } from '@/services/features/products/type';
@@ -275,8 +276,9 @@ export default function ProductGuidesSheet({
                     {product?.careInstructionsHtml && !guides?.careGuide && (
                       <div>
                         <span
+                          className="zp-prose block text-sm"
                           dangerouslySetInnerHTML={{
-                            __html: product.careInstructionsHtml || '',
+                            __html: resolveHtmlMedia(product.careInstructionsHtml),
                           }}
                         />
                       </div>

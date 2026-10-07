@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import { useMemo } from 'react';
 
-import { prepareContent } from '@/lib/blog-toc';
-import { mediaUrl } from '@/lib/media';
+import { createTocContext, prepareContent, TOC_MAX_LEVEL } from '@/lib/blog-toc';
+import { mediaUrl, resolveHtmlMedia } from '@/lib/media';
 import { BlogBlock, BlogPostResponse } from '@/services/features/blog/types';
 
 import BlogFaq from './blog-faq';
@@ -12,21 +12,25 @@ import BlogMediaGallery from './blog-media-gallery';
 import BlogProductSlider from './blog-product-slider';
 import BlogTableOfContents from './blog-table-of-contents';
 
-const PROSE_CLASSES =
-  'prose prose-neutral max-w-none rtl [&_h1]:scroll-mt-24 [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24 [&_img]:rounded-xl [&_video]:rounded-xl';
-
 /**
  * نمایش مقاله در سایت.
  *
- * ترتیب بخش‌ها همان ترتیبی است که ادمین با درگ‌دراپ در پنل چیده است:
- * متن مقاله، فهرست مطالب، سوالات متداول، اسلایدر محصولات و گالری عکس/فیلم.
+ * متن مقاله و بلوک‌های ویژه (اسلایدر محصولات، گالری، سوالات متداول و
+ * فهرست مطالب) همه در یک HTML نگه‌داری می‌شوند؛ بک‌اند همان HTML را به
+ * بخش‌های مرتب تبدیل می‌کند و اینجا هر بخش با کامپوننت مخصوص خودش رندر
+ * می‌شود. ترتیب همان چیزی است که ادمین در ادیتور چیده است.
  */
-export default function BlogContent({ post }: { post: BlogPostResponse }) {
-  const { html, headings } = useMemo(
-    () => prepareContent(post.content ?? ''),
-    [post.content],
-  );
 
+const PROSE_CLASSES = 'zp-prose max-w-none rtl';
+
+interface Segment {
+  block: BlogBlock;
+  index: number;
+  /** HTML آماده‌ی نمایش (فقط برای بخش‌های متن) */
+  html: string | null;
+}
+
+export default function BlogContent({ post }: { post: BlogPostResponse }) {
   const blocks = useMemo<BlogBlock[]>(() => {
     const list = (post.blocks ?? []).filter(Boolean);
 
@@ -40,6 +44,41 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
 
     return list;
   }, [post.blocks]);
+
+  /**
+   * آماده‌سازی متن هر بخش و ساخت فهرست مطالب در یک پاس.
+   *
+   * id تیترها از یک زمینه‌ی مشترک ساخته می‌شود تا لینک فهرست مطالب دقیقاً
+   * به همان تیتر برسد، حتی وقتی متن مقاله بین بلوک‌ها تکه‌تکه شده باشد.
+   */
+  const { segments, headings } = useMemo(() => {
+    const context = createTocContext();
+
+    // مقاله‌های قدیمی متن بلوک ندارند؛ فقط اولین بلوک content از post.content پر می‌شود
+    const firstContentIndex = blocks.findIndex(block => block.type === 'content');
+
+    const prepared: Segment[] = blocks.map((block, index) => {
+      if (block.type !== 'content') return { block, index, html: null };
+
+      const html = block.items?.[0]?.html?.trim()
+        ? (block.items[0].html as string)
+        : index === firstContentIndex
+          ? (post.content ?? '')
+          : '';
+
+      if (!html.trim()) return { block, index, html: null };
+
+      return {
+        block,
+        index,
+        html: resolveHtmlMedia(
+          prepareContent(html, TOC_MAX_LEVEL, context).html,
+        ),
+      };
+    });
+
+    return { segments: prepared, headings: context.headings };
+  }, [blocks, post.content]);
 
   const faqItems = blocks
     .filter(block => block.type === 'faq')
@@ -77,7 +116,7 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
         )}
       </header>
 
-      {blocks.map((block, index) => {
+      {segments.map(({ block, index, html }) => {
         const key = `${block.type}-${index}`;
 
         switch (block.type) {
@@ -90,19 +129,16 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
               />
             );
 
-          case 'content': {
-            // بلوک‌های جدید متن خودشان را دارند؛ بلوک قدیمی از post.content می‌خواند.
-            const blockHtml = block.items?.[0]?.html;
-            const prepared = blockHtml ? prepareContent(blockHtml).html : html;
+          case 'content':
+            if (!html) return null;
 
             return (
               <div
                 key={key}
                 className={PROSE_CLASSES}
-                dangerouslySetInnerHTML={{ __html: prepared }}
+                dangerouslySetInnerHTML={{ __html: html }}
               />
             );
-          }
 
           case 'faq':
             return (

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
+import { resolveHtmlMedia } from '@/lib/media';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import {
@@ -178,8 +179,10 @@ export default function ProductContent({
           </div>
           {product?.description && (
             <div
-              className="text-sm font-sans!"
-              dangerouslySetInnerHTML={{ __html: product.description || '' }}
+              className="zp-prose text-sm font-sans!"
+              dangerouslySetInnerHTML={{
+                __html: resolveHtmlMedia(product.description),
+              }}
             />
           )}
         </div>
