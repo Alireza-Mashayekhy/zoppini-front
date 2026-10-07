@@ -2,18 +2,27 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import BlogList from '@/components/pages/blog/blog-list';
+import { buildPageMetadata } from '@/lib/seo';
 import { getBlogPosts } from '@/services/features/blog/server.api';
 
 interface BlogPageProps {
   searchParams: Promise<{ page?: string; search?: string }>;
 }
 
-export const metadata: Metadata = {
+const pageMetadata: Metadata = {
   title: 'وبلاگ - زوپینی',
   alternates: {
     canonical: 'https://zoppinico.com/blog',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/blog', pageMetadata);
+}
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const params = await searchParams;

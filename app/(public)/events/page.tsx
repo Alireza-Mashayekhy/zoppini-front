@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from '@/lib/seo';
+
+const pageMetadata: Metadata = {
   title: 'رویداد ها - زوپینی',
   description:
     'ما همچنان در مسیر رشد، خلق تجربه‌های تازه و حضور در رویدادهای الهام‌بخش ادامه می‌دهیم؛',
@@ -24,6 +26,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/events',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/events', pageMetadata);
+}
 
 export default function EventsPage() {
   return (

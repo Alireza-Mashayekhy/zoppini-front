@@ -7,8 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+const pageMetadata: Metadata = {
   title: 'سوالات متداول - زوپینی',
   description:
     'ارسال سفارشات در شهر تهران حداقل طی 3 روز و در شهرستان‌ها حداقل تا 5 روز کاری بعد از ثبت سفارش به دست شما خواهد رسید',
@@ -31,6 +32,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/frequently-asked-questions',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/frequently-asked-questions', pageMetadata);
+}
 
 export default function FAQPage() {
   return (

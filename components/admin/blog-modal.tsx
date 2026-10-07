@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -29,6 +29,7 @@ import FormProvider from '../form/form-provider';
 import { RHFImageUploader } from '../form/rhf-image-uploader';
 import RHFInput from '../form/rhf-input';
 import RHFSwitch from '../form/rhf-switch';
+import RHFTextArea from '../form/rhf-textarea';
 import { Button } from '../ui/button';
 import BlogBlocksEditor from './blog/blocks-editor';
 import { BlockForm } from './blog/types';
@@ -109,6 +110,8 @@ export default function BlogModal({
     title: z.string().nonempty('این فیلد اجباری است'),
     slug: z.string().nonempty('این فیلد اجباری است'),
     excerpt: z.string().optional(),
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
     content: z.string().nonempty('این فیلد اجباری است'),
     image: selectedData
       ? z.any().optional()
@@ -128,6 +131,8 @@ export default function BlogModal({
       title: '',
       slug: '',
       excerpt: '',
+      metaTitle: '',
+      metaDescription: '',
       content: '',
       isPublished: false,
       isFeatured: false,
@@ -138,8 +143,12 @@ export default function BlogModal({
   const {
     reset,
     setValue,
+    control,
     formState: { errors },
   } = methods;
+
+  const metaTitle = useWatch({ control, name: 'metaTitle' }) || '';
+  const metaDescription = useWatch({ control, name: 'metaDescription' }) || '';
 
   useEffect(() => {
     if (selectedData) {
@@ -147,6 +156,8 @@ export default function BlogModal({
         title: selectedData.title,
         slug: selectedData.slug,
         excerpt: selectedData.excerpt || '',
+        metaTitle: selectedData.metaTitle || '',
+        metaDescription: selectedData.metaDescription || '',
         content: selectedData.content,
         isPublished: selectedData.isPublished,
         isFeatured: selectedData.isFeatured,
@@ -156,6 +167,8 @@ export default function BlogModal({
         title: '',
         slug: '',
         excerpt: '',
+        metaTitle: '',
+        metaDescription: '',
         content: '',
         isPublished: false,
         isFeatured: false,
@@ -168,6 +181,8 @@ export default function BlogModal({
     formData.append('title', data.title);
     formData.append('slug', data.slug);
     formData.append('excerpt', data.excerpt || '');
+    formData.append('metaTitle', data.metaTitle || '');
+    formData.append('metaDescription', data.metaDescription || '');
     formData.append('content', data.content);
     formData.append('isPublished', data.isPublished.toString());
     formData.append('isFeatured', data.isFeatured.toString());
@@ -261,6 +276,7 @@ export default function BlogModal({
             >
               <TabsList className="w-fit shrink-0">
                 <TabsTrigger value="content">مشخصات مقاله</TabsTrigger>
+                <TabsTrigger value="seo">سئو</TabsTrigger>
                 <TabsTrigger value="blocks">
                   ویرایشگر محتوا
                   {blocksCount > 0 && (
@@ -307,6 +323,40 @@ export default function BlogModal({
                           : null
                       }
                     />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="seo">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+                      این دو مقدار در عنوان و توضیحات متای صفحه‌ی همین مقاله در
+                      نتایج گوگل استفاده می‌شوند. اگر خالی بمانند، عنوان و
+                      خلاصه‌ی مقاله به‌صورت خودکار استفاده می‌شود.
+                    </div>
+
+                    <div className="col-span-2">
+                      <RHFInput
+                        label="متا تایتل"
+                        name="metaTitle"
+                        placeholder="مثال: کت شلوار مردانه | راهنمای ست کردن - زوپینی"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {metaTitle.length} کاراکتر (پیشنهاد: حداکثر ۶۰ کاراکتر)
+                      </p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <RHFTextArea
+                        label="متا دیسکریپشن"
+                        name="metaDescription"
+                        rows={3}
+                        placeholder="توضیح کوتاه و جذاب درباره‌ی محتوای این مقاله"
+                      />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {metaDescription.length} کاراکتر (پیشنهاد: حداکثر ۱۶۰
+                        کاراکتر)
+                      </p>
+                    </div>
                   </div>
                 </TabsContent>
 

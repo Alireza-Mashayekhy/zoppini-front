@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from '@/lib/seo';
+
+const pageMetadata: Metadata = {
   title: 'درباره ما - زوپینی',
   description:
     'برند زوپینی فعالیت خود را از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه با کیفیت و متفاوت آغاز کرد.طی بیش از دو دهه همواره کوشیده ایم فراتر از یک تولید کننده باشیم ،',
@@ -9,6 +11,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/about-us',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/about-us', pageMetadata);
+}
 
 export default function AboutPage() {
   return (

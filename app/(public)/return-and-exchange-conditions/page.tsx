@@ -2,7 +2,9 @@ import { PackageX, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from '@/lib/seo';
+
+const pageMetadata: Metadata = {
   title: 'شرایط مرجوع و تعویض - زوپینی',
   description:
     ' شرایط تعویض: تعویض كالا تنها یكبار امكان پذیر است لطفا در انتخاب كالا دقت فرمایید.تعویض كالا در صورت استفاده از بن و یا كارت هدیه تنها یك بار امكان پذیر',
@@ -25,6 +27,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/return-and-exchange-conditions',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/return-and-exchange-conditions', pageMetadata);
+}
 
 export default function ReturnPolicyPage() {
   return (

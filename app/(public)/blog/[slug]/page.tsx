@@ -29,17 +29,21 @@ export async function generateMetadata({
       ? data.excerpt.replace(/<[^>]+>/g, '').slice(0, 160)
       : `مطالعه مقاله ${data.title} در وبلاگ زوپینی`;
 
+    // متای ثبت‌شده در پنل بلاگ، بر متن تولیدشده اولویت دارد
+    const metaTitle = data.metaTitle?.trim() || `${data.title} | وبلاگ زوپینی`;
+    const metaDescription = data.metaDescription?.trim() || cleanDescription;
+
     const imageUrl = data.coverImage
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${data.coverImage}`
       : undefined;
 
     return {
-      title: `${data.title} | وبلاگ زوپینی`,
-      description: cleanDescription,
+      title: metaTitle,
+      description: metaDescription,
       keywords: data.title?.split(' ').slice(0, 5).join(', ') || '',
       openGraph: {
-        title: data.title,
-        description: cleanDescription,
+        title: metaTitle,
+        description: metaDescription,
         images: imageUrl ? [{ url: imageUrl }] : [],
         type: 'article',
         siteName: 'زوپینی',
@@ -50,8 +54,8 @@ export async function generateMetadata({
       },
       twitter: {
         card: 'summary_large_image',
-        title: data.title,
-        description: cleanDescription,
+        title: metaTitle,
+        description: metaDescription,
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {

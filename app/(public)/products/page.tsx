@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import { buildPageMetadata } from '@/lib/seo';
 import { getProducts } from '@/services/features/products/server.api';
 
 interface ProductsPageProps {
@@ -16,12 +17,20 @@ interface ProductsPageProps {
   }>;
 }
 
-export const metadata: Metadata = {
+const pageMetadata: Metadata = {
   title: 'همه محصولات - زوپینی',
   description:
     'خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار از زوپینی',
   alternates: { canonical: 'https://zoppinico.com/products' },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/products', pageMetadata);
+}
 
 export default async function ProductsPage({
   searchParams,

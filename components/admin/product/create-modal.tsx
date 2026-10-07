@@ -12,6 +12,7 @@ import RHFMultiSelect from '@/components/form/rhf-multiselect';
 import RHFPriceInput from '@/components/form/rhf-price-input';
 import RHFSelect from '@/components/form/rhf-select'; // <-- اضافه شد
 import { RHFTextEditor } from '@/components/form/rhf-text-editor';
+import RHFTextArea from '@/components/form/rhf-textarea';
 import {
   Dialog,
   DialogContent,
@@ -117,6 +118,8 @@ export default function ProductCreateModal({
             'فقط فرمت‌ webp مجازند',
           ),
     description: z.string().nonempty('این فیلد اجباری است'),
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
     careInstructionsHtml: z.string().nonempty('این فیلد اجباری است'),
     slug: z.string().nonempty('این فیلد اجباری است'),
     productCode: z.string().nonempty('این فیلد اجباری است'),
@@ -131,6 +134,8 @@ export default function ProductCreateModal({
       title: '',
       image: undefined,
       description: '',
+      metaTitle: '',
+      metaDescription: '',
       careInstructionsHtml: '',
       slug: '',
       productCode: '',
@@ -205,6 +210,8 @@ export default function ProductCreateModal({
         title: '',
         image: undefined,
         description: '',
+        metaTitle: '',
+        metaDescription: '',
         careInstructionsHtml: '',
         slug: '',
         productCode: '',
@@ -240,6 +247,8 @@ export default function ProductCreateModal({
         title: selectedData.title || '',
         image: undefined,
         description: selectedData.description || '',
+        metaTitle: '',
+        metaDescription: '',
         careInstructionsHtml: selectedData.careInstructionsHtml || '',
         slug: selectedData.slug || '',
         productCode: String(selectedData.productCode || ''),
@@ -273,6 +282,8 @@ export default function ProductCreateModal({
       title: product.title || '',
       image: undefined,
       description: product.description || '',
+      metaTitle: product.metaTitle || '',
+      metaDescription: product.metaDescription || '',
       careInstructionsHtml: product.careInstructionsHtml || '',
       slug: product.slug || '',
       productCode: String(product.productCode || ''),
@@ -298,6 +309,8 @@ export default function ProductCreateModal({
       const {
         title,
         description,
+        metaTitle,
+        metaDescription,
         careInstructionsHtml,
         slug,
         productCode,
@@ -331,6 +344,8 @@ export default function ProductCreateModal({
       formData.append('title', title);
       formData.append('slug', slug);
       formData.append('description', description || '');
+      formData.append('metaTitle', metaTitle || '');
+      formData.append('metaDescription', metaDescription || '');
       formData.append('careInstructionsHtml', careInstructionsHtml || '');
       formData.append('categoryIds', JSON.stringify(categories.map(Number)));
       formData.append('variants', JSON.stringify(variantsPayload));
@@ -519,6 +534,42 @@ export default function ProductCreateModal({
                   <ProductGuideEditor productId={Number(selectedData.id)} />
                 </div>
               )}
+
+            <div className="col-span-2 mt-4 rounded-lg border p-4">
+              <h3 className="mb-1 text-lg font-semibold">تنظیمات سئو</h3>
+              <p className="mb-4 text-xs text-muted-foreground">
+                این مقادیر در عنوان و توضیحات متای صفحه‌ی همین محصول در نتایج
+                گوگل استفاده می‌شوند. اگر خالی بمانند، نام و توضیحات محصول
+                به‌صورت خودکار استفاده می‌شود.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <RHFInput
+                    label="متا تایتل"
+                    name="metaTitle"
+                    placeholder="مثال: خرید کت شلوار مردانه اسپرت - زوپینی"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {(watch('metaTitle') || '').length} کاراکتر (پیشنهاد: حداکثر
+                    ۶۰ کاراکتر)
+                  </p>
+                </div>
+
+                <div className="col-span-2">
+                  <RHFTextArea
+                    label="متا دیسکریپشن"
+                    name="metaDescription"
+                    rows={3}
+                    placeholder="توضیح کوتاه و جذاب درباره‌ی این محصول"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {(watch('metaDescription') || '').length} کاراکتر (پیشنهاد:
+                    حداکثر ۱۶۰ کاراکتر)
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <RHFImageUploader
               name="image"

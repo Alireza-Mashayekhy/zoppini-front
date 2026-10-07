@@ -2,8 +2,9 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 
 import B2bSaleForm from '@/components/pages/b2b-sale/b2b-sale-form';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+const pageMetadata: Metadata = {
   title: 'فروش سازمانی - زوپینی',
   description:
     'فروش سازمانی پوشاک مردانه به صورت عمده با قیمت همکاری ویژه. ارائه گیفت کارت و شرایط خرید آسان برای سازمان‌ها و شرکت‌ها.',
@@ -25,6 +26,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/b2bsale',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/b2bsale', pageMetadata);
+}
 
 export default function B2bSalePage() {
   return (

@@ -13,6 +13,7 @@ import {
   Palette,
   Percent,
   Ruler,
+  Search,
   Star,
   User,
 } from 'lucide-react';
@@ -63,6 +64,11 @@ export default function AdminSidebar({
         link: '/admin/blog',
         icon: Newspaper,
         name: 'بلاگ',
+      },
+      {
+        link: '/admin/seo',
+        icon: Search,
+        name: 'سئو صفحات',
       },
     );
   }
