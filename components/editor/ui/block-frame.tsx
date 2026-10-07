@@ -12,7 +12,7 @@ import { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { BLOCK_LABELS,EditorBlockKind } from '../lib/types';
+import { BLOCK_LABELS, type EditorBlockKind } from '../lib/types';
 
 /**
  * قاب مشترک بلوک‌های ویژه‌ی ادیتور.

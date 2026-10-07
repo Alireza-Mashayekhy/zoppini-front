@@ -34,6 +34,7 @@ import {
   selectNode,
 } from '../lib/node-actions';
 import { uploadEditorFile } from '../lib/upload';
+import { FrameButton } from './block-frame';
 
 /**
  * قاب مشترک نودهای رسانه (تصویر و ویدیو).
@@ -341,42 +342,6 @@ export function AlignButton({
         active
           ? 'bg-neutral-900 text-white'
           : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800',
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** دکمه‌ی ابزار با امکان کلاس اضافه (برای وضعیت فعال) */
-function FrameButton({
-  children,
-  title,
-  onClick,
-  disabled,
-  tone = 'default',
-  className,
-}: {
-  children: ReactNode;
-  title: string;
-  onClick: () => void;
-  disabled?: boolean;
-  tone?: 'default' | 'danger';
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      aria-label={title}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        'flex size-7 items-center justify-center rounded transition-colors disabled:cursor-not-allowed disabled:opacity-35',
-        tone === 'danger'
-          ? 'text-red-600 hover:bg-red-50'
-          : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800',
-        className,
       )}
     >
       {children}

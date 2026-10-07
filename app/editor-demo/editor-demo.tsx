@@ -22,6 +22,17 @@ import { resolveHtmlMedia } from '@/lib/media';
  * دیتابیس ذخیره می‌شود به‌همراه بلوک‌هایی که بک‌اند از آن بیرون می‌کشد.
  */
 
+/**
+ * تصویر نمونه به‌شکل data URI تا پیش‌نمایش بدون سرور فایل هم کار کند.
+ * در مقاله‌ی واقعی، آدرس فایل آپلودشده به‌صورت نسبی ذخیره می‌شود.
+ */
+const SAMPLE_IMAGE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='420'%3E%3Crect width='800' height='420' fill='%23efe4d6'/%3E%3Crect x='24' y='24' width='752' height='372' fill='none' stroke='%23d4a373' stroke-width='2'/%3E%3Ctext x='400' y='224' font-family='sans-serif' font-size='34' fill='%23b8895a' text-anchor='middle'%3EZOPPINI%3C/text%3E%3C/svg%3E";
+
+/** ویدیوی نمونه‌ی عمومی (کوچک) برای دیدن نود ویدیو */
+const SAMPLE_VIDEO =
+  'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+
 /** نمونه‌ی یک مقاله‌ی کامل برای دیدن همه‌ی امکانات بدون تایپ دستی */
 const SAMPLE_HTML = [
   '<h2>راهنمای انتخاب کت شلوار مردانه</h2>',
@@ -34,6 +45,8 @@ const SAMPLE_HTML = [
   '<h3>۲. رنگ و ست کردن</h3>',
   '<p>سرمه‌ای و طوسی دو رنگ پایه‌ای هستند که با بیشتر پیراهن‌ها ست می‌شوند. اگر اولین کت شلوار خود را می‌خرید، از یکی از این دو شروع کنید.</p>',
   '<ol><li>کت شلوار سرمه‌ای + پیراهن سفید</li><li>کت طوسی + پیراهن آبی روشن</li><li>کت مشکی + پیراهن سفید (رسمی)</li></ol>',
+  `<figure data-zp-image="" class="zp-figure zp-figure--image is-align-center" style="width:70%"><img src="${SAMPLE_IMAGE}" loading="lazy" alt="نمونه تصویر مقاله"><figcaption>تصویر نمونه؛ روی تصویر کلیک کنید تا نوار ابزار اندازه و چینش باز شود.</figcaption></figure>`,
+  `<figure data-zp-video="" class="zp-figure zp-figure--video is-align-center" style="width:60%"><video src="${SAMPLE_VIDEO}" controls preload="metadata"></video><figcaption>ویدیوی نمونه با کنترل پخش</figcaption></figure>`,
   '<hr>',
   '<h3>۳. نمونه‌های موجود در فروشگاه</h3>',
   renderBlockHtml('slider', {
