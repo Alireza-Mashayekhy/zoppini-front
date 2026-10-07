@@ -1,15 +1,36 @@
-import 'nilfam-editor/nilfam-editor.css';
+'use client';
 
-import { NilfamEditor } from 'nilfam-editor';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import ZoppiniEditor from '@/components/editor/zoppini-editor';
 import { cn } from '@/lib/utils';
 
-export function RHFTextEditor({ name, label, placeholder, className }: any) {
+/**
+ * ویرایشگر متن برای فرم‌های react-hook-form.
+ *
+ * همان ادیتور یکپارچه‌ی Tiptap است (بدون وابستگی به پکیج خارجی) و برای
+ * توضیحات محصول، دسته‌بندی و هر فیلد متنی غنی دیگر استفاده می‌شود.
+ */
+export function RHFTextEditor({
+  name,
+  label,
+  placeholder,
+  className,
+  minHeight = 220,
+  disabled = false,
+}: {
+  name: string;
+  label?: string;
+  placeholder?: string;
+  className?: string;
+  minHeight?: number;
+  disabled?: boolean;
+}) {
   const {
     control,
     formState: { errors },
   } = useFormContext();
+
   const error = errors[name];
 
   return (
@@ -19,19 +40,22 @@ export function RHFTextEditor({ name, label, placeholder, className }: any) {
           {label}
         </label>
       )}
+
       <Controller
         name={name}
         control={control}
         render={({ field: { onChange, value } }) => (
-          <NilfamEditor
-            value={value}
+          <ZoppiniEditor
+            id={name}
+            value={typeof value === 'string' ? value : ''}
             onChange={onChange}
-            lang="fa"
-            dark={false}
             placeholder={placeholder}
+            minHeight={minHeight}
+            disabled={disabled}
           />
         )}
       />
+
       {error && (
         <p className="text-sm text-red-600">{error.message as string}</p>
       )}

@@ -351,9 +351,7 @@ export default function CategoriesModal({
             <RHFTextEditor
               name="description"
               label="توضیحات"
-              setValue={methods.setValue}
-              error={methods.formState.errors.description}
-              placeholder="توضیحات محصول را اینجا بنویسید..."
+              placeholder="توضیحات دسته‌بندی را اینجا بنویسید..."
               className="col-span-2"
             />
 
