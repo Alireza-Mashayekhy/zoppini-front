@@ -78,6 +78,10 @@ export interface BlogPostResponse {
   title: string;
   slug: string;
   excerpt: string;
+  /** متا تایتل سئو؛ اگر خالی باشد، عنوان مقاله استفاده می‌شود */
+  metaTitle?: string | null;
+  /** متا دیسکریپشن سئو؛ اگر خالی باشد، خلاصه‌ی مقاله استفاده می‌شود */
+  metaDescription?: string | null;
   content: string;
   coverImage: string;
   isPublished: boolean;
@@ -94,6 +98,10 @@ export interface createBlogPostDto {
   title: string;
   slug: string;
   excerpt: string;
+  /** متا تایتل سئو (اختیاری) */
+  metaTitle?: string;
+  /** متا دیسکریپشن سئو (اختیاری) */
+  metaDescription?: string;
   content: string;
   image?: File;
   isPublished: boolean;

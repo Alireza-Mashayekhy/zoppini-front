@@ -36,17 +36,23 @@ export async function generateMetadata({
       ? productData.description.replace(/<[^>]+>/g, '').slice(0, 160)
       : `خرید ${productData.title} از زوپینی`;
 
+    // متای ثبت‌شده در پنل محصول، بر متن تولیدشده اولویت دارد
+    const metaTitle =
+      productData.metaTitle?.trim() || `${productData.title} - زوپینی`;
+    const metaDescription =
+      productData.metaDescription?.trim() || cleanDescription;
+
     // اولین تصویر محصول (اگر وجود داشته باشد)
     const imageUrl = productData.image
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${productData.image}`
       : undefined;
 
     return {
-      title: `${productData.title} - زوپینی`,
-      description: cleanDescription,
+      title: metaTitle,
+      description: metaDescription,
       openGraph: {
-        title: productData.title,
-        description: cleanDescription,
+        title: metaTitle,
+        description: metaDescription,
         images: imageUrl ? [{ url: imageUrl }] : [],
         type: 'website',
         siteName: 'زوپینی',
@@ -54,8 +60,8 @@ export async function generateMetadata({
       },
       twitter: {
         card: 'summary_large_image',
-        title: productData.title,
-        description: cleanDescription,
+        title: metaTitle,
+        description: metaDescription,
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {

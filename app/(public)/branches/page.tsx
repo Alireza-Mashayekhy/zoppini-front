@@ -2,8 +2,9 @@
 import { Metadata } from 'next';
 
 import BranchesContent from '@/components/pages/branches/branches-content';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+const pageMetadata: Metadata = {
   title: 'شعب - زوپینی',
   description:
     'آدرس دفتر مرکزی : تهران، خیابان فردوسی, خیابان منوچهری, خیابان ارباب جمشیدپلاک 17, واحد 29, طبقه 2،',
@@ -24,6 +25,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/branches',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/branches', pageMetadata);
+}
 
 export default function BranchesPage() {
   return <BranchesContent />;

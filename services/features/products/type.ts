@@ -61,6 +61,10 @@ export interface ProductsResponse {
   slug: string;
   image: string;
   description: string;
+  /** متا تایتل سئو؛ اگر خالی باشد، نام محصول استفاده می‌شود */
+  metaTitle?: string | null;
+  /** متا دیسکریپشن سئو؛ اگر خالی باشد، توضیحات محصول استفاده می‌شود */
+  metaDescription?: string | null;
   discount?: ProductDiscount;
   careInstructionsHtml: string;
   createdAt: string;
@@ -84,6 +88,10 @@ export interface createProductDto {
   productCode: string;
   title: string;
   description: string;
+  /** متا تایتل سئو (اختیاری) */
+  metaTitle?: string;
+  /** متا دیسکریپشن سئو (اختیاری) */
+  metaDescription?: string;
   slug: string;
   careInstructionsHtml: string;
   categories: string[];
@@ -97,6 +105,8 @@ export interface createApiProductDto {
   categoryIds: number[];
   productCode: string;
   description: string;
+  metaTitle?: string;
+  metaDescription?: string;
   title: string;
   slug: string;
   variants: {

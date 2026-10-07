@@ -34,6 +34,18 @@ export const endpoints = {
     blocks: (id: number) => `/admin/blog/${id}/blocks`,
   },
 
+  seo: {
+    /** متای یک صفحه بر اساس مسیر آن (عمومی) */
+    page: '/seo/page',
+    /** لیست همه‌ی صفحات سئو (عمومی) */
+    pages: '/seo/pages',
+
+    adminList: '/admin/seo/pages',
+    create: '/admin/seo/pages',
+    update: (id: number) => `/admin/seo/pages/${id}`,
+    delete: (id: number) => `/admin/seo/pages/${id}`,
+  },
+
   files: {
     image: '/admin/files/image',
     video: '/admin/files/video',

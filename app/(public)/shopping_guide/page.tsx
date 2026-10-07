@@ -3,7 +3,9 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from '@/lib/seo';
+
+const pageMetadata: Metadata = {
   title: 'راهنمای خرید - زوپینی',
   description:
     'ما تلاش می‌کنیم تجربه‌ای مطمئن، ساده و رضایت‌بخش از خرید آنلاین برای شما بسازیم',
@@ -26,6 +28,14 @@ export const metadata: Metadata = {
     canonical: 'https://zoppinico.com/shopping_guide',
   },
 };
+
+/**
+ * متای این صفحه: اگر مدیر سئو در پنل مقداری ثبت کرده باشد، همان مقدار
+ * جایگزین متادیتای پیش‌فرض بالا می‌شود.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata('/shopping_guide', pageMetadata);
+}
 
 export default function GuidePage() {
   return (
