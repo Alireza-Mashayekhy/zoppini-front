@@ -1,0 +1,391 @@
+/**
+ * قالب متن مقاله (zp-prose).
+ *
+ * یک stylesheet مشترک برای دو جا:
+ *   ۱) داخل ادیتور (تا ادمین دقیقاً همان چیزی را ببیند که کاربر می‌بیند)
+ *   ۲) صفحه‌ی عمومی مقاله
+ *
+ * سایت پلاگین typography ندارد، پس همه‌ی قالب تیترها، لیست‌ها، جدول و کد
+ * همین‌جا دستی تعریف شده است.
+ */
+
+.zp-prose {
+  color: #262626;
+  font-size: 1rem;
+  line-height: 2.05;
+  text-align: start;
+  word-wrap: break-word;
+}
+
+.zp-prose > * + * {
+  margin-block-start: 0.9em;
+}
+
+/* ── تیترها ─────────────────────────────────────────────────── */
+
+.zp-prose h1,
+.zp-prose h2,
+.zp-prose h3,
+.zp-prose h4,
+.zp-prose h5,
+.zp-prose h6 {
+  color: #1a1a1a;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-block-start: 1.6em;
+  margin-block-end: 0.5em;
+  scroll-margin-block-start: 6rem;
+}
+
+.zp-prose h1 {
+  font-size: 1.75rem;
+}
+
+.zp-prose h2 {
+  font-size: 1.4rem;
+  padding-block-end: 0.3em;
+  border-block-end: 1px solid #efefef;
+}
+
+.zp-prose h3 {
+  font-size: 1.2rem;
+}
+
+.zp-prose h4 {
+  font-size: 1.075rem;
+}
+
+.zp-prose h5,
+.zp-prose h6 {
+  font-size: 1rem;
+  color: #404040;
+}
+
+.zp-prose h1:first-child,
+.zp-prose h2:first-child,
+.zp-prose h3:first-child,
+.zp-prose h4:first-child {
+  margin-block-start: 0.2em;
+}
+
+/* ── بندها و قالب متن ───────────────────────────────────────── */
+
+.zp-prose p {
+  margin-block: 0;
+}
+
+.zp-prose strong,
+.zp-prose b {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.zp-prose em,
+.zp-prose i {
+  font-style: italic;
+}
+
+.zp-prose u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.zp-prose s,
+.zp-prose strike {
+  text-decoration: line-through;
+  color: #737373;
+}
+
+.zp-prose mark {
+  background-color: #fef08a;
+  color: inherit;
+  padding: 0 0.2em;
+  border-radius: 2px;
+}
+
+.zp-prose sub,
+.zp-prose sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
+.zp-prose a {
+  color: #9a6b3f;
+  text-decoration: underline;
+  text-decoration-color: #d4a373;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.zp-prose a:hover {
+  color: #7c5430;
+  text-decoration-color: currentColor;
+}
+
+/* ── لیست‌ها ────────────────────────────────────────────────── */
+
+.zp-prose ul,
+.zp-prose ol {
+  padding-inline-start: 1.5rem;
+  margin-block: 0;
+}
+
+.zp-prose ul {
+  list-style: disc;
+}
+
+.zp-prose ul ul {
+  list-style: circle;
+}
+
+.zp-prose ol {
+  list-style: decimal;
+}
+
+.zp-prose ol ol {
+  list-style: lower-alpha;
+}
+
+.zp-prose li {
+  margin-block: 0.3em;
+  padding-inline-start: 0.2rem;
+}
+
+.zp-prose li::marker {
+  color: #b8895a;
+}
+
+.zp-prose li > ul,
+.zp-prose li > ol {
+  margin-block: 0.3em;
+}
+
+/* لیست انجام کار */
+.zp-prose ul[data-type='taskList'] {
+  list-style: none;
+  padding-inline-start: 0.25rem;
+}
+
+.zp-prose ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding-inline-start: 0;
+}
+
+.zp-prose ul[data-type='taskList'] li > label {
+  flex: 0 0 auto;
+  margin-block-start: 0.55rem;
+  user-select: none;
+}
+
+.zp-prose ul[data-type='taskList'] li > div {
+  flex: 1 1 auto;
+}
+
+.zp-prose ul[data-type='taskList'] input[type='checkbox'] {
+  inline-size: 1rem;
+  block-size: 1rem;
+  accent-color: #1a1a1a;
+  cursor: pointer;
+}
+
+.zp-prose ul[data-type='taskList'] li[data-checked='true'] > div {
+  color: #a3a3a3;
+  text-decoration: line-through;
+}
+
+/* ── نقل‌قول، کد و جداکننده ─────────────────────────────────── */
+
+.zp-prose blockquote,
+.zp-prose .zp-quote {
+  margin-inline: 0;
+  padding: 0.85rem 1.15rem;
+  border-inline-start: 3px solid #d4a373;
+  background-color: #fbf7f0;
+  color: #4a4a4a;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.zp-prose blockquote p {
+  margin-block: 0.25em;
+}
+
+.zp-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background-color: #f4f4f4;
+  color: #8c1d1d;
+  padding: 0.12em 0.38em;
+  border-radius: 4px;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+.zp-prose pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.85;
+  direction: ltr;
+  text-align: left;
+  background-color: #171717;
+  color: #f5f5f5;
+  padding: 1rem 1.15rem;
+  border-radius: 0.6rem;
+  overflow-x: auto;
+  margin-inline: 0;
+}
+
+.zp-prose pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.zp-prose hr,
+.zp-prose .zp-hr {
+  border: 0;
+  border-block-start: 1px solid #e5e5e5;
+  margin-block: 1.8em;
+}
+
+/* ── جدول ───────────────────────────────────────────────────── */
+
+.zp-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.zp-prose th,
+.zp-prose td {
+  border: 1px solid #e5e5e5;
+  padding: 0.55rem 0.8rem;
+  text-align: start;
+  vertical-align: top;
+}
+
+.zp-prose th {
+  background-color: #fafafa;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.zp-prose tbody tr:nth-child(even) td {
+  background-color: #fcfcfc;
+}
+
+/* ── رسانه ──────────────────────────────────────────────────── */
+
+.zp-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.zp-prose video {
+  max-width: 100%;
+  border-radius: 0.75rem;
+  background-color: #000;
+}
+
+.zp-prose figure {
+  margin-inline: 0;
+  margin-block: 1.4em;
+}
+
+.zp-prose figure img,
+.zp-prose figure video {
+  width: 100%;
+  display: block;
+}
+
+.zp-prose figcaption {
+  margin-block-start: 0.5rem;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: #737373;
+}
+
+.zp-prose .zp-figure {
+  display: flex;
+  flex-direction: column;
+}
+
+.zp-prose .zp-figure.is-align-center {
+  margin-inline: auto;
+}
+
+.zp-prose .zp-figure.is-align-start {
+  margin-inline-end: auto;
+}
+
+.zp-prose .zp-figure.is-align-end {
+  margin-inline-start: auto;
+}
+
+/* بلوک‌های ویژه در HTML خام چیزی برای نمایش ندارند (با React رندر می‌شوند) */
+.zp-prose .zp-block {
+  display: none;
+}
+
+/* ── رنگ‌بندی کد (lowlight) ─────────────────────────────────── */
+
+.zp-prose pre .hljs-comment,
+.zp-prose pre .hljs-quote {
+  color: #a3a3a3;
+}
+
+.zp-prose pre .hljs-keyword,
+.zp-prose pre .hljs-selector-tag,
+.zp-prose pre .hljs-literal {
+  color: #f0a6ca;
+}
+
+.zp-prose pre .hljs-string,
+.zp-prose pre .hljs-addition {
+  color: #b5e8a0;
+}
+
+.zp-prose pre .hljs-number,
+.zp-prose pre .hljs-attr,
+.zp-prose pre .hljs-attribute {
+  color: #f6c177;
+}
+
+.zp-prose pre .hljs-title,
+.zp-prose pre .hljs-function,
+.zp-prose pre .hljs-name {
+  color: #9ccfd8;
+}
+
+.zp-prose pre .hljs-variable,
+.zp-prose pre .hljs-template-variable,
+.zp-prose pre .hljs-type {
+  color: #c4a7e7;
+}
+
+.zp-prose pre .hljs-deletion,
+.zp-prose pre .hljs-meta {
+  color: #eb6f92;
+}
+
+.zp-prose pre .hljs-built_in,
+.zp-prose pre .hljs-class .hljs-title {
+  color: #ebbcba;
+}
+
+.zp-prose pre .hljs-emphasis {
+  font-style: italic;
+}
+
+.zp-prose pre .hljs-strong {
+  font-weight: 700;
+}

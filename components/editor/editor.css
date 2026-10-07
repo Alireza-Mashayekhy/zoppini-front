@@ -1,0 +1,293 @@
+/**
+ * پوسته‌ی ادیتور زوپینی (Tiptap).
+ *
+ * فقط ظاهر خود ادیتور: کادر، نوار ابزار، ناحیه‌ی نوشتن، نودویوهای بلوک‌ها،
+ * منوی اسلش، نوار شناور و منوی حبابی. قالب خود متن در
+ * styles/zoppini-prose.css است تا پنل و سایت یکسان باشند.
+ */
+
+.zp-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  overflow: hidden;
+}
+
+.zp-editor.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  border: 0;
+}
+
+.zp-editor.is-fullscreen .zp-editor__scroll {
+  max-height: none !important;
+}
+
+/* ── نوار ابزار ─────────────────────────────────────────────── */
+
+.zp-toolbar {
+  flex: 0 0 auto;
+  z-index: 20;
+}
+
+.zp-toolbar button:focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 1px;
+}
+
+/* ── ناحیه‌ی نوشتن ──────────────────────────────────────────── */
+
+.zp-editor__scroll {
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 3rem;
+  scrollbar-width: thin;
+}
+
+.zp-editor__content .ProseMirror {
+  min-height: 100%;
+  outline: none;
+}
+
+.zp-editor__content .ProseMirror:focus {
+  outline: none;
+}
+
+/* متن راهنمای ادیتور خالی */
+.zp-content p.is-editor-empty:first-child::before,
+.zp-content .is-empty[data-placeholder]::before {
+  content: attr(data-placeholder);
+  float: inline-start;
+  block-size: 0;
+  color: #a3a3a3;
+  pointer-events: none;
+  font-weight: 400;
+}
+
+/* فاصله‌ی بندها داخل ادیتور کمی کمتر از صفحه‌ی مقاله است */
+.zp-editor .zp-prose > * + * {
+  margin-block-start: 0.7em;
+}
+
+/* نشانه‌ی نود انتخاب‌شده */
+.zp-editor .ProseMirror-selectednode {
+  outline: none;
+}
+
+.zp-editor .has-focus {
+  outline: none;
+}
+
+/* جدول قابل تغییر اندازه */
+.zp-editor .zp-content table {
+  table-layout: fixed;
+  overflow: hidden;
+  position: relative;
+}
+
+.zp-editor .zp-content .column-resize-handle {
+  position: absolute;
+  inset-block-start: 0;
+  inset-block-end: -2px;
+  inset-inline-end: -2px;
+  inline-size: 4px;
+  background-color: #171717;
+  pointer-events: none;
+}
+
+.zp-editor.resize-cursor {
+  cursor: ew-resize;
+}
+
+.zp-editor .zp-content td,
+.zp-editor .zp-content th {
+  position: relative;
+  min-inline-size: 3rem;
+}
+
+/* ── بلوک‌های ویژه (اسلایدر، گالری، FAQ، فهرست) ─────────────── */
+
+.zp-block-view {
+  margin-block: 0;
+}
+
+.zp-block-view + .zp-block-view .zp-frame {
+  margin-block-start: 0;
+}
+
+.zp-frame [data-drag-handle] {
+  cursor: grab;
+}
+
+.zp-frame [data-drag-handle]:active {
+  cursor: grabbing;
+}
+
+/* ── نود رسانه (تصویر/ویدیو) ────────────────────────────────── */
+
+.zp-figure {
+  position: relative;
+  margin-block: 1em;
+}
+
+.zp-figure__bar {
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 6;
+  display: none;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  max-inline-size: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.zp-figure:hover .zp-figure__bar,
+.zp-figure.is-selected .zp-figure__bar,
+.zp-figure__bar[data-visible] {
+  display: flex;
+}
+
+.zp-figure__stage {
+  position: relative;
+}
+
+.zp-figure__image,
+.zp-figure__video {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border: 1px solid #efefef;
+  border-radius: 0.6rem;
+}
+
+.zp-figure__video {
+  background-color: #000;
+  max-block-size: 60vh;
+}
+
+.zp-figure.is-selected .zp-figure__image,
+.zp-figure.is-selected .zp-figure__video {
+  outline: 2px solid #171717;
+  outline-offset: 2px;
+}
+
+.zp-figure__resizer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -6px;
+  inline-size: 12px;
+  display: none;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.zp-figure.is-selected .zp-figure__resizer {
+  display: block;
+}
+
+.zp-figure__resizer::after {
+  content: '';
+  position: absolute;
+  inset-block: 10px;
+  inset-inline-end: 5px;
+  inline-size: 3px;
+  border-radius: 3px;
+  background-color: #171717;
+}
+
+.zp-figure__settings {
+  display: grid;
+  gap: 0.6rem;
+  margin-block-start: 0.6rem;
+  padding: 0.75rem;
+  background-color: #fafafa;
+  border: 1px solid #efefef;
+  border-radius: 0.5rem;
+}
+
+.zp-figure__caption input::placeholder {
+  color: #d4d4d4;
+}
+
+.zp-figure__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-block-size: 130px;
+  padding: 1rem;
+  border: 1px dashed #d4d4d4;
+  border-radius: 0.6rem;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.zp-figure__empty:hover {
+  border-color: #a3a3a3;
+}
+
+/* ── منوی اسلش ──────────────────────────────────────────────── */
+
+.zp-slash-menu {
+  inline-size: 264px;
+  max-block-size: 320px;
+  overflow-y: auto;
+  padding-block-end: 0.35rem;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.6rem;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.14);
+  scrollbar-width: thin;
+}
+
+/* ── نوار ابزار شناور روی انتخاب ────────────────────────────── */
+
+.zp-bubble {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.6rem;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.14);
+}
+
+/* ── دکمه‌ی شناور «+» کنار بند خالی ─────────────────────────── */
+
+.zp-floating {
+  display: inline-flex;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.zp-floating:hover {
+  opacity: 1;
+}
+
+/* ── چاپ: نوار ابزار و کنترل‌ها دیده نشوند ─────────────────── */
+
+@media print {
+  .zp-toolbar,
+  .zp-figure__bar,
+  .zp-figure__resizer,
+  .zp-slash-menu,
+  .zp-bubble,
+  .zp-floating {
+    display: none !important;
+  }
+}

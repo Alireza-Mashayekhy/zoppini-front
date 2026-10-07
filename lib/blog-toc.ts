@@ -74,16 +74,38 @@ export interface PreparedContent {
 }
 
 /**
+ * زمینه‌ی مشترک ساخت فهرست مطالب.
+ *
+ * متن یک مقاله می‌تواند به چند تکه تقسیم شده باشد (متن قبل و بعد از یک
+ * اسلایدر یا گالری). اگر هر تکه جداگانه id بسازد، تیترهای تکراری پسوند
+ * متفاوتی می‌گیرند و لینک فهرست به تیتر درست نمی‌رسد؛ با این زمینه همه‌ی
+ * تکه‌ها از یک شمارنده و یک مجموعه‌ی id مشترک استفاده می‌کنند.
+ */
+export interface TocContext {
+  used: Set<string>;
+  index: number;
+  headings: TocHeading[];
+}
+
+export function createTocContext(): TocContext {
+  return { used: new Set<string>(), index: 0, headings: [] };
+}
+
+/**
  * آماده‌سازی محتوای مقاله: id تیترها + استخراج فهرست.
  *
  * ترتیب برگشتی headings همان ترتیب ظاهر شدن در متن است.
  */
-export function prepareContent(html: string, maxLevel = TOC_MAX_LEVEL): PreparedContent {
+export function prepareContent(
+  html: string,
+  maxLevel = TOC_MAX_LEVEL,
+  context?: TocContext,
+): PreparedContent {
   if (!html) return { html: '', headings: [] };
 
+  const shared = context ?? createTocContext();
   const headings: TocHeading[] = [];
-  const used = new Set<string>();
-  let index = 0;
+  const used = shared.used;
 
   const preparedHtml = html.replace(
     HEADING_REGEX,
@@ -93,14 +115,16 @@ export function prepareContent(html: string, maxLevel = TOC_MAX_LEVEL): Prepared
 
       const existingId = /id\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1];
 
-      const id = uniqueId(existingId || headingId(text, index), used);
+      const id = uniqueId(existingId || headingId(text, shared.index), used);
 
-      index += 1;
+      shared.index += 1;
 
       if (!text) return match;
 
       if (level <= maxLevel) {
-        headings.push({ id, text, level });
+        const heading = { id, text, level };
+        headings.push(heading);
+        if (context) context.headings.push(heading);
       }
 
       // اگر id از قبل وجود دارد، همان تگ دست‌نخورده می‌ماند

@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import { ProductsResponse } from '@/services/features/products/type';
@@ -34,8 +35,8 @@ const SheetContentBody = memo(
     if (content === 'description') {
       return (
         <div
-          className="text-sm leading-relaxed prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{ __html: product.description || '' }}
+          className="zp-prose text-sm leading-relaxed max-w-none"
+          dangerouslySetInnerHTML={{ __html: resolveHtmlMedia(product.description) }}
         />
       );
     }
@@ -47,9 +48,9 @@ const SheetContentBody = memo(
 
             {product.careInstructionsHtml && (
               <div
-                className="prose prose-sm max-w-none border-t pt-4 text-sm leading-relaxed"
+                className="zp-prose max-w-none border-t pt-4 text-sm leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: product.careInstructionsHtml,
+                  __html: resolveHtmlMedia(product.careInstructionsHtml),
                 }}
               />
             )}
@@ -59,9 +60,9 @@ const SheetContentBody = memo(
 
       return (
         <div
-          className="text-sm leading-relaxed prose prose-sm max-w-none"
+          className="zp-prose text-sm leading-relaxed max-w-none"
           dangerouslySetInnerHTML={{
-            __html: product.careInstructionsHtml || '',
+            __html: resolveHtmlMedia(product.careInstructionsHtml),
           }}
         />
       );
