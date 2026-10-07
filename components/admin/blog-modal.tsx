@@ -1,11 +1,18 @@
+'use client';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import {
+  hasEditorBlocks,
+  legacyBlocksToEditorHtml,
+} from '@/components/editor/lib/block-html';
+import ZoppiniEditor from '@/components/editor/zoppini-editor';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +24,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useAdminBlogBlocks,
   useCreateBlogPost,
-  useSaveBlogBlocks,
   useUpdateBlogPost,
 } from '@/services/features/blog/hooks';
 import {
@@ -31,12 +37,18 @@ import RHFInput from '../form/rhf-input';
 import RHFSwitch from '../form/rhf-switch';
 import RHFTextArea from '../form/rhf-textarea';
 import { Button } from '../ui/button';
-import BlogBlocksEditor from './blog/blocks-editor';
-import { BlockForm } from './blog/types';
-import { defaultFormBlocks, toFormBlocks, toPayloadBlocks } from './blog/utils';
 
 const ALLOWED_COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+/**
+ * فرم ساخت/ویرایش مقاله.
+ *
+ * از این نسخه به بعد، همه‌ی مقاله — متن، عکس، ویدیو، اسلایدر محصولات،
+ * سوالات متداول، فهرست مطالب و گالری — در یک ادیتور واحد نوشته می‌شود و
+ * نتیجه‌ی نهایی یک رشته HTML در فیلد content است. بلوک‌های ویژه به‌شکل
+ * `<div data-zp-block="…" data-zp-config="…">` داخل همان HTML می‌نشینند و
+ * بک‌اند برای نمایش سایت از آن‌ها بلوک می‌سازد.
+ */
 export default function BlogModal({
   selectedData,
   open,
@@ -49,62 +61,10 @@ export default function BlogModal({
   const queryClient = useQueryClient();
   const createMutation = useCreateBlogPost();
   const updateMutation = useUpdateBlogPost();
-  const saveBlocksMutation = useSaveBlogBlocks();
 
   const isEdit = !!selectedData;
 
   const [tab, setTab] = useState('content');
-
-  /**
-   * بخش‌های مقاله به همراه کلید مقاله‌ای که به آن تعلق دارند.
-   *
-   * `postKey` جلوی قاطی‌شدن ادیت‌های یک مقاله با مقاله‌ی دیگر را می‌گیرد:
-   * تا وقتی همین مقاله باز است، تغییرات ادمین حفظ می‌شود و با رسیدن داده‌ی
-   * سرور (یا باز شدن مقاله‌ی دیگر) یک‌بار از نو مقدار می‌گیرد.
-   */
-  const [blocksState, setBlocksState] = useState<{
-    postKey: string;
-    blocks: BlockForm[];
-  }>({ postKey: 'new', blocks: defaultFormBlocks() });
-
-  const { data: blocksResponse, isLoading: isBlocksLoading } =
-    useAdminBlogBlocks(selectedData?.id, open);
-
-  const postKey = selectedData ? String(selectedData.id) : 'new';
-  const serverBlocks = blocksResponse?.data;
-
-  const setBlocks = (nextBlocks: BlockForm[]) => {
-    setBlocksState({ postKey, blocks: nextBlocks });
-    // فیلد قدیمی content برای جستجو، SEO و سازگاری API از مجموع متن‌ها ساخته می‌شود.
-    const combinedContent = nextBlocks
-      .filter(block => block.type === 'content')
-      .map(block => block.items[0]?.html ?? '')
-      .filter(Boolean)
-      .join('\n');
-    setValue('content', combinedContent, { shouldValidate: true });
-  };
-
-  /**
-   * همگام‌سازی با داده‌ی سرور (الگوی رسمی «تنظیم state هنگام تغییر ورودی»):
-   * فقط وقتی مقاله‌ی باز‌شده با state فعلی فرق دارد.
-   */
-  if (
-    open &&
-    postKey !== 'new' &&
-    serverBlocks &&
-    blocksState.postKey !== postKey
-  ) {
-    setBlocksState({
-      postKey,
-      blocks: toFormBlocks(serverBlocks, selectedData?.content ?? ''),
-    });
-  }
-
-  /** فقط برای رندرهای گذرا (پیش از رسیدن داده‌ی سرور) استفاده می‌شود */
-  const fallbackBlocks = useMemo(() => defaultFormBlocks(), []);
-
-  const blocks =
-    blocksState.postKey === postKey ? blocksState.blocks : fallbackBlocks;
 
   const schema = z.object({
     title: z.string().nonempty('این فیلد اجباری است'),
@@ -149,6 +109,18 @@ export default function BlogModal({
 
   const metaTitle = useWatch({ control, name: 'metaTitle' }) || '';
   const metaDescription = useWatch({ control, name: 'metaDescription' }) || '';
+  const content = useWatch({ control, name: 'content' }) || '';
+
+  /**
+   * مقاله‌های قدیمی بلوک‌هایشان در جدول جداگانه‌ی blog_blocks است.
+   * فقط وقتی این داده خواسته می‌شود که متن مقاله نشانه‌ی بلوک جدید
+   * نداشته باشد؛ بعد از اولین ذخیره، خود متن منبع اصلی است.
+   */
+  const needsLegacyBlocks =
+    !!selectedData?.id && !hasEditorBlocks(selectedData.content);
+
+  const { data: blocksResponse, isLoading: isBlocksLoading } =
+    useAdminBlogBlocks(selectedData?.id, open && needsLegacyBlocks);
 
   useEffect(() => {
     if (selectedData) {
@@ -176,6 +148,31 @@ export default function BlogModal({
     }
   }, [selectedData, reset]);
 
+  /**
+   * مهاجرت خودکار مقاله‌های قدیمی به ادیتور یکپارچه.
+   *
+   * ترتیب بلوک‌های قبلی (متن، اسلایدر، FAQ، گالری و فهرست) دقیقاً به
+   * همان شکل داخل متن چیده می‌شود؛ از ذخیره‌ی بعدی به شکل جدید نگه‌داری
+   * می‌گردد و دیگر نیازی به جدول بلوک‌ها نیست.
+   */
+  const migratedPostRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !selectedData || !needsLegacyBlocks) return;
+    if (!blocksResponse?.data) return;
+
+    const postKey = String(selectedData.id);
+    if (migratedPostRef.current === postKey) return;
+
+    migratedPostRef.current = postKey;
+
+    setValue(
+      'content',
+      legacyBlocksToEditorHtml(blocksResponse.data, selectedData.content ?? ''),
+      { shouldValidate: true },
+    );
+  }, [open, selectedData, needsLegacyBlocks, blocksResponse, setValue]);
+
   const onSubmit = async (data: createBlogPostDto) => {
     const formData = new FormData();
     formData.append('title', data.title);
@@ -190,19 +187,15 @@ export default function BlogModal({
       formData.append('file', data.image);
     }
 
-    let postId: number | undefined;
-
     try {
-      if (isEdit && selectedData.id) {
-        const response = await updateMutation.mutateAsync({
+      if (isEdit && selectedData?.id) {
+        await updateMutation.mutateAsync({
           id: selectedData.id,
           data: formData,
         });
-        postId = response.data?.id ?? selectedData.id;
         toast.success('مقاله ویرایش شد');
       } else {
-        const response = await createMutation.mutateAsync(formData);
-        postId = response.data?.id;
+        await createMutation.mutateAsync(formData);
         toast.success('مقاله ساخته شد');
       }
     } catch {
@@ -210,48 +203,23 @@ export default function BlogModal({
       return;
     }
 
-    /** بخش‌ها (سوالات متداول، اسلایدر محصولات، مدیا و فهرست مطالب) */
-    if (postId) {
-      try {
-        const saved = await saveBlocksMutation.mutateAsync({
-          id: postId,
-          blocks: toPayloadBlocks(blocks),
-        });
-
-        setBlocks(toFormBlocks(saved.data ?? [], data.content));
-      } catch {
-        toast.error(
-          'مقاله ذخیره شد، ولی بخش‌ها (سوالات متداول/اسلایدر) ذخیره نشدند. دوباره تلاش کنید.',
-        );
-        // مودال باز می‌ماند تا ادمین بخش‌ها را دوباره ذخیره کند
-        queryClient.invalidateQueries({ queryKey: ['blog'] });
-        return;
-      }
-    }
-
     queryClient.invalidateQueries({ queryKey: ['blog'] });
     queryClient.invalidateQueries({ queryKey: ['blog-blocks'] });
 
     onOpenChange(false);
     reset();
-    setBlocksState({ postKey: 'new', blocks: defaultFormBlocks() });
   };
 
-  const isSaving =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    saveBlocksMutation.isPending;
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  const blocksCount = blocks.filter(block => block.type !== 'content').length;
+  /** تعداد بلوک‌های ویژه‌ی درج‌شده در متن (برای نمایش در تب) */
+  const blockCount = (content.match(/data-zp-block=/g) ?? []).length;
 
   return (
     <Dialog
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen) {
-          setTab('content');
-          setBlocksState({ postKey: 'new', blocks: defaultFormBlocks() });
-        }
+        if (!nextOpen) setTab('content');
         onOpenChange(nextOpen);
       }}
     >
@@ -276,15 +244,8 @@ export default function BlogModal({
             >
               <TabsList className="w-fit shrink-0">
                 <TabsTrigger value="content">مشخصات مقاله</TabsTrigger>
+                <TabsTrigger value="editor">ویرایشگر محتوا</TabsTrigger>
                 <TabsTrigger value="seo">سئو</TabsTrigger>
-                <TabsTrigger value="blocks">
-                  ویرایشگر محتوا
-                  {blocksCount > 0 && (
-                    <span className="rounded bg-primary-100 px-1.5 text-xs text-primary-700">
-                      {blocksCount}
-                    </span>
-                  )}
-                </TabsTrigger>
               </TabsList>
 
               <div className="min-h-0 flex-1 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin px-1 py-4">
@@ -303,8 +264,9 @@ export default function BlogModal({
                     />
 
                     <div className="col-span-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
-                      متن و تمام اجزای مقاله را در تب «ویرایشگر محتوا» به هر
-                      ترتیبی که می‌خواهید بچینید.
+                      متن مقاله و همه‌ی اجزای آن (عکس، ویدیو، گالری، اسلایدر
+                      محصولات، سوالات متداول و فهرست مطالب) در تب «ویرایشگر
+                      محتوا» و به هر ترتیبی که بخواهید نوشته می‌شود.
                     </div>
 
                     <RHFImageUploader
@@ -324,6 +286,41 @@ export default function BlogModal({
                       }
                     />
                   </div>
+                </TabsContent>
+
+                <TabsContent value="editor">
+                  {isEdit && isBlocksLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+                      <Loader2 className="size-4 animate-spin" />
+                      در حال آماده‌سازی محتوای مقاله...
+                    </div>
+                  ) : (
+                    <>
+                      <ZoppiniEditor
+                        value={content}
+                        onChange={html =>
+                          setValue('content', html, { shouldValidate: true })
+                        }
+                        variant="blog"
+                        minHeight={440}
+                        maxHeight="calc(100vh - 260px)"
+                        placeholder="متن مقاله را بنویسید… برای درج عکس، جدول، اسلایدر محصولات یا سوالات متداول «/» بزنید"
+                      />
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                        <span className="rounded bg-gray-100 px-2 py-1">
+                          {blockCount > 0
+                            ? `${blockCount} بلوک ویژه در مقاله`
+                            : 'هنوز بلوک ویژه‌ای (اسلایدر/گالری/FAQ/فهرست) اضافه نشده'}
+                        </span>
+                        <span>
+                          راهنما: تایپ «/» یا دکمه‌ی «افزودن» در نوار ابزار،
+                          دکمه‌ی تمام‌صفحه برای فضای بیشتر، و «{}» برای دیدن
+                          کد HTML.
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="seo">
@@ -358,23 +355,6 @@ export default function BlogModal({
                       </p>
                     </div>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="blocks">
-                  {isEdit && isBlocksLoading ? (
-                    <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
-                      <Loader2 className="size-4 animate-spin" />
-                      در حال بارگذاری بخش‌های مقاله...
-                    </div>
-                  ) : (
-                    <>
-                      <BlogBlocksEditor blocks={blocks} onChange={setBlocks} />
-                      <p className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-700">
-                        بخش‌ها همراه همین دکمه‌ی «ثبت مقاله» ذخیره می‌شوند؛ برای
-                        مقالات جدید ابتدا مقاله ذخیره و سپس بخش‌ها ثبت می‌گردد.
-                      </p>
-                    </>
-                  )}
                 </TabsContent>
               </div>
             </Tabs>
