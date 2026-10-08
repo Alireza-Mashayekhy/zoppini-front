@@ -3,17 +3,32 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import BlogContent from '@/components/pages/blog/blog-content';
+import { mergePageSeo } from '@/lib/seo';
 import { getBlogPost } from '@/services/features/blog/server.api';
+import { getPageSeo } from '@/services/features/seo/server.api';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ * متای نهایی صفحه‌ی مقاله:
+ * متای تولیدشده از اطلاعات مقاله + دستور robots (index/noindex و
+ * follow/nofollow) که مدیر سئو در پنل برای مسیر `/blog/{slug}` ثبت کرده.
+ */
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
 
+  const metadata = await buildBlogMetadata(slug);
+
+  const seo = await getPageSeo(`/blog/${slug}`);
+
+  return mergePageSeo(metadata, seo);
+}
+
+async function buildBlogMetadata(slug: string): Promise<Metadata> {
   try {
     const post = await getBlogPost(slug);
     const data = post.data;

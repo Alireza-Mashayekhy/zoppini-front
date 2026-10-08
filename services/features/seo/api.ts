@@ -8,6 +8,7 @@ export async function adminPageSeoList(query: {
   page?: number;
   limit?: number;
   search?: string;
+  all?: boolean;
 }) {
   const { data } = await api.get<ApiListResponse<PageSeoResponse>>(
     endpoints.seo.adminList,

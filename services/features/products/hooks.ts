@@ -99,15 +99,19 @@ export const useAdminSizeList = (query?: {
   });
 };
 
-export const useAdminProducsList = (query: {
-  page?: number;
-  search?: string;
-  all: boolean;
-  limit?: number;
-}) => {
+export const useAdminProducsList = (
+  query: {
+    page?: number;
+    search?: string;
+    all: boolean;
+    limit?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['products', { ...query }],
     queryFn: () => adminProductsList(query),
+    enabled: options?.enabled ?? true,
   });
 };
 

@@ -5,21 +5,36 @@ import { notFound } from 'next/navigation';
 import ProductContent from '@/components/pages/product/content';
 import ProductJsonLd from '@/components/pages/product/product-jsonld';
 import Breadcrumb from '@/components/shared/breadcrumb';
+import { mergePageSeo } from '@/lib/seo';
 import { ApiError } from '@/services/api/server';
 import {
   getProduct,
   getProductGuides,
 } from '@/services/features/products/server.api';
+import { getPageSeo } from '@/services/features/seo/server.api';
 interface ProductPageProps {
   params: Promise<{ productSlug: string }>;
 }
 
-// تولید متا دیتا بر اساس اطلاعات محصول
+/**
+ * متای نهایی صفحه‌ی محصول:
+ * متای تولیدشده از اطلاعات محصول + دستور robots (index/noindex و
+ * follow/nofollow) که مدیر سئو در پنل برای مسیر `/product/{slug}` ثبت کرده.
+ */
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { productSlug } = await params;
 
+  const metadata = await buildProductMetadata(productSlug);
+
+  const seo = await getPageSeo(`/product/${productSlug}`);
+
+  return mergePageSeo(metadata, seo);
+}
+
+// تولید متا دیتا بر اساس اطلاعات محصول
+async function buildProductMetadata(productSlug: string): Promise<Metadata> {
   try {
     const product = await getProduct(productSlug);
     const productData = product.data.product;

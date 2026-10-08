@@ -15,6 +15,7 @@ export const useAdminPageSeoList = (query: {
   page?: number;
   limit?: number;
   search?: string;
+  all?: boolean;
 }) => {
   return useQuery({
     queryKey: [SEO_PAGES_QUERY_KEY, { ...query }],
