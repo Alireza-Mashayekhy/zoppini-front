@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import RHFBooleanSegment from '@/components/form/rhf-boolean-segment';
 import { RHFImageUploader } from '@/components/form/rhf-image-uploader';
 import RHFInput from '@/components/form/rhf-input';
 import RHFMultiSelect from '@/components/form/rhf-multiselect';
@@ -42,8 +43,10 @@ import CreateSizeModal from './create-size-modal';
 const SHOW_SKU = true;
 
 // ==================== نوع جدید برای فرم ====================
-type FormValues = Omit<createProductDto, 'colorId'> & {
+type FormValues = Omit<createProductDto, 'colorId' | 'indexable' | 'followable'> & {
   colorId: string; // در فرم به صورت رشته (تک‌انتخاب)
+  indexable: boolean;
+  followable: boolean;
 };
 
 function isInitialProductData(
@@ -120,6 +123,8 @@ export default function ProductCreateModal({
     description: z.string().nonempty('این فیلد اجباری است'),
     metaTitle: z.string().optional(),
     metaDescription: z.string().optional(),
+    indexable: z.boolean(),
+    followable: z.boolean(),
     careInstructionsHtml: z.string().nonempty('این فیلد اجباری است'),
     slug: z.string().nonempty('این فیلد اجباری است'),
     productCode: z.string().nonempty('این فیلد اجباری است'),
@@ -136,6 +141,8 @@ export default function ProductCreateModal({
       description: '',
       metaTitle: '',
       metaDescription: '',
+      indexable: true,
+      followable: true,
       careInstructionsHtml: '',
       slug: '',
       productCode: '',
@@ -212,6 +219,8 @@ export default function ProductCreateModal({
         description: '',
         metaTitle: '',
         metaDescription: '',
+        indexable: true,
+        followable: true,
         careInstructionsHtml: '',
         slug: '',
         productCode: '',
@@ -249,6 +258,8 @@ export default function ProductCreateModal({
         description: selectedData.description || '',
         metaTitle: '',
         metaDescription: '',
+        indexable: true,
+        followable: true,
         careInstructionsHtml: selectedData.careInstructionsHtml || '',
         slug: selectedData.slug || '',
         productCode: String(selectedData.productCode || ''),
@@ -284,6 +295,8 @@ export default function ProductCreateModal({
       description: product.description || '',
       metaTitle: product.metaTitle || '',
       metaDescription: product.metaDescription || '',
+      indexable: product.indexable ?? true,
+      followable: product.followable ?? true,
       careInstructionsHtml: product.careInstructionsHtml || '',
       slug: product.slug || '',
       productCode: String(product.productCode || ''),
@@ -311,6 +324,8 @@ export default function ProductCreateModal({
         description,
         metaTitle,
         metaDescription,
+        indexable,
+        followable,
         careInstructionsHtml,
         slug,
         productCode,
@@ -346,6 +361,8 @@ export default function ProductCreateModal({
       formData.append('description', description || '');
       formData.append('metaTitle', metaTitle || '');
       formData.append('metaDescription', metaDescription || '');
+      formData.append('indexable', (indexable ?? true).toString());
+      formData.append('followable', (followable ?? true).toString());
       formData.append('careInstructionsHtml', careInstructionsHtml || '');
       formData.append('categoryIds', JSON.stringify(categories.map(Number)));
       formData.append('variants', JSON.stringify(variantsPayload));
@@ -538,9 +555,10 @@ export default function ProductCreateModal({
             <div className="col-span-2 mt-4 rounded-lg border p-4">
               <h3 className="mb-1 text-lg font-semibold">تنظیمات سئو</h3>
               <p className="mb-4 text-xs text-muted-foreground">
-                این مقادیر در عنوان و توضیحات متای صفحه‌ی همین محصول در نتایج
-                گوگل استفاده می‌شوند. اگر خالی بمانند، نام و توضیحات محصول
-                به‌صورت خودکار استفاده می‌شود.
+                این مقادیر در عنوان، توضیحات متا و دستور ربات‌های صفحه‌ی همین
+                محصول در نتایج گوگل استفاده می‌شوند. اگر متا تایتل یا متا
+                دیسکریپشن خالی بمانند، نام و توضیحات محصول به‌صورت خودکار
+                استفاده می‌شود.
               </p>
 
               <div className="grid grid-cols-2 gap-4">
@@ -567,6 +585,33 @@ export default function ProductCreateModal({
                     {(watch('metaDescription') || '').length} کاراکتر (پیشنهاد:
                     حداکثر ۱۶۰ کاراکتر)
                   </p>
+                </div>
+
+                <div className="col-span-2 space-y-4 rounded-lg border p-4">
+                  <div>
+                    <h4 className="text-sm font-semibold">
+                      دسترسی موتورهای جستجو
+                    </h4>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      مشخص کنید این محصول در گوگل ایندکس شود و لینک‌هایش دنبال
+                      شوند یا نه. محصول ایندکس‌نشده از نقشه‌ی سایت هم حذف
+                      می‌شود.
+                    </p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <RHFBooleanSegment
+                      name="indexable"
+                      label="ایندکس"
+                      yesLabel="ایندکس شود"
+                      noLabel="ایندکس نشود"
+                    />
+                    <RHFBooleanSegment
+                      name="followable"
+                      label="فالو"
+                      yesLabel="فالو شود"
+                      noLabel="فالو نشود"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

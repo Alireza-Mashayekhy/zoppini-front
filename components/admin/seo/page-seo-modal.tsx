@@ -19,6 +19,7 @@ import { useCreatePageSeo, useUpdatePageSeo } from '@/services/features/seo/hook
 import { PageSeoResponse } from '@/services/features/seo/types';
 
 import FormProvider from '../../form/form-provider';
+import RHFBooleanSegment from '../../form/rhf-boolean-segment';
 import RHFInput from '../../form/rhf-input';
 import RHFSwitch from '../../form/rhf-switch';
 import RHFTextArea from '../../form/rhf-textarea';
@@ -153,51 +154,6 @@ function SectionHeader({
   );
 }
 
-/** انتخاب «بله/خیر» برای ایندکس و فالو */
-function RobotsToggle({
-  value,
-  onChange,
-  yesLabel,
-  noLabel,
-}: {
-  value: boolean;
-  onChange: (value: boolean) => void;
-  yesLabel: string;
-  noLabel: string;
-}) {
-  const options = [
-    { active: true, label: yesLabel },
-    { active: false, label: noLabel },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-1 rounded-lg border bg-muted/40 p-1">
-      {options.map(option => {
-        const selected = value === option.active;
-
-        return (
-          <button
-            key={String(option.active)}
-            type="button"
-            aria-pressed={selected}
-            onClick={() => onChange(option.active)}
-            className={cn(
-              'rounded-md px-2 py-1.5 text-center text-sm font-medium transition-colors',
-              selected
-                ? option.active
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-red-600 text-white shadow-sm'
-                : 'text-muted-foreground hover:bg-white/80',
-            )}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function PageSeoModal({
   selectedData,
   open,
@@ -307,7 +263,7 @@ export default function PageSeoModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] max-w-2xl overflow-y-auto"
+        className="max-h-[92vh] w-full overflow-y-auto sm:max-w-5xl"
         dir="rtl"
       >
         <DialogHeader>
@@ -318,6 +274,8 @@ export default function PageSeoModal({
 
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <div className="flex flex-col gap-6 py-2">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="flex flex-col gap-6">
             {/* ── ۱. آدرس صفحه ─────────────────────────────── */}
             <section className="space-y-4">
               <SectionHeader
@@ -443,6 +401,9 @@ export default function PageSeoModal({
               </div>
             </section>
 
+              </div>
+
+              <div className="flex flex-col gap-6">
             {/* ── ۳. ربات‌های گوگل ─────────────────────────── */}
             <section className="space-y-4 rounded-xl border p-4">
               <SectionHeader
@@ -451,29 +412,19 @@ export default function PageSeoModal({
                 hint="مشخص کنید این آدرس ایندکس شود و لینک‌هایش دنبال شوند یا نه."
               />
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <span className="text-sm font-medium">ایندکس</span>
-                  <RobotsToggle
-                    value={values.indexable ?? true}
-                    onChange={value =>
-                      setValue('indexable', value, { shouldDirty: true })
-                    }
-                    yesLabel="ایندکس شود"
-                    noLabel="ایندکس نشود"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-sm font-medium">فالو</span>
-                  <RobotsToggle
-                    value={values.followable ?? true}
-                    onChange={value =>
-                      setValue('followable', value, { shouldDirty: true })
-                    }
-                    yesLabel="فالو شود"
-                    noLabel="فالو نشود"
-                  />
-                </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <RHFBooleanSegment
+                  name="indexable"
+                  label="ایندکس"
+                  yesLabel="ایندکس شود"
+                  noLabel="ایندکس نشود"
+                />
+                <RHFBooleanSegment
+                  name="followable"
+                  label="فالو"
+                  yesLabel="فالو شود"
+                  noLabel="فالو نشود"
+                />
               </div>
 
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -535,6 +486,8 @@ export default function PageSeoModal({
                 </div>
               )}
             </section>
+              </div>
+            </div>
 
             <Button
               type="submit"

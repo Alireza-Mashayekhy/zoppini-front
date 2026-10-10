@@ -65,6 +65,10 @@ export interface ProductsResponse {
   metaTitle?: string | null;
   /** متا دیسکریپشن سئو؛ اگر خالی باشد، توضیحات محصول استفاده می‌شود */
   metaDescription?: string | null;
+  /** false یعنی صفحه‌ی محصول با تگ noindex منتشر می‌شود */
+  indexable?: boolean;
+  /** false یعنی تگ nofollow روی صفحه‌ی محصول اعمال می‌شود */
+  followable?: boolean;
   discount?: ProductDiscount;
   careInstructionsHtml: string;
   createdAt: string;
@@ -92,6 +96,10 @@ export interface createProductDto {
   metaTitle?: string;
   /** متا دیسکریپشن سئو (اختیاری) */
   metaDescription?: string;
+  /** ایندکس شدن صفحه‌ی محصول در گوگل (پیش‌فرض: بله) */
+  indexable?: boolean;
+  /** دنبال شدن لینک‌های صفحه‌ی محصول توسط خزنده‌ها (پیش‌فرض: بله) */
+  followable?: boolean;
   slug: string;
   careInstructionsHtml: string;
   categories: string[];
@@ -107,6 +115,8 @@ export interface createApiProductDto {
   description: string;
   metaTitle?: string;
   metaDescription?: string;
+  indexable?: boolean;
+  followable?: boolean;
   title: string;
   slug: string;
   variants: {

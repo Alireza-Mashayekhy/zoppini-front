@@ -32,6 +32,7 @@ import {
 } from '@/services/features/blog/types';
 
 import FormProvider from '../form/form-provider';
+import RHFBooleanSegment from '../form/rhf-boolean-segment';
 import { RHFImageUploader } from '../form/rhf-image-uploader';
 import RHFInput from '../form/rhf-input';
 import RHFSwitch from '../form/rhf-switch';
@@ -72,6 +73,8 @@ export default function BlogModal({
     excerpt: z.string().optional(),
     metaTitle: z.string().optional(),
     metaDescription: z.string().optional(),
+    indexable: z.boolean(),
+    followable: z.boolean(),
     content: z.string().nonempty('این فیلد اجباری است'),
     image: selectedData
       ? z.any().optional()
@@ -93,6 +96,8 @@ export default function BlogModal({
       excerpt: '',
       metaTitle: '',
       metaDescription: '',
+      indexable: true,
+      followable: true,
       content: '',
       isPublished: false,
       isFeatured: false,
@@ -130,6 +135,8 @@ export default function BlogModal({
         excerpt: selectedData.excerpt || '',
         metaTitle: selectedData.metaTitle || '',
         metaDescription: selectedData.metaDescription || '',
+        indexable: selectedData.indexable ?? true,
+        followable: selectedData.followable ?? true,
         content: selectedData.content,
         isPublished: selectedData.isPublished,
         isFeatured: selectedData.isFeatured,
@@ -141,6 +148,8 @@ export default function BlogModal({
         excerpt: '',
         metaTitle: '',
         metaDescription: '',
+        indexable: true,
+        followable: true,
         content: '',
         isPublished: false,
         isFeatured: false,
@@ -180,6 +189,8 @@ export default function BlogModal({
     formData.append('excerpt', data.excerpt || '');
     formData.append('metaTitle', data.metaTitle || '');
     formData.append('metaDescription', data.metaDescription || '');
+    formData.append('indexable', (data.indexable ?? true).toString());
+    formData.append('followable', (data.followable ?? true).toString());
     formData.append('content', data.content);
     formData.append('isPublished', data.isPublished.toString());
     formData.append('isFeatured', data.isFeatured.toString());
@@ -326,9 +337,10 @@ export default function BlogModal({
                 <TabsContent value="seo">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
-                      این دو مقدار در عنوان و توضیحات متای صفحه‌ی همین مقاله در
-                      نتایج گوگل استفاده می‌شوند. اگر خالی بمانند، عنوان و
-                      خلاصه‌ی مقاله به‌صورت خودکار استفاده می‌شود.
+                      این مقادیر در عنوان، توضیحات متا و دستور ربات‌های صفحه‌ی
+                      همین مقاله در نتایج گوگل استفاده می‌شوند. اگر متا تایتل
+                      یا متا دیسکریپشن خالی بمانند، عنوان و خلاصه‌ی مقاله
+                      به‌صورت خودکار استفاده می‌شود.
                     </div>
 
                     <div className="col-span-2">
@@ -353,6 +365,31 @@ export default function BlogModal({
                         {metaDescription.length} کاراکتر (پیشنهاد: حداکثر ۱۶۰
                         کاراکتر)
                       </p>
+                    </div>
+
+                    <div className="col-span-2 rounded-lg border p-4">
+                      <h4 className="text-sm font-semibold">
+                        دسترسی موتورهای جستجو
+                      </h4>
+                      <p className="mt-1 mb-4 text-xs text-muted-foreground">
+                        مشخص کنید این مقاله در گوگل ایندکس شود و لینک‌هایش دنبال
+                        شوند یا نه. مقاله‌ی ایندکس‌نشده از نقشه‌ی سایت هم حذف
+                        می‌شود.
+                      </p>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <RHFBooleanSegment
+                          name="indexable"
+                          label="ایندکس"
+                          yesLabel="ایندکس شود"
+                          noLabel="ایندکس نشود"
+                        />
+                        <RHFBooleanSegment
+                          name="followable"
+                          label="فالو"
+                          yesLabel="فالو شود"
+                          noLabel="فالو نشود"
+                        />
+                      </div>
                     </div>
                   </div>
                 </TabsContent>

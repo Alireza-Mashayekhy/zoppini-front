@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import ProductContent from '@/components/pages/product/content';
 import ProductJsonLd from '@/components/pages/product/product-jsonld';
 import Breadcrumb from '@/components/shared/breadcrumb';
-import { mergePageSeo } from '@/lib/seo';
+import { applyRobotsDirective, mergePageSeo } from '@/lib/seo';
 import { ApiError } from '@/services/api/server';
 import {
   getProduct,
@@ -18,8 +18,9 @@ interface ProductPageProps {
 
 /**
  * متای نهایی صفحه‌ی محصول:
- * متای تولیدشده از اطلاعات محصول + دستور robots (index/noindex و
- * follow/nofollow) که مدیر سئو در پنل برای مسیر `/product/{slug}` ثبت کرده.
+ * متای تولیدشده از اطلاعات محصول + دستور robots ثبت‌شده در فرم خود محصول
+ * (ایندکس/فالو) + اورراید پنل سئو برای مسیر `/product/{slug}` که بر همه
+ * اولویت دارد.
  */
 export async function generateMetadata({
   params,
@@ -62,7 +63,7 @@ async function buildProductMetadata(productSlug: string): Promise<Metadata> {
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${productData.image}`
       : undefined;
 
-    return {
+    const metadata: Metadata = {
       title: metaTitle,
       description: metaDescription,
       openGraph: {
@@ -83,6 +84,12 @@ async function buildProductMetadata(productSlug: string): Promise<Metadata> {
         canonical: `https://zoppinico.com/product/${productData.slug}`,
       },
     };
+
+    // دستور robots ثبت‌شده در فرم خود محصول (پنل محصولات)
+    return applyRobotsDirective(metadata, {
+      indexable: productData.indexable,
+      followable: productData.followable,
+    });
   } catch (error) {
     console.log(error);
     return {
