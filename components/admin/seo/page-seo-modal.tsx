@@ -1,71 +1,201 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { AlertTriangle } from 'lucide-react';
+import { useEffect } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useAdminBlogList } from '@/services/features/blog/hooks';
-import { useAdminCategoriesList } from '@/services/features/categories/hooks';
-import { useAdminProducsList } from '@/services/features/products/hooks';
-import {
-  useAdminPageSeoList,
-  useCreatePageSeo,
-  useUpdatePageSeo,
-} from '@/services/features/seo/hooks';
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { cn } from '@/lib/utils';
+import { useCreatePageSeo, useUpdatePageSeo } from '@/services/features/seo/hooks';
 import { PageSeoResponse } from '@/services/features/seo/types';
 
 import FormProvider from '../../form/form-provider';
 import RHFInput from '../../form/rhf-input';
 import RHFSwitch from '../../form/rhf-switch';
 import RHFTextArea from '../../form/rhf-textarea';
+import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
 
-const schema = z.object({
-  path: z
-    .string()
-    .trim()
-    .min(1, 'مسیر صفحه اجباری است')
-    .refine(value => value.startsWith('/'), 'مسیر باید با / شروع شود'),
-  label: z.string().optional(),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
-  indexable: z.boolean(),
-  followable: z.boolean(),
-  redirectTo: z.string().optional(),
-  includeInPageSitemap: z.boolean(),
-});
+/** دامنه‌ی اصلی سایت؛ برای پیش‌نمایش آدرس و پیش‌نمایش گوگل */
+const SITE_HOST = 'zoppinico.com';
+
+/**
+ * ورودی آدرس را یکدست می‌کند:
+ * اگر کاربر آدرس کامل با دامنه پیست کرد، دامنه حذف می‌شود؛
+ * اسلش ابتدایی اضافه و اسلش‌های انتهایی حذف می‌گردند.
+ */
+function normalizePathInput(raw: string): string {
+  let value = raw.trim();
+
+  if (!value) return value;
+
+  const lower = value.toLowerCase();
+  for (const origin of [
+    `https://${SITE_HOST}`,
+    `http://${SITE_HOST}`,
+    `https://www.${SITE_HOST}`,
+    `http://www.${SITE_HOST}`,
+  ]) {
+    if (lower.startsWith(origin)) {
+      value = value.slice(origin.length);
+      break;
+    }
+  }
+
+  if (!value.startsWith('/')) value = `/${value}`;
+
+  return value.length > 1 ? value.replace(/\/+$/, '') : value;
+}
+
+/** مقصد ریدایرکت باید مسیر داخلی یا آدرس کامل با http/https باشد */
+function isValidRedirectTarget(value: string): boolean {
+  if (value.startsWith('/')) {
+    return !value.startsWith('//') && !value.includes('\\');
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** نمایش آدرس به شکل مسیر گوگل: zoppinico.com › about-us */
+function breadcrumbFor(path: string): string {
+  const segments = normalizePathInput(path || '')
+    .split('/')
+    .filter(Boolean);
+
+  return [SITE_HOST, ...segments].join(' › ');
+}
+
+const schema = z
+  .object({
+    path: z
+      .string()
+      .trim()
+      .min(1, 'آدرس صفحه اجباری است')
+      .transform(value => normalizePathInput(value))
+      .pipe(
+        z
+          .string()
+          .regex(
+            /^\/(?!\/)/,
+            'آدرس باید مسیر داخلی سایت باشد (با یک / شروع شود)',
+          ),
+      ),
+    label: z.string().optional(),
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
+    indexable: z.boolean(),
+    followable: z.boolean(),
+    hasRedirect: z.boolean(),
+    redirectTo: z.string().optional(),
+    includeInPageSitemap: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.hasRedirect) return;
+
+    const target = data.redirectTo?.trim() ?? '';
+
+    if (!target) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['redirectTo'],
+        message: 'مقصد ریدایرکت را وارد کنید',
+      });
+    } else if (!isValidRedirectTarget(target)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['redirectTo'],
+        message:
+          'مقصد باید مسیر داخلی (مثل /products) یا آدرس کامل با http/https باشد',
+      });
+    }
+  });
 
 type FormData = z.infer<typeof schema>;
-type ResourceType = 'pages' | 'articles' | 'products' | 'categories';
 
-const resourceLabels: Record<ResourceType, string> = {
-  pages: 'صفحات سایت',
-  articles: 'مقالات',
-  products: 'محصولات',
-  categories: 'دسته‌بندی‌ها',
-};
+/** سربرگ شماره‌دار هر بخش فرم */
+function SectionHeader({
+  step,
+  title,
+  hint,
+}: {
+  step: string;
+  title: string;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+        {step}
+      </span>
+      <div>
+        <h3 className="text-sm font-semibold">{title}</h3>
+        {hint && (
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+            {hint}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
-function getResourceType(path?: string): ResourceType {
-  if (path?.startsWith('/blog/')) return 'articles';
-  if (path?.startsWith('/product-category/')) return 'categories';
-  if (path?.startsWith('/product/')) return 'products';
-  return 'pages';
+/** انتخاب «بله/خیر» برای ایندکس و فالو */
+function RobotsToggle({
+  value,
+  onChange,
+  yesLabel,
+  noLabel,
+}: {
+  value: boolean;
+  onChange: (value: boolean) => void;
+  yesLabel: string;
+  noLabel: string;
+}) {
+  const options = [
+    { active: true, label: yesLabel },
+    { active: false, label: noLabel },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-lg border bg-muted/40 p-1">
+      {options.map(option => {
+        const selected = value === option.active;
+
+        return (
+          <button
+            key={String(option.active)}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(option.active)}
+            className={cn(
+              'rounded-md px-2 py-1.5 text-center text-sm font-medium transition-colors',
+              selected
+                ? option.active
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-red-600 text-white shadow-sm'
+                : 'text-muted-foreground hover:bg-white/80',
+            )}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function PageSeoModal({
@@ -80,29 +210,6 @@ export default function PageSeoModal({
   const createMutation = useCreatePageSeo();
   const updateMutation = useUpdatePageSeo();
   const isEdit = !!selectedData;
-  const [resourceType, setResourceType] = useState<ResourceType>(() =>
-    getResourceType(selectedData?.path),
-  );
-  const [resourceSearch, setResourceSearch] = useState('');
-
-  const { data: pageData } = useAdminPageSeoList({ all: true });
-  const { data: blogData, isLoading: isLoadingBlogs } = useAdminBlogList(
-    { all: true, search: resourceType === 'articles' ? resourceSearch : '' },
-    { enabled: resourceType === 'articles' && open },
-  );
-  const { data: categoryData, isLoading: isLoadingCategories } =
-    useAdminCategoriesList(
-      { all: true, search: resourceType === 'categories' ? resourceSearch : '' },
-      { enabled: resourceType === 'categories' && open },
-    );
-  const { data: productData, isLoading: isLoadingProducts } =
-    useAdminProducsList(
-      {
-        all: true,
-        search: resourceType === 'products' ? resourceSearch : '',
-      },
-      { enabled: resourceType === 'products' && open },
-    );
 
   const methods = useForm<FormData>({
     defaultValues: {
@@ -112,6 +219,7 @@ export default function PageSeoModal({
       metaDescription: '',
       indexable: true,
       followable: true,
+      hasRedirect: false,
       redirectTo: '',
       includeInPageSitemap: false,
     },
@@ -119,59 +227,10 @@ export default function PageSeoModal({
   });
 
   const { reset, control, setValue } = methods;
-  const metaTitle = useWatch({ control, name: 'metaTitle' }) || '';
-  const metaDescription = useWatch({ control, name: 'metaDescription' }) || '';
-  const selectedPath = useWatch({ control, name: 'path' }) || '';
+  const values = useWatch({ control });
 
-  const resources = useMemo(() => {
-    if (resourceType === 'articles') {
-      return (blogData?.data ?? []).map(item => ({
-        path: `/blog/${item.slug}`,
-        label: item.title,
-      }));
-    }
-    if (resourceType === 'products') {
-      return (productData?.data ?? []).map(item => ({
-        path: `/product/${item.slug}`,
-        label: item.title,
-      }));
-    }
-    if (resourceType === 'categories') {
-      return (categoryData?.data ?? []).map(item => ({
-        path: `/product-category/${item.slug}`,
-        label: item.name,
-      }));
-    }
-    return (pageData?.data ?? [])
-      .filter(
-        item =>
-          !item.path.startsWith('/blog/') &&
-          !item.path.startsWith('/product/') &&
-          !item.path.startsWith('/product-category/'),
-      )
-      .map(item => ({ path: item.path, label: item.label || item.path }));
-  }, [
-    blogData?.data,
-    categoryData?.data,
-    pageData?.data,
-    productData?.data,
-    resourceType,
-  ]);
-
-  const filteredResources = useMemo(() => {
-    const needle = resourceSearch.trim().toLocaleLowerCase();
-    if (!needle) return resources;
-    return resources.filter(
-      item =>
-        item.label.toLocaleLowerCase().includes(needle) ||
-        item.path.toLocaleLowerCase().includes(needle),
-    );
-  }, [resources, resourceSearch]);
-
-  const isLoadingResources =
-    (resourceType === 'articles' && isLoadingBlogs) ||
-    (resourceType === 'products' && isLoadingProducts) ||
-    (resourceType === 'categories' && isLoadingCategories);
+  const metaTitle = values.metaTitle || '';
+  const metaDescription = values.metaDescription || '';
 
   useEffect(() => {
     if (!open) return;
@@ -184,6 +243,7 @@ export default function PageSeoModal({
         metaDescription: selectedData.metaDescription || '',
         indexable: selectedData.indexable ?? true,
         followable: selectedData.followable ?? true,
+        hasRedirect: !!selectedData.redirectTo,
         redirectTo: selectedData.redirectTo || '',
         includeInPageSitemap: selectedData.includeInPageSitemap ?? false,
       });
@@ -195,6 +255,7 @@ export default function PageSeoModal({
         metaDescription: '',
         indexable: true,
         followable: true,
+        hasRedirect: false,
         redirectTo: '',
         includeInPageSitemap: false,
       });
@@ -209,7 +270,7 @@ export default function PageSeoModal({
       metaDescription: data.metaDescription?.trim() || '',
       indexable: data.indexable,
       followable: data.followable,
-      redirectTo: data.redirectTo?.trim() || null,
+      redirectTo: data.hasRedirect ? (data.redirectTo?.trim() || null) : null,
       includeInPageSitemap: data.includeInPageSitemap,
     };
 
@@ -231,9 +292,24 @@ export default function PageSeoModal({
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  const robotsDirective = [
+    (values.indexable ?? true) ? 'index' : 'noindex',
+    (values.followable ?? true) ? 'follow' : 'nofollow',
+  ].join(', ');
+
+  // اگر ریدایرکت فعال یا صفحه نوایندکس باشد، آدرس در نقشه‌ی سایت منتشر نمی‌شود.
+  const sitemapBlocked =
+    values.includeInPageSitemap &&
+    (!(values.indexable ?? true) || !!values.hasRedirect);
+
+  const previewTitle = metaTitle || values.label || values.path;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto" dir="rtl">
+      <DialogContent
+        className="max-h-[90vh] max-w-2xl overflow-y-auto"
+        dir="rtl"
+      >
         <DialogHeader>
           <DialogTitle>
             {isEdit ? 'ویرایش تنظیمات سئو' : 'افزودن صفحه به سئو'}
@@ -241,155 +317,223 @@ export default function PageSeoModal({
         </DialogHeader>
 
         <FormProvider methods={methods} onSubmit={onSubmit}>
-          <div className="grid grid-cols-1 gap-4 py-2">
-            <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs leading-6 text-blue-700">
-              آدرس صفحه، مقاله یا محصول را انتخاب کنید؛ یا برای صفحه‌ای که در
-              فهرست نیست، مسیر را دستی وارد کنید.
-            </div>
+          <div className="flex flex-col gap-6 py-2">
+            {/* ── ۱. آدرس صفحه ─────────────────────────────── */}
+            <section className="space-y-4">
+              <SectionHeader
+                step="۱"
+                title="آدرس صفحه"
+                hint="آدرس را وارد کنید؛ سئوی محصولات و مقالات در صفحه‌ی ویرایش خودشان تنظیم می‌شود."
+              />
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">نوع محتوا</label>
-                <Select
-                  value={resourceType}
-                  onValueChange={value => {
-                    setResourceType(value as ResourceType);
-                    setResourceSearch('');
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(resourceLabels) as ResourceType[]).map(type => (
-                      <SelectItem key={type} value={type}>
-                        {resourceLabels[type]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">انتخاب آدرس</label>
-                <Input
-                  value={resourceSearch}
-                  onChange={event => setResourceSearch(event.target.value)}
-                  placeholder="جستجوی عنوان یا آدرس"
-                  className="mb-2"
-                />
-                <Select
-                  value={resources.some(item => item.path === selectedPath) ? selectedPath : undefined}
-                  onValueChange={value => {
-                    const resource = resources.find(item => item.path === value);
-                    if (!resource) return;
-                    setValue('path', resource.path, { shouldValidate: true });
-                    setValue('label', resource.label, { shouldDirty: true });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="صفحه، مقاله یا محصول را انتخاب کنید" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingResources ? (
-                      <div className="p-3 text-center text-sm text-muted-foreground">
-                        در حال بارگذاری...
-                      </div>
-                    ) : filteredResources.length ? (
-                      filteredResources.slice(0, 250).map(item => (
-                        <SelectItem key={item.path} value={item.path}>
-                          <span className="max-w-[26rem] truncate">{item.label}</span>
-                          <span dir="ltr" className="text-xs text-muted-foreground">
-                            {item.path}
-                          </span>
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <div className="p-3 text-center text-sm text-muted-foreground">
-                        موردی پیدا نشد؛ آدرس را پایین‌تر دستی وارد کنید.
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <RHFInput
-                label="مسیر صفحه"
+              <Controller
                 name="path"
-                isRequired
-                dir="ltr"
-                placeholder="/about-us یا /product/product-slug"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="path">
+                      آدرس صفحه (URL)
+                      <span className="text-red-500">*</span>
+                    </FieldLabel>
+                    <InputGroup dir="ltr" className="h-9">
+                      <InputGroupAddon align="inline-start" className="text-xs">
+                        {SITE_HOST}
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="path"
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={() => {
+                          field.onBlur();
+                          setValue('path', normalizePathInput(field.value), {
+                            shouldValidate: true,
+                          });
+                        }}
+                        placeholder="/about-us"
+                        aria-invalid={fieldState.invalid}
+                        className="text-left"
+                      />
+                    </InputGroup>
+                    {fieldState.invalid ? (
+                      <FieldError errors={[fieldState.error]} />
+                    ) : (
+                      values.path && (
+                        <p
+                          dir="ltr"
+                          className="truncate text-left text-xs text-muted-foreground"
+                        >
+                          https://{SITE_HOST}
+                          {normalizePathInput(values.path)}
+                        </p>
+                      )
+                    )}
+                  </Field>
+                )}
               />
-              <RHFInput label="نام صفحه" name="label" placeholder="عنوان نمایشی" />
-            </div>
 
-            <div>
               <RHFInput
-                label="متا تایتل"
-                name="metaTitle"
-                placeholder="مثال: درباره ما - زوپینی"
+                label="نام صفحه (فقط برای نمایش در همین لیست)"
+                name="label"
+                placeholder="مثال: درباره ما"
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {metaTitle.length} کاراکتر (پیشنهاد: حداکثر ۶۰ کاراکتر)
-              </p>
-            </div>
+            </section>
 
-            <div>
-              <RHFTextArea
-                label="متا دیسکریپشن"
-                name="metaDescription"
-                rows={3}
-                placeholder="توضیح کوتاه و جذاب درباره‌ی این صفحه"
+            {/* ── ۲. تایتل و توضیحات ───────────────────────── */}
+            <section className="space-y-4 rounded-xl border p-4">
+              <SectionHeader
+                step="۲"
+                title="تایتل و توضیحات"
+                hint="این متن‌ها در نتایج گوگل و سربرگ صفحه نمایش داده می‌شوند. اگر خالی بمانند، مقدار پیش‌فرض خود صفحه استفاده می‌شود."
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {metaDescription.length} کاراکتر (پیشنهاد: حداکثر ۱۶۰ کاراکتر)
-              </p>
-            </div>
 
-            <section className="space-y-3 rounded-lg border p-4">
               <div>
-                <h3 className="text-sm font-semibold">دسترسی موتورهای جستجو</h3>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  کنترل کنید صفحه ایندکس شود و خزنده‌ها لینک‌های آن را دنبال کنند.
+                <RHFInput
+                  label="متا تایتل"
+                  name="metaTitle"
+                  placeholder="مثال: درباره ما - زوپینی"
+                />
+                <p
+                  className={cn(
+                    'mt-1 text-xs',
+                    metaTitle.length > 60
+                      ? 'font-medium text-amber-600'
+                      : 'text-muted-foreground',
+                  )}
+                >
+                  {metaTitle.length} کاراکتر (پیشنهاد: حداکثر ۶۰ کاراکتر)
                 </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <RHFSwitch name="indexable" label="ایندکس شود (Index)" />
-                <RHFSwitch name="followable" label="لینک‌ها دنبال شوند (Follow)" />
+
+              <div>
+                <RHFTextArea
+                  label="متا دیسکریپشن"
+                  name="metaDescription"
+                  rows={3}
+                  placeholder="توضیح کوتاه و جذاب درباره‌ی این صفحه"
+                />
+                <p
+                  className={cn(
+                    'mt-1 text-xs',
+                    metaDescription.length > 160
+                      ? 'font-medium text-amber-600'
+                      : 'text-muted-foreground',
+                  )}
+                >
+                  {metaDescription.length} کاراکتر (پیشنهاد: حداکثر ۱۶۰ کاراکتر)
+                </p>
+              </div>
+
+              {/* پیش‌نمایش گوگل */}
+              <div className="space-y-2 rounded-lg border border-dashed bg-muted/30 p-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  پیش‌نمایش در گوگل
+                </p>
+                <div dir="ltr" className="space-y-0.5 px-1 text-left">
+                  <p className="truncate text-xs text-emerald-800">
+                    {breadcrumbFor(values.path || '')}
+                  </p>
+                  <p className="truncate text-base font-medium text-[#1a0dab]">
+                    {previewTitle || 'عنوان صفحه اینجا نمایش داده می‌شود'}
+                  </p>
+                  <p className="line-clamp-2 text-xs leading-5 text-gray-600">
+                    {metaDescription ||
+                      'اگر توضیحی وارد نکنید، توضیح پیش‌فرض خود صفحه نمایش داده می‌شود.'}
+                  </p>
+                </div>
               </div>
             </section>
 
-            <section className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
-              <div>
-                <h3 className="text-sm font-semibold">نقشه‌ی سایت صفحات</h3>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  برای افزودن آدرس دستی یا لندینگ به فایل page-sitemap.xml این
-                  گزینه را فعال کنید. آدرس ثبت‌شده با دامنه‌ی اصلی سایت منتشر
-                  می‌شود؛ صفحات noindex یا دارای ریدایرکت منتشر نمی‌شوند.
-                </p>
+            {/* ── ۳. ربات‌های گوگل ─────────────────────────── */}
+            <section className="space-y-4 rounded-xl border p-4">
+              <SectionHeader
+                step="۳"
+                title="ربات‌های گوگل"
+                hint="مشخص کنید این آدرس ایندکس شود و لینک‌هایش دنبال شوند یا نه."
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <span className="text-sm font-medium">ایندکس</span>
+                  <RobotsToggle
+                    value={values.indexable ?? true}
+                    onChange={value =>
+                      setValue('indexable', value, { shouldDirty: true })
+                    }
+                    yesLabel="ایندکس شود"
+                    noLabel="ایندکس نشود"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <span className="text-sm font-medium">فالو</span>
+                  <RobotsToggle
+                    value={values.followable ?? true}
+                    onChange={value =>
+                      setValue('followable', value, { shouldDirty: true })
+                    }
+                    yesLabel="فالو شود"
+                    noLabel="فالو نشود"
+                  />
+                </div>
               </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                خروجی سربرگ صفحه:
+                <Badge variant="secondary" dir="ltr">
+                  {robotsDirective}
+                </Badge>
+              </div>
+            </section>
+
+            {/* ── ۴. ریدایرکت ──────────────────────────────── */}
+            <section className="space-y-3 rounded-xl border p-4">
+              <SectionHeader
+                step="۴"
+                title="ریدایرکت ۳۰۱ دائمی"
+                hint="اگر فعال شود، بازدیدکننده و ربات‌ها پیش از دیدن این صفحه مستقیماً به مقصد منتقل می‌شوند."
+              />
+
+              <RHFSwitch
+                name="hasRedirect"
+                label="این آدرس ریدایرکت دارد"
+              />
+
+              {values.hasRedirect && (
+                <RHFInput
+                  label="مقصد ریدایرکت"
+                  name="redirectTo"
+                  isRequired
+                  dir="ltr"
+                  className="text-left"
+                  placeholder="/new-page یا https://example.com/new-page"
+                />
+              )}
+            </section>
+
+            {/* ── ۵. نقشه‌ی سایت ─────────────────────────── */}
+            <section className="space-y-3 rounded-xl border p-4">
+              <SectionHeader
+                step="۵"
+                title="نقشه‌ی سایت"
+                hint="با فعال کردن این گزینه، آدرس در فایل page-sitemap.xml با دامنه‌ی اصلی سایت منتشر می‌شود."
+              />
+
               <RHFSwitch
                 name="includeInPageSitemap"
-                label="افزودن این آدرس به page-sitemap.xml"
+                label="این آدرس در نقشه‌ی سایت (page-sitemap.xml) منتشر شود"
               />
-            </section>
 
-            <section className="space-y-3 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-              <div>
-                <h3 className="text-sm font-semibold">ریدایرکت 301 دائمی</h3>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  اگر مقصد وارد شود، بازدیدکننده و موتور جستجو پیش از نمایش صفحه
-                  مستقیماً به مقصد منتقل می‌شوند. مقصد می‌تواند مسیر داخلی یا
-                  آدرس کامل با http/https باشد.
-                </p>
-              </div>
-              <RHFInput
-                label="مقصد ریدایرکت (اختیاری)"
-                name="redirectTo"
-                dir="ltr"
-                placeholder="/new-page یا https://example.com/new-page"
-              />
+              {sitemapBlocked && (
+                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-800">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <span>
+                    این آدرس به دلیل{' '}
+                    {values.hasRedirect
+                      ? 'فعال بودن ریدایرکت'
+                      : 'غیرفعال بودن ایندکس'}{' '}
+                    در نقشه‌ی سایت منتشر نمی‌شود.
+                  </span>
+                </div>
+              )}
             </section>
 
             <Button
