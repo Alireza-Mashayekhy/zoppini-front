@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -115,6 +116,9 @@ export default function PageSeoList() {
               <TableHead>صفحه</TableHead>
               <TableHead>متا تایتل</TableHead>
               <TableHead>متا دیسکریپشن</TableHead>
+              <TableHead>دستور ربات‌ها</TableHead>
+              <TableHead>ریدایرکت</TableHead>
+              <TableHead>افزودن دستی به sitemap</TableHead>
               <TableHead>آخرین ویرایش</TableHead>
               <TableHead>عملیات</TableHead>
             </TableRow>
@@ -160,6 +164,35 @@ export default function PageSeoList() {
                   </span>
                 </TableCell>
 
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge variant={pageSeo.indexable ? 'default' : 'destructive'}>
+                      {pageSeo.indexable ? 'index' : 'noindex'}
+                    </Badge>
+                    <Badge variant={pageSeo.followable ? 'secondary' : 'outline'}>
+                      {pageSeo.followable ? 'follow' : 'nofollow'}
+                    </Badge>
+                  </div>
+                </TableCell>
+
+                <TableCell className="max-w-48">
+                  {pageSeo.redirectTo ? (
+                    <span dir="ltr" className="block truncate text-xs text-amber-700">
+                      {pageSeo.redirectTo}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  {pageSeo.includeInPageSitemap ? (
+                    <Badge variant="secondary">در page-sitemap.xml</Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+
                 <TableCell className="text-sm text-muted-foreground">
                   {new Date(pageSeo.updatedAt).toLocaleDateString('fa-IR')}
                 </TableCell>
@@ -174,7 +207,7 @@ export default function PageSeoList() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(pageSeo)}>
-                        ویرایش متا
+                        ویرایش تنظیمات
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         variant="destructive"
@@ -194,7 +227,7 @@ export default function PageSeoList() {
 
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={6}>
+              <TableCell colSpan={9}>
                 {isLoading ? (
                   <p className="py-2 text-center text-sm text-muted-foreground">
                     در حال بارگذاری...
@@ -217,6 +250,7 @@ export default function PageSeoList() {
       </div>
 
       <PageSeoModal
+        key={selectedPage?.id ?? 'new-page-seo'}
         selectedData={selectedPage}
         open={openModal}
         onOpenChange={open => {

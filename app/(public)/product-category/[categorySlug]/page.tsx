@@ -2,8 +2,10 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import { mergePageSeo } from '@/lib/seo';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
+import { getPageSeo } from '@/services/features/seo/server.api';
 
 interface ProductsCategoryPageProps {
   params: Promise<{ categorySlug: string }>;
@@ -17,12 +19,26 @@ interface ProductsCategoryPageProps {
   }>;
 }
 
-// تولید متا دیتا بر اساس اطلاعات دسته‌بندی
+/**
+ * متای نهایی صفحه‌ی دسته‌بندی:
+ * متای تولیدشده از اطلاعات دسته‌بندی + دستور robots (index/noindex و
+ * follow/nofollow) که مدیر سئو در پنل برای مسیر `/product-category/{slug}`
+ * ثبت کرده.
+ */
 export async function generateMetadata({
   params,
 }: ProductsCategoryPageProps): Promise<Metadata> {
   const { categorySlug } = await params;
 
+  const metadata = await buildCategoryMetadata(categorySlug);
+
+  const seo = await getPageSeo(`/product-category/${categorySlug}`);
+
+  return mergePageSeo(metadata, seo);
+}
+
+// تولید متا دیتا بر اساس اطلاعات دسته‌بندی
+async function buildCategoryMetadata(categorySlug: string): Promise<Metadata> {
   try {
     const category = await getCategoryBySlug(categorySlug);
     const categoryData = category?.data;

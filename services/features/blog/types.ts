@@ -82,6 +82,10 @@ export interface BlogPostResponse {
   metaTitle?: string | null;
   /** متا دیسکریپشن سئو؛ اگر خالی باشد، خلاصه‌ی مقاله استفاده می‌شود */
   metaDescription?: string | null;
+  /** false یعنی صفحه‌ی مقاله با تگ noindex منتشر می‌شود */
+  indexable?: boolean;
+  /** false یعنی تگ nofollow روی صفحه‌ی مقاله اعمال می‌شود */
+  followable?: boolean;
   content: string;
   coverImage: string;
   isPublished: boolean;
@@ -102,6 +106,10 @@ export interface createBlogPostDto {
   metaTitle?: string;
   /** متا دیسکریپشن سئو (اختیاری) */
   metaDescription?: string;
+  /** ایندکس شدن صفحه‌ی مقاله در گوگل (پیش‌فرض: بله) */
+  indexable?: boolean;
+  /** دنبال شدن لینک‌های صفحه‌ی مقاله توسط خزنده‌ها (پیش‌فرض: بله) */
+  followable?: boolean;
   content: string;
   image?: File;
   isPublished: boolean;

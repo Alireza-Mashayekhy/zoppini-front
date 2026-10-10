@@ -24,15 +24,19 @@ export const useBlogList = (query: {
   });
 };
 
-export const useAdminBlogList = (query: {
-  page?: number;
-  search?: string;
-  all?: boolean;
-  limit?: number;
-}) => {
+export const useAdminBlogList = (
+  query: {
+    page?: number;
+    search?: string;
+    all?: boolean;
+    limit?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['blog', { ...query }],
     queryFn: () => adminBlogList(query),
+    enabled: options?.enabled ?? true,
   });
 };
 

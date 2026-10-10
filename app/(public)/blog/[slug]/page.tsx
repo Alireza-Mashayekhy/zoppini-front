@@ -3,17 +3,33 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import BlogContent from '@/components/pages/blog/blog-content';
+import { applyRobotsDirective, mergePageSeo } from '@/lib/seo';
 import { getBlogPost } from '@/services/features/blog/server.api';
+import { getPageSeo } from '@/services/features/seo/server.api';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ * متای نهایی صفحه‌ی مقاله:
+ * متای تولیدشده از اطلاعات مقاله + دستور robots ثبت‌شده در فرم خود مقاله
+ * (ایندکس/فالو) + اورراید پنل سئو برای مسیر `/blog/{slug}` که بر همه
+ * اولویت دارد.
+ */
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
 
+  const metadata = await buildBlogMetadata(slug);
+
+  const seo = await getPageSeo(`/blog/${slug}`);
+
+  return mergePageSeo(metadata, seo);
+}
+
+async function buildBlogMetadata(slug: string): Promise<Metadata> {
   try {
     const post = await getBlogPost(slug);
     const data = post.data;
@@ -37,7 +53,7 @@ export async function generateMetadata({
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${data.coverImage}`
       : undefined;
 
-    return {
+    const metadata: Metadata = {
       title: metaTitle,
       description: metaDescription,
       keywords: data.title?.split(' ').slice(0, 5).join(', ') || '',
@@ -62,6 +78,12 @@ export async function generateMetadata({
         canonical: `https://zoppinico.com/blog/${data.slug}`,
       },
     };
+
+    // دستور robots ثبت‌شده در فرم خود مقاله (پنل بلاگ)
+    return applyRobotsDirective(metadata, {
+      indexable: data.indexable,
+      followable: data.followable,
+    });
   } catch {
     return {
       title: 'پست یافت نشد | زوپینی',

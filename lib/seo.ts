@@ -6,6 +6,38 @@ import { getPageSeo } from '@/services/features/seo/server.api';
 interface SeoOverride {
   metaTitle?: string | null;
   metaDescription?: string | null;
+  indexable?: boolean | null;
+  followable?: boolean | null;
+}
+
+/**
+ * دستور robots را بر اساس تنظیمات پنل سئو روی متادیتا اعمال می‌کند.
+ *
+ * - `indexable === false` یعنی `noindex` (صفحه از نتایج جستجو حذف می‌شود)
+ * - `followable === false` یعنی `nofollow` (لینک‌های صفحه دنبال نمی‌شوند)
+ *
+ * اگر رکوردی ثبت نشده باشد یا فیلدها مقدار پیش‌فرض داشته باشند،
+ * تغییری در متادیتا داده نمی‌شود (index, follow).
+ */
+export function applyRobotsDirective(
+  metadata: Metadata,
+  seo?: { indexable?: boolean | null; followable?: boolean | null } | null,
+): Metadata {
+  if (!seo) return metadata;
+
+  const index = seo.indexable !== false;
+  const follow = seo.followable !== false;
+
+  // اگر هر دو پیش‌فرض باشند، یعنی تغییری لازم نیست
+  if (index && follow) return metadata;
+
+  return {
+    ...metadata,
+    robots: {
+      index,
+      follow,
+    },
+  };
 }
 
 /**
@@ -13,7 +45,9 @@ interface SeoOverride {
  *
  * اگر مدیر برای صفحه چیزی ثبت نکرده باشد (یا فیلد را خالی گذاشته باشد)،
  * همان متادیتای پیش‌فرض صفحه استفاده می‌شود؛ پس رفتار سایت بدون تغییر می‌ماند.
+ * دستور robots (index/noindex و follow/nofollow) هم از همین‌جا اعمال می‌شود.
  */
+
 export function mergePageSeo(
   fallback: Metadata,
   seo?: SeoOverride | null,
@@ -21,9 +55,9 @@ export function mergePageSeo(
   const metaTitle = seo?.metaTitle?.trim();
   const metaDescription = seo?.metaDescription?.trim();
 
-  if (!metaTitle && !metaDescription) return fallback;
+  const merged = applyRobotsDirective({ ...fallback }, seo);
 
-  const merged: Metadata = { ...fallback };
+  if (!metaTitle && !metaDescription) return merged;
 
   if (metaTitle) merged.title = metaTitle;
   if (metaDescription) merged.description = metaDescription;

@@ -39,6 +39,10 @@ export const endpoints = {
     page: '/seo/page',
     /** لیست همه‌ی صفحات سئو (عمومی) */
     pages: '/seo/pages',
+    /** ریدایرکت 301 ثبت‌شده برای یک مسیر (عمومی) */
+    redirect: '/seo/redirect',
+    /** همه‌ی ریدایرکت‌های 301 (عمومی، برای proxy فرانت) */
+    redirects: '/seo/redirects',
 
     adminList: '/admin/seo/pages',
     create: '/admin/seo/pages',

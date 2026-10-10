@@ -19,15 +19,19 @@ export const useCategoriesList = (query: {
   });
 };
 
-export const useAdminCategoriesList = (query: {
-  page?: number;
-  search?: string;
-  all?: boolean;
-  limit?: number;
-}) => {
+export const useAdminCategoriesList = (
+  query: {
+    page?: number;
+    search?: string;
+    all?: boolean;
+    limit?: number;
+  },
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['categories', { ...query }],
     queryFn: () => adminCategoriesList(query),
+    enabled: options?.enabled ?? true,
   });
 };
 
