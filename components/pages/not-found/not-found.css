@@ -1,0 +1,128 @@
+/*
+ * استایل‌های صفحهٔ ۴۰۴
+ * تمام کلاس‌ها با پیشوند not-found-page اسکوپ شده‌اند تا روی
+ * بقیهٔ صفحات سایت اثر نگذارند.
+ */
+
+/*
+ * ۵۲px بالای صفحه، فضای هدر ثابت (fixed) سایت را جبران می‌کند؛
+ * همان کاری که بقیهٔ صفحات با کلاس pt-[52px] می‌کنند.
+ */
+.not-found-page {
+  display: grid;
+  place-items: center;
+  min-height: 550px;
+  padding: 94px 24px 48px;
+}
+
+.not-found-page__content {
+  width: 100%;
+  min-width: 0;
+  max-width: 1000px;
+  text-align: center;
+}
+
+.not-found-page__image {
+  display: block;
+  width: min(100%, 540px);
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  margin: 0 auto 24px;
+}
+
+.not-found-page__title {
+  margin: 0 0 16px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.not-found-page__text {
+  margin: 0 auto;
+  max-width: none;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 2.1;
+  color: #666;
+}
+
+.not-found-page__actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.not-found-page__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 26px;
+  border: 1px solid #111;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.not-found-page__button:hover {
+  background: #333;
+  color: #fff;
+  text-decoration: none;
+}
+
+.not-found-page__button--primary {
+  background: #111;
+  color: #fff;
+}
+
+@media (max-width: 1023px) {
+  .not-found-page {
+    padding-inline: 24px;
+  }
+
+  .not-found-page__text {
+    max-width: 680px;
+    white-space: normal;
+    text-wrap: pretty;
+  }
+
+  .not-found-page__image {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .not-found-page {
+    padding-inline: 20px;
+  }
+
+  .not-found-page__text {
+    font-size: 13px;
+    line-height: 2.1;
+  }
+
+  .not-found-page__title {
+    font-size: 23px;
+  }
+}
+
+@media (max-width: 520px) {
+  .not-found-page {
+    padding: 84px 20px 32px;
+  }
+
+  .not-found-page__image {
+    margin-bottom: 20px;
+  }
+
+  .not-found-page__actions {
+    flex-direction: column;
+  }
+}

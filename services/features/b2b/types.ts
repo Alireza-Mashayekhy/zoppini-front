@@ -17,7 +17,7 @@ export interface CreateB2bDto {
   companyName: string;
   position?: string;
   phone: string;
-  email: string;
+  email?: string;
   subject: string;
   message: string;
 }

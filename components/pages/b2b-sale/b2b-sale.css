@@ -1,0 +1,715 @@
+/*
+ * استایل‌های صفحهٔ فروش سازمانی (b2b)
+ * تمام کلاس‌ها با پیشوند b2b اسکوپ شده‌اند تا روی بقیهٔ صفحات اثر نگذارند.
+ */
+
+/*
+ * ۵۲px بالای صفحه، فضای هدر ثابت (fixed) سایت را جبران می‌کند؛
+ * همان کاری که بقیهٔ صفحات با کلاس pt-[52px] می‌کنند.
+ */
+.b2b {
+  display: block;
+  padding-top: 52px;
+}
+
+.b2b * {
+  min-width: 0;
+}
+
+.b2b__wrap {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 32px;
+  margin: auto;
+}
+
+/* دکمه‌ها */
+.b2b__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 26px;
+  border: 1px solid #111;
+  border-radius: 0;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.b2b__button:hover {
+  background: #333;
+  color: #fff;
+  text-decoration: none;
+}
+
+.b2b__button--primary {
+  background: #111;
+  color: #fff;
+}
+
+.b2b__button--secondary {
+  background: #fff;
+}
+
+.b2b__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.b2b__button:disabled:hover {
+  background: #111;
+  color: #fff;
+}
+
+/* هیرو */
+.b2b__hero {
+  background: #f5f3ef;
+  padding: 48px 0 0;
+}
+
+.b2b__hero-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 36px;
+  padding-bottom: 36px;
+}
+
+.b2b__eyebrow {
+  display: block;
+  color: #80633f;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+.b2b__hero h1 {
+  margin: 0 0 12px;
+  font-size: 38px;
+  line-height: 1.6;
+}
+
+.b2b__hero p {
+  max-width: 690px;
+  color: #555;
+  font-size: 16px;
+  line-height: 2;
+}
+
+.b2b__hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 230px;
+}
+
+.b2b__hero-actions > a:last-child {
+  color: #555;
+  font-size: 13px;
+  text-align: center;
+}
+
+.b2b__hero-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  object-position: left center;
+}
+
+/* نوار اعتماد */
+.b2b__trust-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid #ddd;
+  color: #59534b;
+  font-size: 13px;
+}
+
+/* بخش‌ها */
+.b2b__section {
+  padding: 70px 0;
+  scroll-margin-top: 24px;
+}
+
+.b2b__section--soft {
+  background: #f7f6f3;
+}
+
+.b2b__section h2 {
+  margin: 0 0 12px;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.b2b__intro {
+  max-width: 750px;
+  margin: 0 0 30px;
+  color: #666;
+  font-size: 14px;
+  line-height: 2;
+}
+
+/* کارت‌های راهکار */
+.b2b__services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.b2b__service {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 28px;
+  border: 1px solid #dedbd5;
+  background: #fff;
+}
+
+.b2b__service .b2b__num {
+  margin-bottom: 22px;
+  color: #ad9878;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+}
+
+.b2b__service h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.b2b__service p {
+  margin-bottom: 18px;
+  color: #626262;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.b2b__service ul {
+  margin: 0 0 24px;
+  padding: 0 18px 0 0;
+  color: #444;
+  font-size: 13px;
+  line-height: 2.2;
+}
+
+.b2b__service a {
+  margin-top: auto;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #a78b64;
+  font-size: 13px;
+}
+
+/* ردیف‌های جزئیات */
+.b2b__detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  padding: 35px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.b2b__detail-row:last-child {
+  border: 0;
+}
+
+.b2b__detail-row h3 {
+  margin-bottom: 12px;
+  font-size: 22px;
+}
+
+.b2b__detail-row p {
+  color: #666;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.b2b__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-content: start;
+}
+
+.b2b__fact {
+  padding: 18px;
+  border: 1px solid #e6e2dc;
+  background: #fff;
+}
+
+.b2b__fact b {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.b2b__fact span {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.b2b__note {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-right: 2px solid #a78b64;
+  background: #efebe4;
+  color: #5d554b;
+  font-size: 13px;
+}
+
+/* پشتوانهٔ همکاری */
+.b2b__quality {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: start;
+}
+
+.b2b__quality ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.b2b__quality li {
+  padding: 20px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.b2b__quality li b {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 16px;
+}
+
+.b2b__quality li p {
+  color: #666;
+  font-size: 13px;
+  line-height: 2;
+}
+
+/* مراحل */
+.b2b__steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.b2b__step {
+  padding-top: 20px;
+  border-top: 1px solid #b5a286;
+}
+
+.b2b__step b {
+  display: block;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.b2b__step span {
+  color: #9a815f;
+  font-family: Arial, sans-serif;
+}
+
+.b2b__step p {
+  color: #666;
+  font-size: 13px;
+  line-height: 2;
+}
+
+/* فرم درخواست */
+.b2b__request-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 60px;
+}
+
+.b2b__contact-card {
+  margin-top: 30px;
+  padding: 25px;
+  background: #eeebe5;
+}
+
+.b2b__contact-card b {
+  display: block;
+  font-size: 14px;
+}
+
+.b2b__contact-card a {
+  display: block;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.b2b__request-form {
+  padding: 30px;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
+.b2b__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.b2b__field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.b2b__field input,
+.b2b__field select,
+.b2b__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.b2b__field input:focus,
+.b2b__field select:focus,
+.b2b__field textarea:focus {
+  outline: 2px solid #a78b64;
+  outline-offset: 2px;
+}
+
+.b2b__field--full {
+  grid-column: 1 / -1;
+}
+
+.b2b__optional {
+  color: #888;
+  font-size: 11px;
+}
+
+.b2b__field-error {
+  margin-top: 6px;
+  color: #b42318;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.b2b__request-form > .b2b__button {
+  width: 100%;
+  margin-top: 24px;
+  cursor: pointer;
+}
+
+.b2b__form-note {
+  margin-top: 12px;
+  color: #777;
+  font-size: 11px;
+  line-height: 2;
+}
+
+/* پرسش‌های متداول */
+.b2b__faq {
+  max-width: 900px;
+}
+
+.b2b__faq details {
+  padding: 20px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.b2b__faq summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.b2b__faq p {
+  max-width: 760px;
+  padding-top: 12px;
+  color: #666;
+  font-size: 14px;
+  line-height: 2;
+}
+
+/* فراخوان پایانی */
+.b2b__final-cta-wrap {
+  padding-top: 50px;
+}
+
+.b2b__final-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 60px;
+  padding: 32px;
+  background: #1d1c1a;
+  color: #fff;
+}
+
+.b2b__final-cta p {
+  font-size: 16px;
+}
+
+.b2b__final-cta a {
+  border-color: #fff;
+  background: #fff;
+  color: #111;
+}
+
+.b2b summary {
+  touch-action: manipulation;
+}
+
+@media (max-width: 1000px) {
+  .b2b__hero-copy {
+    display: block;
+  }
+
+  .b2b__hero-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 24px;
+  }
+
+  .b2b__hero h1 {
+    font-size: 32px;
+  }
+
+  .b2b__services {
+    gap: 12px;
+  }
+
+  .b2b__service {
+    padding: 20px;
+  }
+
+  .b2b__request-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .b2b__request-form {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .b2b__detail-row {
+    gap: 24px;
+  }
+
+  .b2b__quality {
+    gap: 28px;
+  }
+
+  .b2b__wrap {
+    padding: 0 24px;
+  }
+
+  .b2b__hero-image {
+    aspect-ratio: 2.4 / 1;
+    object-position: 30% center;
+  }
+
+  .b2b__trust-strip {
+    flex-wrap: wrap;
+  }
+
+  .b2b__section {
+    padding: 48px 0;
+  }
+}
+
+@media (max-width: 850px) {
+  .b2b__services {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b__service {
+    padding: 26px;
+  }
+
+  .b2b__service ul {
+    margin-bottom: 20px;
+  }
+
+  .b2b__detail-row {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b__hero-image {
+    aspect-ratio: 2.2 / 1;
+    object-position: left center;
+  }
+}
+
+@media (max-width: 700px) {
+  .b2b__wrap {
+    padding: 0 20px;
+  }
+
+  .b2b__hero {
+    padding-top: 30px;
+  }
+
+  .b2b__hero h1 {
+    font-size: 27px;
+  }
+
+  .b2b__hero p {
+    font-size: 14px;
+  }
+
+  .b2b__hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .b2b__hero-image {
+    aspect-ratio: 1.5 / 1;
+    object-position: left center;
+  }
+
+  .b2b__trust-strip {
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .b2b__services,
+  .b2b__detail-row,
+  .b2b__quality,
+  .b2b__steps,
+  .b2b__request-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b__service {
+    padding: 24px;
+  }
+
+  .b2b__section h2 {
+    font-size: 23px;
+  }
+
+  .b2b__detail-row {
+    gap: 20px;
+  }
+
+  .b2b__facts {
+    gap: 10px;
+  }
+
+  .b2b__fact {
+    padding: 14px;
+  }
+
+  .b2b__fields {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b__request-form {
+    padding: 22px;
+  }
+
+  .b2b__final-cta {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px;
+  }
+
+  .b2b__final-cta p {
+    font-size: 14px;
+  }
+
+  .b2b__hero-copy {
+    padding-bottom: 26px;
+  }
+}
+
+@media (max-width: 600px) {
+  .b2b__hero-image {
+    aspect-ratio: 1.5 / 1;
+    object-position: left center;
+  }
+
+  .b2b__field input,
+  .b2b__field select,
+  .b2b__field textarea {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .b2b__fields {
+    gap: 18px;
+  }
+
+  .b2b__faq summary {
+    min-height: 44px;
+    padding: 6px 0;
+    line-height: 2;
+  }
+
+  .b2b__service a {
+    min-height: 44px;
+    padding: 10px 0;
+  }
+
+  .b2b__contact-card a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+
+  .b2b__hero-actions > a:last-child {
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  .b2b__trust-strip {
+    display: grid;
+    gap: 8px;
+    padding: 20px 0;
+  }
+
+  .b2b__facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .b2b__hero h1 {
+    font-size: clamp(24px, 6.5vw, 29px);
+  }
+
+  .b2b__hero-copy p {
+    line-height: 2;
+  }
+}
+
+@media (max-width: 350px) {
+  .b2b__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .b2b__wrap {
+    padding-inline: 16px;
+  }
+
+  .b2b__request-form {
+    padding: 18px;
+  }
+}
