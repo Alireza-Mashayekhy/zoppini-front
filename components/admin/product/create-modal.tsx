@@ -115,7 +115,7 @@ export default function ProductCreateModal({
       ? z.any().optional()
       : z
           .instanceof(File, { message: 'عکس دسته بندی اجباری است' })
-          .refine(file => file.size <= 5 * 1024 * 102, 'حداکثر حجم 5MB')
+          .refine(file => file.size <= 5 * 1024 * 1024, 'حداکثر حجم 5MB')
           .refine(
             file => ['image/webp'].includes(file.type),
             'فقط فرمت‌ webp مجازند',
