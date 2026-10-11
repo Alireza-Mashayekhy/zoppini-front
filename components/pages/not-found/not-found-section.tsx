@@ -36,7 +36,7 @@ export default function NotFoundSection() {
         <div className="not-found-page__actions">
           <Link
             className="not-found-page__button not-found-page__button--primary"
-            href="/product-category/shirt"
+            href="/products"
           >
             مشاهده محصولات
           </Link>
