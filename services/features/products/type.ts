@@ -190,6 +190,20 @@ export interface RahkaranProductsResponse {
   retailUnitName: string;
   unitName: string;
   unitRef: number;
+
+  /**
+   * موجودی انبار هدیش مال (StoreID = 23)
+   *
+   * اگر دریافت موجودی از راهکاران ناموفق باشد null است.
+   */
+  stockHadishMall?: number | null;
+
+  /**
+   * موجودی انبار خرده‌فروشی (StoreID = 20)
+   *
+   * اگر دریافت موجودی از راهکاران ناموفق باشد null است.
+   */
+  stockRetail?: number | null;
 }
 
 export interface InitialProductVariant {

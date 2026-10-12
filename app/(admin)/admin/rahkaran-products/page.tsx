@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useAdminCategoriesList } from '@/services/features/categories/hooks';
 import {
@@ -74,9 +75,29 @@ type ProductFromRahkaran = {
   sameColorProducts: [];
 };
 
+/*
+ * تب انبارها:
+ *
+ * هر انبار در یک تب جداگانه نمایش داده می‌شود
+ * و ستون موجودی بر اساس تب فعال تغییر می‌کند.
+ */
+type WarehouseTab = 'hadish' | 'retail';
+
+const WAREHOUSE_TABS: {
+  value: WarehouseTab;
+  label: string;
+}[] = [
+  { value: 'hadish', label: 'هدیش مال' },
+  { value: 'retail', label: 'خرده‌فروشی' },
+];
+
 export default function Products() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+
+  // تب فعال انبار
+  const [activeWarehouse, setActiveWarehouse] =
+    useState<WarehouseTab>('hadish');
 
   // انتخاب رنگ و سایز
   const [openVariant, setOpenVariant] = useState(false);
@@ -106,6 +127,14 @@ export default function Products() {
     search: debouncedSearch,
     page,
   });
+
+  /*
+   * موجودی محصول در تب فعال
+   */
+  const getActiveWarehouseStock = (product: RahkaranProductsResponse) =>
+    activeWarehouse === 'hadish'
+      ? product.stockHadishMall
+      : product.stockRetail;
 
   const colorItems =
     colorsData?.data?.map((color: ColorResponse) => ({
@@ -159,7 +188,9 @@ export default function Products() {
       colorId: data.colorId,
       sizeId,
       price: Number(selectedRahkaranProduct.fee) || 0,
-      stock: Number(selectedRahkaranProduct.unitRef) || 0,
+      stock:
+        (Number(selectedRahkaranProduct.stockHadishMall) || 0) +
+        (Number(selectedRahkaranProduct.stockRetail) || 0),
       sku: selectedRahkaranProduct.productNumber || '',
     }));
 
@@ -191,8 +222,8 @@ export default function Products() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Search */}
-      <div className="flex items-center justify-between">
+      {/* Search + تب انبارها */}
+      <div className="flex items-center justify-between gap-4">
         <Input
           placeholder="جستجو"
           value={search}
@@ -202,6 +233,21 @@ export default function Products() {
           }}
           className="w-96 bg-white"
         />
+
+        <Tabs
+          value={activeWarehouse}
+          onValueChange={value =>
+            setActiveWarehouse(value as WarehouseTab)
+          }
+        >
+          <TabsList>
+            {WAREHOUSE_TABS.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
 
       {/* Table */}
@@ -212,6 +258,10 @@ export default function Products() {
               <TableHead className="w-10">آیدی</TableHead>
               <TableHead>نام محصول</TableHead>
               <TableHead>کد محصول</TableHead>
+              <TableHead>
+                موجودی{' '}
+                {activeWarehouse === 'hadish' ? 'هدیش مال' : 'خرده‌فروشی'}
+              </TableHead>
               <TableHead>عملیات</TableHead>
             </TableRow>
           </TableHeader>
@@ -226,6 +276,26 @@ export default function Products() {
                 <TableCell>{product.productName}</TableCell>
 
                 <TableCell>{product.productNumber}</TableCell>
+
+                <TableCell>
+                  {(() => {
+                    const stock = getActiveWarehouseStock(product);
+
+                    if (stock === null || stock === undefined) {
+                      return <span className="text-muted-foreground">—</span>;
+                    }
+
+                    return (
+                      <span
+                        className={
+                          stock > 0 ? 'text-green-600' : 'text-red-500'
+                        }
+                      >
+                        {stock.toLocaleString('fa-IR')}
+                      </span>
+                    );
+                  })()}
+                </TableCell>
 
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -281,6 +351,24 @@ export default function Products() {
                 <div className="mt-1 text-sm text-muted-foreground">
                   قیمت:{' '}
                   {Number(selectedRahkaranProduct.fee).toLocaleString('fa-IR')}
+                </div>
+
+                <div className="mt-1 text-sm text-muted-foreground">
+                  موجودی هدیش مال:{' '}
+                  {selectedRahkaranProduct.stockHadishMall === null ||
+                  selectedRahkaranProduct.stockHadishMall === undefined
+                    ? '—'
+                    : selectedRahkaranProduct.stockHadishMall.toLocaleString(
+                        'fa-IR',
+                      )}
+                  {' | '}
+                  خرده‌فروشی:{' '}
+                  {selectedRahkaranProduct.stockRetail === null ||
+                  selectedRahkaranProduct.stockRetail === undefined
+                    ? '—'
+                    : selectedRahkaranProduct.stockRetail.toLocaleString(
+                        'fa-IR',
+                      )}
                 </div>
               </div>
             )}
