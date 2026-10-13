@@ -258,10 +258,6 @@ export default function Products() {
               <TableHead className="w-10">آیدی</TableHead>
               <TableHead>نام محصول</TableHead>
               <TableHead>کد محصول</TableHead>
-              <TableHead>
-                موجودی{' '}
-                {activeWarehouse === 'hadish' ? 'هدیش مال' : 'خرده‌فروشی'}
-              </TableHead>
               <TableHead>عملیات</TableHead>
             </TableRow>
           </TableHeader>
@@ -276,26 +272,6 @@ export default function Products() {
                 <TableCell>{product.productName}</TableCell>
 
                 <TableCell>{product.productNumber}</TableCell>
-
-                <TableCell>
-                  {(() => {
-                    const stock = getActiveWarehouseStock(product);
-
-                    if (stock === null || stock === undefined) {
-                      return <span className="text-muted-foreground">—</span>;
-                    }
-
-                    return (
-                      <span
-                        className={
-                          stock > 0 ? 'text-green-600' : 'text-red-500'
-                        }
-                      >
-                        {stock.toLocaleString('fa-IR')}
-                      </span>
-                    );
-                  })()}
-                </TableCell>
 
                 <TableCell className="text-right">
                   <DropdownMenu>
