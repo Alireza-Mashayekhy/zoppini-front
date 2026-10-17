@@ -93,6 +93,7 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
               style={{ minWidth: '200px', maxWidth: '250px' }}
             >
               <ProductCard
+                id={product.id}
                 image={product.image}
                 title={product.title}
                 price={product.variants?.[0]?.price || 0}

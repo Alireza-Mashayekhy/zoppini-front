@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 
 import Sidebar from '@/components/layout/dashboard/sidebar';
 import SidebarContent from '@/components/layout/dashboard/sidebar-content';
+import CompareBar from '@/components/shared/compare-bar';
 import Logo from '@/components/shared/logo';
 
 export const metadata: Metadata = {
@@ -31,6 +32,9 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
+
+      {/* نوار شناور لیست مقایسه */}
+      <CompareBar />
     </div>
   );
 }

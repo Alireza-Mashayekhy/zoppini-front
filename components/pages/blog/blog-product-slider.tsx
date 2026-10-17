@@ -105,6 +105,7 @@ export default function BlogProductSlider({
               >
                 <ProductCard
                   slider
+                  id={product.id}
                   image={product.image ?? ''}
                   title={product.title}
                   price={product.price}

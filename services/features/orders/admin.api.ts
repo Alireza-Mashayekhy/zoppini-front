@@ -3,6 +3,7 @@ import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { AddressResponse } from '../addresses/types';
+import { ColorResponse, SizeResponse } from '../products/type';
 
 export enum OrderStatus {
   PENDING = 'pending',
@@ -31,6 +32,8 @@ export interface OrderVariant {
   id: number;
   sizeId?: number;
   colorId?: number;
+  size?: SizeResponse;
+  color?: ColorResponse;
   sku?: string | null;
   product?: OrderProduct;
 }

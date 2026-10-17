@@ -2,6 +2,8 @@
 import { Mail, MapPin, Phone } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
+import DirectionsMenu from '../information/direction';
+
 const BranchesMap = dynamic(
   () => import('@/components/pages/branches/branches-map'),
   {
@@ -52,7 +54,7 @@ export default function BranchesContent() {
   ];
 
   return (
-    <div className="min-h-screen pt-[52px] pb-12">
+    <div className="min-h-screen pt-[52px] pb-12 z-0">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8 pt-6">
@@ -90,6 +92,8 @@ export default function BranchesContent() {
                     </a>
                   </div>
                 )}
+
+                <DirectionsMenu lat={item?.coords[0]} lng={item?.coords[1]} />
               </div>
               <section className="bg-white rounded-2xl shadow-sm">
                 <div className="w-full h-full min-h-[400px] rounded-xl overflow-hidden bg-gray-100">

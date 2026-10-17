@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontalIcon } from 'lucide-react';
+import { Download, Loader2, MoreHorizontalIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -38,7 +38,9 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDebounce } from '@/hooks/use-debounce';
+import { csvFilename, downloadCsv } from '@/lib/csv';
 import { toPersianDate } from '@/lib/utils';
+import { gamificationList } from '@/services/features/gamification/api';
 import {
   useGamificationList,
   useGamificationStats,
@@ -50,6 +52,9 @@ const STYLE_COLORS = ['#43AA8B', '#254441', '#FF6F59', '#DB504A'];
 export default function Users() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const [selectedInfo, setSelectedInfo] = useState<GamificationResponse | null>(
     null,
@@ -62,6 +67,8 @@ export default function Users() {
   const { data } = useGamificationList({
     search: debouncedSearch,
     page,
+    from: from || undefined,
+    to: to || undefined,
   });
 
   const { data: stats } = useGamificationStats();
@@ -69,6 +76,77 @@ export default function Users() {
   const handleInfo = (game: GamificationResponse) => {
     setSelectedInfo(game);
     setOpenModal(true);
+  };
+
+  const handleExport = async () => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+
+    try {
+      // خروجی «همه» رکوردهای منطبق با جستجو و بازه تاریخ — نه فقط صفحه جاری
+      const result = await gamificationList({
+        search: debouncedSearch || undefined,
+        from: from || undefined,
+        to: to || undefined,
+        all: true,
+      });
+
+      if (!result.data?.length) {
+        alert('رکوردی برای خروجی وجود ندارد.');
+        return;
+      }
+
+      const headers = [
+        'id',
+        'fullName',
+        'phone',
+        'birthDate',
+        'styleFa',
+        'styleEn',
+        'q1',
+        'q2',
+        'q3',
+        'q4',
+        'createdAt',
+      ];
+
+      const rows = result.data.map(game => {
+        const answers = game.answers ?? [];
+
+        const answerTexts = [1, 2, 3, 4].map(questionNumber => {
+          const answer = answers.find(
+            item => item.questionNumber === questionNumber,
+          );
+
+          if (!answer) return '';
+
+          return (
+            QUESTIONS[questionNumber - 1]?.options?.[
+              answer.optionNumber - 1
+            ] ?? ''
+          );
+        });
+
+        return [
+          game.id,
+          game.fullName,
+          game.phone,
+          game.birthDate ?? '',
+          game.styleProfile?.titleFa ?? '',
+          game.styleProfile?.titleEn ?? '',
+          ...answerTexts,
+          game.createdAt ?? '',
+        ];
+      });
+
+      downloadCsv(csvFilename('gamification', from, to), headers, rows);
+    } catch (error) {
+      console.error('CSV export failed:', error);
+      alert('دریافت خروجی CSV با خطا مواجه شد. دوباره تلاش کنید.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const chartConfig = {
@@ -122,6 +200,70 @@ export default function Users() {
         {/* ================= USERS ================= */}
 
         <TabsContent value="users" className="mt-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                  از تاریخ
+                </span>
+                <Input
+                  type="date"
+                  value={from}
+                  onChange={e => {
+                    setFrom(e.target.value);
+                    setPage(1);
+                  }}
+                  aria-label="از تاریخ"
+                  className="w-40 bg-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                  تا تاریخ
+                </span>
+                <Input
+                  type="date"
+                  value={to}
+                  onChange={e => {
+                    setTo(e.target.value);
+                    setPage(1);
+                  }}
+                  aria-label="تا تاریخ"
+                  className="w-40 bg-white"
+                />
+              </div>
+
+              {(from || to) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFrom('');
+                    setTo('');
+                    setPage(1);
+                  }}
+                >
+                  پاک کردن بازه
+                </Button>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="bg-white"
+            >
+              {isExporting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {isExporting ? 'در حال خروجی...' : 'خروجی CSV (کل)'}
+            </Button>
+          </div>
+
           <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
             <Table>
               <TableHeader>

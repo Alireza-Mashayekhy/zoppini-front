@@ -261,7 +261,7 @@ export default function OrderDetailsDialog({
                     <Link
                       href={`/product/${item?.variant?.product?.slug}`}
                       key={item.id}
-                      className="flex items-center justify-between gap-4 p-4"
+                      className="flex justify-between gap-4 p-4"
                       target="_blank"
                     >
                       <div className="min-w-0">
@@ -273,15 +273,23 @@ export default function OrderDetailsDialog({
                           تعداد: {item.quantity}
                         </div>
 
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          رنگ: {item.variant?.color?.name ?? '-'}
+                        </div>
+
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          سایز: {item.variant?.size?.name ?? '-'}
+                        </div>
+
                         {item.variant?.sku && (
                           <div className="mt-1 text-xs text-muted-foreground">
-                            SKU: {item.variant.sku}
+                            کد: {item.variant.sku}
                           </div>
                         )}
                       </div>
 
-                      <div className="shrink-0 text-left">
-                        <div className="font-medium">
+                      <div className="text-left flex flex-col">
+                        <div className="font-medium text-muted-foreground">
                           {formatPrice(item.price)}
                         </div>
 
@@ -289,7 +297,7 @@ export default function OrderDetailsDialog({
                           {item.quantity} عدد
                         </div>
 
-                        <div className="mt-1 text-xs text-muted-foreground">
+                        <div className="mt-auto text-xs">
                           مجموع:{' '}
                           {formatPrice(Number(item.price) * item.quantity)}
                         </div>

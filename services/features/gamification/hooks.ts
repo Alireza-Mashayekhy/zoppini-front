@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { createGamification, gamificationList, gamificationStats } from './api';
+import {
+  createGamification,
+  gamificationList,
+  GamificationListQuery,
+  gamificationStats,
+} from './api';
 import { GamificationDto } from './type';
 
-export const useGamificationList = (query: {
-  page?: number;
-  search?: string;
-}) => {
+export const useGamificationList = (query: GamificationListQuery) => {
   return useQuery({
     queryKey: ['gamification', { ...query }],
     queryFn: () => gamificationList(query),

@@ -167,6 +167,7 @@ export default function Search() {
                     {results.map(product => (
                       <ProductCard
                         key={product.id}
+                        id={product.id}
                         image={product.image}
                         price={product?.variants?.[0]?.price}
                         slug={product.slug}

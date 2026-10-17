@@ -1,6 +1,6 @@
 'use client';
 
-import { Download, MoreHorizontalIcon, Trash2 } from 'lucide-react';
+import { Download, Loader2, MoreHorizontalIcon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import CustomPagination from '@/components/shared/custom-pagination';
@@ -36,11 +36,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useDebounce } from '@/hooks/use-debounce';
+import { csvFilename, downloadCsv } from '@/lib/csv';
 import { toPersianDate } from '@/lib/utils';
+import { visitsList } from '@/services/features/visits/api';
 import {
   useDeleteVisit,
-  useVisitStats,
   useVisitsList,
+  useVisitStats,
 } from '@/services/features/visits/hooks';
 import { VisitResponse } from '@/services/features/visits/type';
 
@@ -68,6 +70,9 @@ export default function VisitsPage() {
   const [search, setSearch] = useState('');
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [deviceFilter, setDeviceFilter] = useState<string>('all');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   const [selectedVisit, setSelectedVisit] = useState<VisitResponse | null>(
     null,
@@ -81,6 +86,8 @@ export default function VisitsPage() {
     page,
     pageFilter: pageFilter === 'all' ? undefined : pageFilter,
     deviceType: deviceFilter === 'all' ? undefined : deviceFilter,
+    from: from || undefined,
+    to: to || undefined,
   });
 
   const { data: stats } = useVisitStats();
@@ -98,65 +105,72 @@ export default function VisitsPage() {
     }
   };
 
-  const handleExport = () => {
-    if (!data?.data?.length) return;
+  const handleExport = async () => {
+    if (isExporting) return;
 
-    const headers = [
-      'id',
-      'ip',
-      'page',
-      'path',
-      'deviceType',
-      'os',
-      'browser',
-      'screen',
-      'language',
-      'userId',
-      'guestId',
-      'referrer',
-      'utm_source',
-      'utm_medium',
-      'utm_campaign',
-      'createdAt',
-    ];
+    setIsExporting(true);
 
-    const rows = data.data.map(visit => [
-      visit.id,
-      visit.ip ?? '',
-      visit.page,
-      visit.path ?? '',
-      visit.deviceType ?? '',
-      visit.os ?? '',
-      visit.browser ?? '',
-      visit.screen ?? '',
-      visit.language ?? '',
-      visit.userId ?? '',
-      visit.guestId ?? '',
-      visit.referrer ?? '',
-      visit.utmSource ?? '',
-      visit.utmMedium ?? '',
-      visit.utmCampaign ?? '',
-      visit.createdAt,
-    ]);
+    try {
+      // خروجی «همه» رکوردهای منطبق با فیلترها و بازه تاریخ — نه فقط صفحه جاری
+      const result = await visitsList({
+        search: debouncedSearch || undefined,
+        pageFilter: pageFilter === 'all' ? undefined : pageFilter,
+        deviceType: deviceFilter === 'all' ? undefined : deviceFilter,
+        from: from || undefined,
+        to: to || undefined,
+        all: true,
+      });
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row =>
-        row
-          .map(cell => `"${String(cell).replace(/"/g, '""')}"`)
-          .join(','),
-      ),
-    ].join('\n');
+      if (!result.data?.length) {
+        alert('رکوردی برای خروجی وجود ندارد.');
+        return;
+      }
 
-    const blob = new Blob(['\ufeff' + csv], {
-      type: 'text/csv;charset=utf-8;',
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `visits-page-${page}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+      const headers = [
+        'id',
+        'ip',
+        'page',
+        'path',
+        'deviceType',
+        'os',
+        'browser',
+        'screen',
+        'language',
+        'userId',
+        'guestId',
+        'referrer',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'createdAt',
+      ];
+
+      const rows = result.data.map(visit => [
+        visit.id,
+        visit.ip ?? '',
+        visit.page,
+        visit.path ?? '',
+        visit.deviceType ?? '',
+        visit.os ?? '',
+        visit.browser ?? '',
+        visit.screen ?? '',
+        visit.language ?? '',
+        visit.userId ?? '',
+        visit.guestId ?? '',
+        visit.referrer ?? '',
+        visit.utmSource ?? '',
+        visit.utmMedium ?? '',
+        visit.utmCampaign ?? '',
+        visit.createdAt,
+      ]);
+
+      downloadCsv(csvFilename('visits', from, to), headers, rows);
+    } catch (error) {
+      console.error('CSV export failed:', error);
+      alert('دریافت خروجی CSV با خطا مواجه شد. دوباره تلاش کنید.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const formatIp = (ip: string | null) => ip || '-';
@@ -234,16 +248,66 @@ export default function VisitsPage() {
               <SelectItem value="tablet">تبلت</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex items-center gap-2">
+            <span className="whitespace-nowrap text-sm text-muted-foreground">
+              از تاریخ
+            </span>
+            <Input
+              type="date"
+              value={from}
+              onChange={e => {
+                setFrom(e.target.value);
+                setPage(1);
+              }}
+              aria-label="از تاریخ"
+              className="w-40 bg-white"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="whitespace-nowrap text-sm text-muted-foreground">
+              تا تاریخ
+            </span>
+            <Input
+              type="date"
+              value={to}
+              onChange={e => {
+                setTo(e.target.value);
+                setPage(1);
+              }}
+              aria-label="تا تاریخ"
+              className="w-40 bg-white"
+            />
+          </div>
+
+          {(from || to) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setFrom('');
+                setTo('');
+                setPage(1);
+              }}
+            >
+              پاک کردن بازه
+            </Button>
+          )}
         </div>
 
         <Button
           variant="outline"
           onClick={handleExport}
-          disabled={!data?.data?.length}
+          disabled={isExporting}
           className="bg-white"
         >
-          <Download className="size-4" />
-          خروجی CSV
+          {isExporting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Download className="size-4" />
+          )}
+          {isExporting ? 'در حال خروجی...' : 'خروجی CSV (کل)'}
         </Button>
       </div>
 
