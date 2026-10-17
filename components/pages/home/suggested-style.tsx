@@ -67,14 +67,14 @@ export default function SuggestedStyle({
   const totalSlides = products.length + 1; // +1 for video
 
   return (
-    <section className="relative flex h-screen w-full flex-col overflow-hidden bg-white">
+    <section className="relative flex h-[60vh] sm:h-screen w-full flex-col overflow-hidden bg-white">
       <LuxuryTitle className="mb-6 mt-4 shrink-0 px-6">
         پیشنهاد استایل
       </LuxuryTitle>
 
       <div className="relative min-h-0 flex flex-1 group">
         {/* Slider */}
-        <div className="h-full! min-w-[90vw]! sm:min-w-[45vw]! lg:min-w-[32vw]!">
+        <div className="h-full! min-w-[50vw]! sm:min-w-[45vw]! lg:min-w-[32vw]!">
           <HlsVideo
             src="/home/style/master.m3u8"
             poster="/home/style/poster.webp"
@@ -96,7 +96,7 @@ export default function SuggestedStyle({
               <Link
                 href={`/product/${product.product.slug}`}
                 key={product.id}
-                className="keen-slider__slide h-full! min-w-[80vw]! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+                className="keen-slider__slide h-full! min-w-[50vw]! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
               >
                 <div className="relative min-h-0 flex-1">
                   <Image
@@ -139,25 +139,6 @@ export default function SuggestedStyle({
               <ChevronRight className="size-6" />
             </button>
           </>
-        )}
-
-        {/* Dots */}
-        {loaded && totalSlides > 1 && (
-          <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-            {Array.from({ length: totalSlides }).map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => instanceRef.current?.moveToIdx(idx)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === idx
-                    ? 'w-6 bg-primary'
-                    : 'w-2 bg-primary/40 hover:bg-primary/70'
-                }`}
-                aria-label={`رفتن به اسلاید ${idx + 1}`}
-              />
-            ))}
-          </div>
         )}
       </div>
     </section>
