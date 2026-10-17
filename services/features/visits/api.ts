@@ -12,6 +12,8 @@ export interface VisitListQuery {
   deviceType?: string;
   from?: string;
   to?: string;
+  /** دریافت همه رکوردها بدون صفحه‌بندی (برای خروجی CSV) */
+  all?: boolean;
 }
 
 export async function visitsList(query: VisitListQuery) {

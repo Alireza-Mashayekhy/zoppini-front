@@ -8,10 +8,17 @@ import {
   GamificationStats,
 } from './type';
 
-export async function gamificationList(query: {
+export interface GamificationListQuery {
   page?: number;
+  limit?: number;
   search?: string;
-}) {
+  from?: string;
+  to?: string;
+  /** دریافت همه رکوردها بدون صفحه‌بندی (برای خروجی CSV) */
+  all?: boolean;
+}
+
+export async function gamificationList(query: GamificationListQuery) {
   const { data } = await api.get<ApiListResponse<GamificationResponse>>(
     endpoints.gamificateion.list,
     {
