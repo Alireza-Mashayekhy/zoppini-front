@@ -5,7 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import CompareToggle, { cardActionButtonClass } from '@/components/shared/compare-toggle';
+import CompareToggle, {
+  cardActionButtonClass,
+} from '@/components/shared/compare-toggle';
 import QuickAddDialog from '@/components/shared/quick-add-dialog';
 import { cn } from '@/lib/utils';
 import { ProductDiscount } from '@/services/features/discounts/types';
@@ -134,7 +136,7 @@ export default function ProductCard({
           - لمسی (موبایل/تبلت): همیشه نمایان‌اند چون هاور نداریم
           - در نوار خالی پایین کارت می‌نشینند تا روی تصویر/متن نیفتند */}
       {showCardActions && (
-        <div className="absolute bottom-3 start-3 z-20 flex gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
+        <div className="absolute top-3 left-3 flex z-20 gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
           <button
             type="button"
             onClick={() => setQuickAddOpen(true)}

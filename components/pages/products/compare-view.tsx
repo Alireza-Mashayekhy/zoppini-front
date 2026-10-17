@@ -87,8 +87,8 @@ export default function CompareView() {
         <h1 className="text-xl font-light">لیست مقایسه خالی است</h1>
 
         <p className="max-w-md text-sm text-muted-foreground">
-          از روی کارت محصولات، دکمه مقایسه را بزنید تا مشخصات چند محصول را
-          کنار هم ببینید.
+          از روی کارت محصولات، دکمه مقایسه را بزنید تا مشخصات چند محصول را کنار
+          هم ببینید.
         </p>
 
         <Link href="/products">
@@ -112,12 +112,13 @@ export default function CompareView() {
           <div>
             {hasDiscount && (
               <div className="text-xs text-muted-foreground line-through">
-                {base.toLocaleString()} تومان
+                {Number(base).toLocaleString()} تومان
               </div>
             )}
 
             <div className="font-semibold">
-              {(hasDiscount ? discountFinal : base).toLocaleString()} تومان
+              {Number(hasDiscount ? discountFinal : base).toLocaleString()}{' '}
+              تومان
             </div>
           </div>
         );
@@ -213,14 +214,16 @@ export default function CompareView() {
     }
 
     if (column.error || !column.product) {
-      return <span className="text-xs text-muted-foreground">در دسترس نیست</span>;
+      return (
+        <span className="text-xs text-muted-foreground">در دسترس نیست</span>
+      );
     }
 
     return content(column);
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
+    <div className="mx-auto w-full max-w-6xl px-4 py-14">
       {/* عنوان و عملیات گروهی */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-light">مقایسه محصولات</h1>
@@ -235,11 +238,7 @@ export default function CompareView() {
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr>
-              <th className="sticky start-0 z-10 w-32 border-b border-s border-gray-200 bg-white p-3 text-start align-top">
-                <span className="text-xs font-normal text-muted-foreground">
-                  ویژگی
-                </span>
-              </th>
+              <th className="sticky start-0 z-10 w-32 border-b border-s border-gray-200 bg-white p-3 text-start align-top"></th>
 
               {columns.map(column => (
                 <th

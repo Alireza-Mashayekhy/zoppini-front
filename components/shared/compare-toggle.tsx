@@ -9,7 +9,7 @@ import { MAX_COMPARE, useCompareStore } from '@/store/compare.store';
 
 /** استایل مشترک دکمه‌های کوچک آیکن‌دار روی کارت محصول */
 export const cardActionButtonClass =
-  'flex size-9 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-md backdrop-blur transition-colors hover:bg-white';
+  'flex size-9 items-center justify-center rounded-none border bg-white/90 text-gray-700 shadow-md backdrop-blur transition-colors hover:bg-gray-200';
 
 interface CompareToggleProps {
   product: {
@@ -26,7 +26,10 @@ interface CompareToggleProps {
  * دکمه افزودن/حذف محصول از لیست مقایسه (روی کارت‌های محصول).
  * state از استور persist شده (localStorage) خوانده می‌شود.
  */
-export default function CompareToggle({ product, className }: CompareToggleProps) {
+export default function CompareToggle({
+  product,
+  className,
+}: CompareToggleProps) {
   const hydrated = useCompareStore(state => state.hydrated);
   const setHydrated = useCompareStore(state => state.setHydrated);
   const toggle = useCompareStore(state => state.toggle);
