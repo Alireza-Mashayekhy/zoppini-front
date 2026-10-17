@@ -43,7 +43,10 @@ import CreateSizeModal from './create-size-modal';
 const SHOW_SKU = true;
 
 // ==================== نوع جدید برای فرم ====================
-type FormValues = Omit<createProductDto, 'colorId' | 'indexable' | 'followable'> & {
+type FormValues = Omit<
+  createProductDto,
+  'colorId' | 'indexable' | 'followable'
+> & {
   colorId: string; // در فرم به صورت رشته (تک‌انتخاب)
   indexable: boolean;
   followable: boolean;
@@ -195,7 +198,7 @@ export default function ProductCreateModal({
 
       return {
         // چون رنگ عوض شده، id قبلی را نباید نگه داریم
-        id: undefined,
+        id: existing?.id,
 
         colorId,
         sizeId: size,
