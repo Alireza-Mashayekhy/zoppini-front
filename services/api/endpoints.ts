@@ -154,6 +154,17 @@ export const endpoints = {
     transactions: '/wallet/transactions',
   },
 
+  /** باشگاه مشتریان دایاتک */
+  club: {
+    me: '/club/me',
+    wallets: '/club/wallets',
+    walletTransactions: (customerWalletId: number) =>
+      `/club/wallets/${customerWalletId}/transactions`,
+    loyaltyHistories: '/club/loyalty-histories',
+    payments: '/club/payments',
+    levels: '/club/levels',
+  },
+
   discounts: {
     list: '/admin/discounts',
     detail: (id: number) => `/admin/discounts/${id}`,

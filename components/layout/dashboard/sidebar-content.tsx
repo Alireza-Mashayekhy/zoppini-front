@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Award,
   Flag,
   Heart,
   LayoutDashboard,
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'داشبورد', href: '/dashboard' },
   { icon: ShoppingBag, label: 'سفارشات', href: '/dashboard/orders' },
   { icon: Wallet, label: 'کیف پول', href: '/dashboard/wallet' },
+  { icon: Award, label: 'باشگاه مشتریان', href: '/dashboard/club' },
   { icon: User, label: 'پروفایل', href: '/dashboard/profile' },
   { icon: Heart, label: 'علاقه‌مندی‌ها', href: '/dashboard/wishlist' },
   { icon: Flag, label: 'آدرس ها', href: '/dashboard/addresses' },
