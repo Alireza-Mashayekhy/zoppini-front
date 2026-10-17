@@ -109,6 +109,7 @@ export default function NewIn({ products }: NewInProps) {
             >
               <ProductCard
                 slider
+                id={product.product.id}
                 image={image}
                 title={product.product.title}
                 price={price}

@@ -2,6 +2,7 @@ import Script from 'next/script';
 
 import Footer from '@/components/layout/public/footer';
 import Header from '@/components/layout/public/header';
+import CompareBar from '@/components/shared/compare-bar';
 
 export default function PublicLayout({
   children,
@@ -64,6 +65,9 @@ export default function PublicLayout({
       {children}
 
       <Footer />
+
+      {/* نوار شناور لیست مقایسه */}
+      <CompareBar />
     </>
   );
 }

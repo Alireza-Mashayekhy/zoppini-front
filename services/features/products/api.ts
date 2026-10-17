@@ -10,6 +10,7 @@ import {
   CreateSizeDto,
   CreateStyleProductDto,
   FeaturedProductResponse,
+  ProductResponse,
   ProductsResponse,
   RahkaranProductsResponse,
   SizeResponse,
@@ -41,6 +42,15 @@ export async function productsList(query: {
     {
       params: query,
     },
+  );
+
+  return data;
+}
+
+/** دریافت عمومی محصول با slug (خرید سریع از کارت و صفحه مقایسه) */
+export async function getProductBySlug(slug: string) {
+  const { data } = await api.get<ApiSingleResponse<ProductResponse>>(
+    `${endpoints.products.list}/${encodeURIComponent(slug)}`,
   );
 
   return data;

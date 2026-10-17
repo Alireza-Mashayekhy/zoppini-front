@@ -21,6 +21,7 @@ import {
   editProduct,
   getFeaturedProducts,
   getProductById,
+  getProductBySlug,
   getStyleProducts,
   productsList,
   rahkaranProductsList,
@@ -120,6 +121,17 @@ export const useProductById = (id: string) => {
     queryKey: ['product', id],
     queryFn: () => getProductById(id),
     enabled: !!id,
+  });
+};
+
+/** دریافت محصول با slug — برای خرید سریع از کارت و صفحه مقایسه */
+export const useProductBySlug = (slug: string | null | undefined) => {
+  return useQuery({
+    queryKey: ['product-by-slug', slug],
+    queryFn: () => getProductBySlug(slug as string),
+    enabled: !!slug,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
 
