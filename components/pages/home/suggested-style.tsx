@@ -72,17 +72,17 @@ export default function SuggestedStyle({
         پیشنهاد استایل
       </LuxuryTitle>
 
-      <div className="relative min-h-0 flex-1 group">
+      <div className="relative min-h-0 flex flex-1 group">
         {/* Slider */}
+        <div className="h-full! min-w-[90vw]! sm:min-w-[45vw]! lg:min-w-[32vw]!">
+          <HlsVideo
+            src="/home/style/master.m3u8"
+            poster="/home/style/poster.webp"
+            className="h-full w-full object-cover"
+          />
+        </div>
         <div ref={sliderRef} className="keen-slider h-full" dir="rtl">
           {/* ویدیو - اولین اسلاید */}
-          <div className="keen-slider__slide h-full! min-w-[90vw]! sm:min-w-[45vw]! lg:min-w-[32vw]!">
-            <HlsVideo
-              src="/home/style/master.m3u8"
-              poster="/home/style/poster.webp"
-              className="h-full w-full object-cover"
-            />
-          </div>
 
           {/* محصولات */}
           {products.map(product => {
