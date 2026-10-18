@@ -52,7 +52,7 @@ export default async function Header() {
               </Link>
 
               <Link
-                href="https://zoppiniclub.dayaclub.com/"
+                href="https://zoppinico.com/dashboard/club"
                 className="text-sm transition-colors hover:text-black/50"
               >
                 باشگاه مشتریان{' '}
