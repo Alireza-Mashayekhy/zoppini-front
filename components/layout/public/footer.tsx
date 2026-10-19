@@ -35,7 +35,7 @@ export default function Footer() {
             <AnimateLink href="/shopping_guide">
               <li>راهنمای خرید</li>
             </AnimateLink>
-            <AnimateLink href="https://zoppiniclub.dayaclub.com/">
+            <AnimateLink href="https://zoppinico.com/dashboard/club">
               <li>باشگاه مشتریان</li>
             </AnimateLink>
           </ul>
