@@ -186,11 +186,20 @@ export default function B2bSalePage() {
         </div>
 
         <Image
-          className="b2b__hero-image"
-          src="/b2b/hero.webp"
+          className="b2b__hero-image hidden! sm:block!"
+          src="/b2b/b2b-hero-zoppini.png"
           alt="سه ست پوشاک زوپینی در فضای کاری"
           width={1800}
           height={600}
+          priority
+        />
+
+        <Image
+          className="b2b__hero-image sm:hidden!"
+          src="/b2b/b2b-hero-mobile.png"
+          alt="سه ست پوشاک زوپینی در فضای کاری"
+          width={300}
+          height={200}
           priority
         />
       </section>
