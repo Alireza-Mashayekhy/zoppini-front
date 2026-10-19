@@ -36,19 +36,25 @@ export const EditorImage = Node.create({
       src: {
         default: '',
         parseHTML: element =>
-          toStoredPath(readMediaElement(element, 'img')?.getAttribute('src') ?? ''),
-        renderHTML: attributes => (attributes.src ? { src: attributes.src } : {}),
+          toStoredPath(
+            readMediaElement(element, 'img')?.getAttribute('src') ?? '',
+          ),
+        renderHTML: attributes =>
+          attributes.src ? { src: attributes.src } : {},
       },
       alt: {
         default: '',
-        parseHTML: element => readMediaElement(element, 'img')?.getAttribute('alt') ?? '',
-        renderHTML: attributes => (attributes.alt ? { alt: attributes.alt } : {}),
+        parseHTML: element =>
+          readMediaElement(element, 'img')?.getAttribute('alt') ?? '',
+        renderHTML: attributes =>
+          attributes.alt ? { alt: attributes.alt } : {},
       },
       title: {
         default: '',
         parseHTML: element =>
           readMediaElement(element, 'img')?.getAttribute('title') ?? '',
-        renderHTML: attributes => (attributes.title ? { title: attributes.title } : {}),
+        renderHTML: attributes =>
+          attributes.title ? { title: attributes.title } : {},
       },
       caption: {
         default: '',
@@ -66,7 +72,8 @@ export const EditorImage = Node.create({
       },
       href: {
         default: '',
-        parseHTML: element => element.querySelector('a')?.getAttribute('href') ?? '',
+        parseHTML: element =>
+          element.querySelector('a')?.getAttribute('href') ?? '',
       },
     };
   },
@@ -106,12 +113,11 @@ export const EditorImage = Node.create({
 
     if (width) figureAttributes.style = `width:${width}%`;
 
-    return [
-      'figure',
-      figureAttributes,
-      media,
-      caption ? ['figcaption', {}, caption] : 0,
-    ];
+    if (caption) {
+      return ['figure', figureAttributes, media, ['figcaption', {}, caption]];
+    }
+
+    return ['figure', figureAttributes, media];
   },
 
   addNodeView() {
