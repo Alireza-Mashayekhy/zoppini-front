@@ -31,17 +31,29 @@ export function insertAtomNode(
 
   const chain = editor.chain().focus();
 
-  // جایگزینی بند خالی به‌جای افزودن بلوک کنار آن
+  /**
+   * جایگزینی بند خالی به‌جای افزودن بلوک کنار آن.
+   *
+   * نکته: حذف بند و درج در یک زنجیره‌ی فرمان‌ها کار نمی‌کند، چون
+   * `insertContent` از انتخابِ «جابه‌جاشده‌ی» همان تراکنش استفاده می‌کند؛
+   * بعد از حذف بند خالی، اگر بلوک قبلی یک نود اتمی باشد (اسلایدر، گالری،
+   * FAQ، عکس یا فیلم) انتخاب به شکل NodeSelection روی همان نود می‌نشیند و
+   * درجِ بعدی آن را «جایگزین» می‌کند — یعنی بلوک قبلی بی‌صدا از بین
+   * می‌رفت. پس کل جایگزینی با یک `insertContentAt` روی محدوده‌ی خود بند
+   * انجام می‌شود.
+   */
   if (isEmptyTextBlock && $from.depth > 0) {
-    chain.deleteRange({
-      from: $from.before($from.depth),
-      to: $from.after($from.depth),
-    });
+    chain
+      .insertContentAt(
+        { from: $from.before($from.depth), to: $from.after($from.depth) },
+        [{ type, attrs }, { type: 'paragraph' }],
+      )
+      .run();
+
+    return;
   }
 
-  chain
-    .insertContent([{ type, attrs }, { type: 'paragraph' }])
-    .run();
+  chain.insertContent([{ type, attrs }, { type: 'paragraph' }]).run();
 }
 
 /** درج یکی از بلوک‌های ویژه‌ی مقاله */

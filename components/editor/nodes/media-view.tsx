@@ -33,7 +33,10 @@ interface PendingUpload {
  * فایل توضیح، لینک و (برای ویدیو) پوستر قابل تنظیم است.
  */
 export default function MediaNodeView(view: ReactNodeViewProps) {
-  const config = normalizeBlockConfig('media', view.node.attrs.config);
+  // حالت ویرایش درجا: متن تایپ‌شده (توضیح/متن جایگزین) trim نمی‌شود
+  const config = normalizeBlockConfig('media', view.node.attrs.config, {
+    editing: true,
+  });
   const items = config.items;
 
   const [pending, setPending] = useState<PendingUpload[]>([]);

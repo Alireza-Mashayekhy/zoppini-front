@@ -21,7 +21,10 @@ const TOC_MAX_LEVEL = 4;
  * تیترها هم داخل بلوک نشان داده می‌شود.
  */
 export default function TocNodeView(view: ReactNodeViewProps) {
-  const config = normalizeBlockConfig('toc', view.node.attrs.config);
+  // حالت ویرایش درجا: عنوان تایپ‌شده trim نمی‌شود
+  const config = normalizeBlockConfig('toc', view.node.attrs.config, {
+    editing: true,
+  });
 
   const update = (patch: Partial<TocBlockConfig>) =>
     view.updateAttributes({ config: { ...config, ...patch } });
