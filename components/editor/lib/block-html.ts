@@ -63,29 +63,99 @@ export function unescapeAttribute(value: string): string {
     .replace(/&amp;/g, '&');
 }
 
-/** تبدیل پیکربندی بلوک به مقدار آماده‌ی نوشتن در صفت */
-export function encodeBlockConfig(config: unknown): string {
-  return escapeAttribute(JSON.stringify(config ?? {}));
+/**
+ * JSON پیکربندی بلوک، آماده‌ی گذاشتن در «صفت یک عنصر DOM».
+ *
+ * چرا اینجا فرار (escape) نمی‌کنیم؟
+ * خروجی `renderHTML` نود به‌صورت صفت یک عنصر واقعی تنظیم می‌شود و خود
+ * مرورگر هنگام ساختن HTML مقاله، `"` و `&` را فرار می‌کند. اگر ما از قبل
+ * فرار کنیم، مقدار «دو بار» فرار می‌شود (`&amp;quot;`) و بک‌اند دیگر
+ * نمی‌تواند JSON را بخواند؛ در نتیجه بلوک (اسلایدر/گالری/FAQ) در صفحه‌ی
+ * مقاله نمایش داده نمی‌شود، هرچند داخل ادیتور درست به نظر می‌رسد.
+ *
+ * تنها `<` و `>` باید خودشان عوض شوند: مرورگر این دو را داخل مقدار صفت
+ * فرار نمی‌کند و `>` خام هم قالب HTML را به هم می‌ریزد و هم الگوی تشخیص
+ * بلوک در بک‌اند را. `\u003c` و `\u003e` در JSON دقیقاً همان کاراکترها
+ * هستند، پس معنی داده عوض نمی‌شود.
+ */
+export function stringifyBlockConfig(config: unknown): string {
+  return JSON.stringify(config ?? {})
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e');
 }
 
-/** خواندن پیکربندی بلوک از صفت HTML */
-export function decodeBlockConfig(
-  raw: string | null | undefined,
-): Record<string, unknown> | null {
-  if (!raw) return null;
+/**
+ * تبدیل پیکربندی بلوک به مقدار آماده‌ی نوشتن در صفت.
+ *
+ * فقط وقتی استفاده می‌شود که «خودمان» رشته‌ی HTML می‌سازیم و مرورگری در
+ * کار نیست (مثل `renderBlockHtml` برای مهاجرت مقاله‌های قدیمی)؛ برای صفت
+ * یک نود تیپ‌تپ از `stringifyBlockConfig` استفاده کنید.
+ */
+export function encodeBlockConfig(config: unknown): string {
+  return escapeAttribute(stringifyBlockConfig(config));
+}
 
+/** تجزیه‌ی JSON؛ در صورت نامعتبر بودن null */
+function parseConfigJson(value: string): Record<string, unknown> | null {
   try {
-    const parsed = JSON.parse(unescapeAttribute(raw));
-    return parsed && typeof parsed === 'object' ? parsed : null;
+    const parsed = JSON.parse(value);
+
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
   } catch {
     return null;
   }
 }
 
+/**
+ * خواندن پیکربندی بلوک از صفت HTML.
+ *
+ * مرورگر هنگام خواندن صفت، entityها را یک‌بار برمی‌گرداند؛ اما مقاله‌هایی
+ * که با نسخه‌های قبلی (فرار دستی) ذخیره شده‌اند یک لایه‌ی اضافه دارند
+ * (`&quot;`). پس اول همان مقدار و در صورت نیاز نسخه‌ی باز‌شده آزمایش
+ * می‌شود تا هر دو نسل محتوا درست خوانده شوند.
+ */
+export function decodeBlockConfig(
+  raw: string | null | undefined,
+): Record<string, unknown> | null {
+  if (!raw) return null;
+
+  const candidates = [raw, unescapeAttribute(raw)];
+
+  for (const candidate of candidates) {
+    const parsed = parseConfigJson(candidate);
+    if (parsed) return parsed;
+  }
+
+  return null;
+}
+
+/**
+ * گزینه‌های خواندن پیکربندی یک بلوک.
+ *
+ * `editing: true` یعنی این پیکربندی برای «ویرایش درجا» داخل ادیتور خوانده
+ * می‌شود، نه برای خروجی نهایی:
+ *  - آیتم خالیِ تازه‌اضافه‌شده نگه داشته می‌شود؛ وگرنه دکمه‌ی «افزودن
+ *    سوال» یک ردیف خالی می‌سازد که همان لحظه فیلتر می‌شود و هیچ اتفاقی
+ *    نمی‌افتد.
+ *  - متن‌ها trim نمی‌شوند؛ وگرنه تایپ فاصله بین کلمه‌ها ممکن نیست (با هر
+ *    بار به‌روزرسانی، فاصله‌ی آخر حذف می‌شود).
+ *
+ * داده‌ی ذخیره‌شده همچنان در بک‌اند تمیز می‌شود (trim و حذف آیتم‌های خالی).
+ */
+export interface BlockConfigOptions {
+  editing?: boolean;
+}
+
+/** سقف طول عنوان بخش (هم‌تراز با BLOCK_LIMITS.maxTitleLength در بک‌اند) */
+const MAX_TITLE_LENGTH = 150;
+
 /** پیکربندی امن یک بلوک (با مقادیر پیش‌فرض) */
 export function normalizeBlockConfig<K extends EditorBlockKind>(
   kind: K,
   config: unknown,
+  options?: BlockConfigOptions,
 ): K extends 'slider'
   ? SliderBlockConfig
   : K extends 'media'
@@ -96,12 +166,12 @@ export function normalizeBlockConfig<K extends EditorBlockKind>(
 export function normalizeBlockConfig(
   kind: EditorBlockKind,
   config: unknown,
+  options?: BlockConfigOptions,
 ): BlockConfig {
   const raw = (config ?? {}) as Record<string, unknown>;
-  const title =
-    typeof raw.title === 'string' && raw.title.trim()
-      ? raw.title.trim()
-      : null;
+  const editing = options?.editing === true;
+
+  const title = asTitle(raw.title, editing);
 
   if (kind === 'slider') {
     const items = Array.isArray(raw.items) ? raw.items : [];
@@ -110,7 +180,7 @@ export function normalizeBlockConfig(
       title,
       autoplay: raw.autoplay !== false,
       items: items
-        .map(item => normalizeSliderItem(item))
+        .map(item => normalizeSliderItem(item, editing))
         .filter((item): item is SliderBlockConfig['items'][number] => !!item),
     };
   }
@@ -122,7 +192,7 @@ export function normalizeBlockConfig(
       title,
       layout: raw.layout === 'grid' ? 'grid' : 'auto',
       items: items
-        .map(item => normalizeMediaItem(item))
+        .map(item => normalizeMediaItem(item, editing))
         .filter((item): item is MediaBlockConfig['items'][number] => !!item),
     };
   }
@@ -133,7 +203,7 @@ export function normalizeBlockConfig(
     return {
       title,
       items: items
-        .map(item => normalizeFaqItem(item))
+        .map(item => normalizeFaqItem(item, editing))
         .filter((item): item is FaqBlockConfig['items'][number] => !!item),
     };
   }
@@ -141,11 +211,32 @@ export function normalizeBlockConfig(
   return { title };
 }
 
-function asText(value: unknown, maxLength = 5000): string | undefined {
+/**
+ * متن یک فیلد.
+ *
+ * در حالت ویرایش درجا (`editing`) فقط سقف طول اعمال می‌شود تا آنچه ادمین
+ * تایپ می‌کند (از جمله فاصله‌ها) دست‌نخورده بماند؛ در حالت خروجی، متن
+ * trim می‌شود و رشته‌ی خالی/سفید `undefined` می‌شود.
+ */
+function asText(
+  value: unknown,
+  maxLength = 5000,
+  editing = false,
+): string | undefined {
   if (typeof value !== 'string') return undefined;
+
+  if (editing) return value.slice(0, maxLength) || undefined;
+
   const trimmed = value.trim();
   if (!trimmed) return undefined;
+
   return trimmed.slice(0, maxLength);
+}
+
+/** عنوان بخش؛ وقتی خالی باشد null است تا عنوان پیش‌فرض استفاده شود */
+function asTitle(value: unknown, editing = false): string | null {
+  const text = asText(value, MAX_TITLE_LENGTH, editing);
+  return text ?? null;
 }
 
 function asId(value: unknown): number | undefined {
@@ -154,7 +245,10 @@ function asId(value: unknown): number | undefined {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-function normalizeSliderItem(raw: unknown): SliderBlockConfig['items'][number] | null {
+function normalizeSliderItem(
+  raw: unknown,
+  editing = false,
+): SliderBlockConfig['items'][number] | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const item = raw as Record<string, unknown>;
@@ -162,46 +256,68 @@ function normalizeSliderItem(raw: unknown): SliderBlockConfig['items'][number] |
 
   if (!productId) return null;
 
+  const badge = asText(item.badge, 40, editing);
+  const caption = asText(item.caption, 300, editing);
+
   return {
     productId,
     ...(asId(item.colorId) ? { colorId: asId(item.colorId) } : {}),
-    ...(asText(item.badge, 40) ? { badge: asText(item.badge, 40) } : {}),
-    ...(asText(item.caption, 300) ? { caption: asText(item.caption, 300) } : {}),
+    ...(badge ? { badge } : {}),
+    ...(caption ? { caption } : {}),
     ...(item.product && typeof item.product === 'object'
       ? { product: item.product as SliderBlockConfig['items'][number]['product'] }
       : {}),
   };
 }
 
-function normalizeMediaItem(raw: unknown): MediaBlockConfig['items'][number] | null {
+function normalizeMediaItem(
+  raw: unknown,
+  editing = false,
+): MediaBlockConfig['items'][number] | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const item = raw as Record<string, unknown>;
-  const url = asText(item.url, 1000);
+  const url = asText(item.url, 1000, editing);
 
   if (!url) return null;
+
+  const poster = asText(item.poster, 1000, editing);
+  const alt = asText(item.alt, 300, editing);
+  const caption = asText(item.caption, 300, editing);
+  const linkUrl = asText(item.linkUrl, 1000, editing);
+  const linkLabel = asText(item.linkLabel, 80, editing);
 
   return {
     mediaType: item.mediaType === 'video' ? 'video' : 'image',
     url,
-    ...(asText(item.poster, 1000) ? { poster: asText(item.poster, 1000) } : {}),
-    ...(asText(item.alt, 300) ? { alt: asText(item.alt, 300) } : {}),
-    ...(asText(item.caption, 300) ? { caption: asText(item.caption, 300) } : {}),
-    ...(asText(item.linkUrl, 1000) ? { linkUrl: asText(item.linkUrl, 1000) } : {}),
-    ...(asText(item.linkLabel, 80) ? { linkLabel: asText(item.linkLabel, 80) } : {}),
+    ...(poster ? { poster } : {}),
+    ...(alt ? { alt } : {}),
+    ...(caption ? { caption } : {}),
+    ...(linkUrl ? { linkUrl } : {}),
+    ...(linkLabel ? { linkLabel } : {}),
   };
 }
 
-function normalizeFaqItem(raw: unknown): FaqBlockConfig['items'][number] | null {
+/**
+ * یک ردیف سوالات متداول.
+ *
+ * ردیف کاملاً خالی در حالت ویرایش نگه داشته می‌شود (ادمین هنوز چیزی
+ * ننوشته) و در خروجی نهایی حذف می‌شود؛ بک‌اند هم موقع نمایش سایت چنین
+ * ردیفی را دور می‌ریزد.
+ */
+function normalizeFaqItem(
+  raw: unknown,
+  editing = false,
+): FaqBlockConfig['items'][number] | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const item = raw as Record<string, unknown>;
-  const question = asText(item.question, 500);
-  const answer = asText(item.answer, 5000);
+  const question = asText(item.question, 500, editing) ?? '';
+  const answer = asText(item.answer, 5000, editing) ?? '';
 
-  if (!question && !answer) return null;
+  if (!editing && !question && !answer) return null;
 
-  return { question: question ?? '', answer: answer ?? '' };
+  return { question, answer };
 }
 
 /** ساخت HTML یک بلوک ویژه (برای درج در متن یا مهاجرت داده‌ی قدیمی) */

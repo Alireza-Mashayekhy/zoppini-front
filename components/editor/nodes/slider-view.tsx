@@ -35,7 +35,10 @@ import BlockViewShell from '../ui/block-view-shell';
  * بالای بلوک) جایش را در مقاله عوض می‌کند.
  */
 export default function SliderNodeView(view: ReactNodeViewProps) {
-  const config = normalizeBlockConfig('slider', view.node.attrs.config);
+  // حالت ویرایش درجا: متن تایپ‌شده (برچسب/عنوان) trim نمی‌شود
+  const config = normalizeBlockConfig('slider', view.node.attrs.config, {
+    editing: true,
+  });
   const items = config.items;
 
   const update = (patch: Partial<SliderBlockConfig>) =>

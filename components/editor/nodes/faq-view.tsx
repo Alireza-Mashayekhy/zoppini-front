@@ -20,7 +20,14 @@ import BlockViewShell from '../ui/block-view-shell';
  * گوگل از همان‌ها ساخته شود.
  */
 export default function FaqNodeView(view: ReactNodeViewProps) {
-  const config = normalizeBlockConfig('faq', view.node.attrs.config);
+  /**
+   * حالت ویرایش درجا: ردیف خالیِ تازه‌اضافه‌شده نگه داشته می‌شود (وگرنه
+   * دکمه‌ی «افزودن سوال» هیچ کاری نمی‌کند) و متن‌ها trim نمی‌شوند تا تایپ
+   * فاصله بین کلمه‌ها ممکن بماند.
+   */
+  const config = normalizeBlockConfig('faq', view.node.attrs.config, {
+    editing: true,
+  });
   const items = config.items;
 
   const update = (patch: Partial<FaqBlockConfig>) =>
@@ -117,6 +124,7 @@ export default function FaqNodeView(view: ReactNodeViewProps) {
                   value={item.question}
                   onChange={event => updateItem(index, { question: event.target.value })}
                   placeholder="متن سوال"
+                  autoFocus={isBlankItem(item)}
                   className="h-8 bg-white text-xs"
                 />
 
@@ -127,6 +135,13 @@ export default function FaqNodeView(view: ReactNodeViewProps) {
                   rows={3}
                   className="bg-white text-xs"
                 />
+
+                {isIncompleteItem(item) && (
+                  <p className="text-[10px] text-neutral-400">
+                    تا سوال و پاسخ کامل نشود، این ردیف در صفحه‌ی مقاله نمایش
+                    داده نمی‌شود.
+                  </p>
+                )}
               </div>
             </li>
           ))}
@@ -134,4 +149,14 @@ export default function FaqNodeView(view: ReactNodeViewProps) {
       )}
     </BlockViewShell>
   );
+}
+
+/** ردیفی که هنوز چیزی در آن نوشته نشده (برای فوکوس خودکار بعد از افزودن) */
+function isBlankItem(item: FaqBlockItem): boolean {
+  return !item.question.trim() && !item.answer.trim();
+}
+
+/** ردیف نیمه‌کاره؛ در سایت نمایش داده نمی‌شود */
+function isIncompleteItem(item: FaqBlockItem): boolean {
+  return !item.question.trim() || !item.answer.trim();
 }

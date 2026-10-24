@@ -9,7 +9,7 @@ import {
   BLOCK_KIND_ATTRIBUTE,
   BLOCK_NODE_NAMES,
   decodeBlockConfig,
-  encodeBlockConfig,
+  stringifyBlockConfig,
 } from '../lib/block-html';
 import { EditorBlockKind } from '../lib/types';
 import FaqNodeView from './faq-view';
@@ -45,10 +45,21 @@ function createBlogBlockNode({ kind, name, component }: BlogBlockDefinition) {
       return {
         config: {
           default: null,
+          /**
+           * خواندن از HTML ذخیره‌شده: مرورگر خودش entityها را برمی‌گرداند،
+           * پس مقدار صفت معمولاً همان JSON خام است (محتوای قدیمی یک لایه
+           * فرار اضافه دارد که `decodeBlockConfig` آن را هم می‌خواند).
+           */
           parseHTML: element =>
             decodeBlockConfig(element.getAttribute(BLOCK_CONFIG_ATTRIBUTE)),
+          /**
+           * نوشتن به HTML: مقدار صفت را «فرار نمی‌کنیم» چون خود مرورگر هنگام
+           * ساختن HTML این کار را می‌کند؛ فرار دستی باعث فرار دوباره
+           * (`&amp;quot;`) می‌شد و بک‌اند نمی‌توانست بلوک را بخواند، پس
+           * اسلایدر/گالری/FAQ در صفحه‌ی مقاله نمایش داده نمی‌شدند.
+           */
           renderHTML: attributes => ({
-            [BLOCK_CONFIG_ATTRIBUTE]: encodeBlockConfig(attributes.config ?? {}),
+            [BLOCK_CONFIG_ATTRIBUTE]: stringifyBlockConfig(attributes.config),
           }),
         },
       };
