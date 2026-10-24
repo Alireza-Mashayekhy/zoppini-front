@@ -36,8 +36,12 @@ export default function BlogProductSlider({
       loop: products.length > 3,
       slides: { perView: 1.6, spacing: SLIDE_SPACING },
       breakpoints: {
-        '(min-width: 640px)': { slides: { perView: 2.5, spacing: SLIDE_SPACING } },
-        '(min-width: 1024px)': { slides: { perView: 3.4, spacing: SLIDE_SPACING } },
+        '(min-width: 640px)': {
+          slides: { perView: 3.5, spacing: SLIDE_SPACING },
+        },
+        '(min-width: 1024px)': {
+          slides: { perView: 4.5, spacing: SLIDE_SPACING },
+        },
       },
       created() {
         setLoaded(true);
@@ -136,7 +140,7 @@ export default function BlogProductSlider({
               onClick={() => instanceRef.current?.prev()}
               className="absolute end-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 opacity-0 shadow transition-opacity group-hover:opacity-100"
             >
-              <ChevronRight className="size-6" />
+              <ChevronLeft className="size-6" />
             </button>
 
             <button
@@ -145,12 +149,11 @@ export default function BlogProductSlider({
               onClick={() => instanceRef.current?.next()}
               className="absolute start-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-1 opacity-0 shadow transition-opacity group-hover:opacity-100"
             >
-              <ChevronLeft className="size-6" />
+              <ChevronRight className="size-6" />
             </button>
           </>
         )}
       </div>
-
     </section>
   );
 }

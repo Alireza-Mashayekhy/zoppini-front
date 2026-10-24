@@ -3,7 +3,11 @@
 import Image from 'next/image';
 import { useMemo } from 'react';
 
-import { createTocContext, prepareContent, TOC_MAX_LEVEL } from '@/lib/blog-toc';
+import {
+  createTocContext,
+  prepareContent,
+  TOC_MAX_LEVEL,
+} from '@/lib/blog-toc';
 import { mediaUrl, resolveHtmlMedia } from '@/lib/media';
 import { BlogBlock, BlogPostResponse } from '@/services/features/blog/types';
 
@@ -55,7 +59,9 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
     const context = createTocContext();
 
     // مقاله‌های قدیمی متن بلوک ندارند؛ فقط اولین بلوک content از post.content پر می‌شود
-    const firstContentIndex = blocks.findIndex(block => block.type === 'content');
+    const firstContentIndex = blocks.findIndex(
+      block => block.type === 'content',
+    );
 
     const prepared: Segment[] = blocks.map((block, index) => {
       if (block.type !== 'content') return { block, index, html: null };
@@ -90,9 +96,9 @@ export default function BlogContent({ post }: { post: BlogPostResponse }) {
     : null;
 
   return (
-    <article className="custom-container pb-10">
+    <article className="custom-container pb-10 pt-2">
       {post.coverImage && (
-        <div className="relative mb-8 aspect-video w-full overflow-hidden">
+        <div className="relative mb-8 aspect-video w-full max-w-187.5 mx-auto rounded-[12px] overflow-hidden">
           <Image
             src={mediaUrl(post.coverImage)}
             fill
