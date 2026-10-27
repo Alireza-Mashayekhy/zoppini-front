@@ -80,9 +80,7 @@ export default function FAQPage() {
           <p className="text-sm text-gray-600 md:text-base">
             پاسخ سوال خود را پیدا نکردید؟{' '}
             <Link
-              href="https://www.goftino.com/c/7Y752F"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/contact"
               className="font-medium text-[#D4A373] hover:underline"
             >
               ارتباط با پشتیبانی زوپینی

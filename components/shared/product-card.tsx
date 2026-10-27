@@ -17,6 +17,8 @@ interface ProductProps {
   id?: number;
   image: string;
   title: string;
+  /** توضیح کوتاه واقعی محصول، در صورت ارائه توسط API؛ بدون متن ساختگی */
+  subtitle?: string;
   price: number;
   slug: string;
   slider?: boolean;
@@ -29,6 +31,7 @@ export default function ProductCard({
   id,
   image,
   title,
+  subtitle,
   price,
   slug,
   slider,
@@ -52,89 +55,78 @@ export default function ProductCard({
   const showCardActions = showActions && id != null;
 
   return (
-    <div className="group relative flex h-full min-h-0 flex-col">
-      <Link href={`/product/${slug}`} className="flex h-full min-h-0 flex-col">
-        {/* تصویر */}
-        {slider ? (
-          <div className="relative min-h-0 flex-1 overflow-hidden">
-            <Image
-              src={imageUrl}
-              fill
-              alt={title}
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 75vw"
-              loading="lazy"
-            />
+    <div
+      className="group relative flex h-full min-h-0 w-full flex-col overflow-hidden border border-[#e8e6e3] bg-white"
+      dir="rtl"
+    >
+      <Link
+        href={`/product/${slug}`}
+        className="flex h-full min-h-0 w-full flex-col p-0"
+      >
+        {/* تصویر بدون padding تا لبه‌های کارت؛ ارتفاع اسلایدر از والد می‌آید. */}
+        <div
+          className={cn(
+            'relative w-full overflow-hidden bg-[#f7f7f7]',
+            slider ? 'min-h-0 flex-1' : 'aspect-[4/5] shrink-0',
+          )}
+        >
+          <Image
+            src={imageUrl}
+            fill
+            alt={title}
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 75vw"
+            loading="lazy"
+          />
 
-            {hasDiscount && (
-              <div className="absolute right-3 top-3 z-10 flex items-center justify-center bg-red-600 px-2 py-1 text-white shadow-md">
-                <div className="flex gap-1 items-center leading-none">
-                  <span className="text-sm font-semibold">
-                    {discountPercent}٪
-                  </span>
+          {hasDiscount && (
+            <span
+              className="absolute right-3 top-0 z-10 flex h-14 w-11 items-start justify-center bg-[#ad2e38] pt-3 text-xs font-semibold text-white"
+              style={{
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
+              }}
+              aria-label={`${discountPercent.toLocaleString('fa-IR')} درصد تخفیف`}
+            >
+              {discountPercent.toLocaleString('fa-IR')}٪
+            </span>
+          )}
+        </div>
 
-                  <span className="mt-0.5 text-[9px] opacity-90">تخفیف</span>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="relative aspect-9/16 w-full overflow-hidden">
-            <Image
-              src={imageUrl}
-              fill
-              alt={title}
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="(min-width: 1024px) 35vw, (min-width: 640px) 50vw, 75vw"
-              loading="lazy"
-            />
-
-            {/* Discount Badge */}
-            {hasDiscount && (
-              <div className="absolute right-3 top-3 z-2 flex items-center justify-center bg-red-600 px-2 aspect-square rounded-full text-white shadow-md">
-                <div className="flex gap-1 items-center leading-none">
-                  <span className="text-sm font-semibold">
-                    {discountPercent}٪
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* اطلاعات محصول */}
-        <div className="flex flex-col sm:flex-row shrink-0 items-center justify-between gap-1 sm:gap-3 px-2 pb-12 pt-3 sm:px-5">
-          <span className="self-start line-clamp-1 overflow-hidden text-ellipsis text-[10px] sm:text-sm">
+        {/* فاصله داخلی فقط برای متن است، نه برای تصویر. */}
+        <div className="flex shrink-0 flex-col gap-2 px-3 py-3 text-right sm:px-4">
+          <span className="line-clamp-1 min-h-5 text-xs font-semibold leading-5 text-[#1a1a1a] sm:text-sm">
             {title}
           </span>
+          {subtitle && (
+            <span className="line-clamp-1 text-[11px] leading-5 text-[#85817c] sm:text-xs">
+              {subtitle}
+            </span>
+          )}
 
           {!!price && price !== 0 && (
-            <div className="flex self-end flex-row-reverse sm:flex-col items-end whitespace-nowrap gap-2 sm:gap-0">
-              {hasDiscount && (
-                <span className="text-[10px] sm:text-sm font-medium">
-                  {discount.finalPrice.toLocaleString()} تومان
-                </span>
-              )}
-
-              <span
-                className={cn(
-                  'whitespace-nowrap',
-                  hasDiscount
-                    ? 'text-[8px] sm:text-sm text-gray-400 line-through'
-                    : 'text-[10px] sm:text-sm',
-                )}
-              >
-                {parseInt(price.toString()).toLocaleString()} تومان
+            <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+              <span className="inline-flex items-baseline gap-1 whitespace-nowrap text-xs font-semibold text-[#1a1a1a] sm:text-sm">
+                <bdi>
+                  {Math.trunc(
+                    hasDiscount ? discount.finalPrice : price,
+                  ).toLocaleString('fa-IR')}
+                </bdi>
+                <span>تومان</span>
               </span>
+              {hasDiscount && (
+                <del
+                  className="whitespace-nowrap text-[10px] font-normal text-[#a6a29d] sm:text-xs"
+                  aria-label={`قیمت قبلی ${Math.trunc(price).toLocaleString('fa-IR')} تومان`}
+                >
+                  <bdi>{Math.trunc(price).toLocaleString('fa-IR')}</bdi>
+                </del>
+              )}
             </div>
           )}
         </div>
       </Link>
 
-      {/* دکمه‌های سریع: افزودن به سبد و مقایسه
-          - موس (hover-capable): تا هاور نشدن پنهان‌اند
-          - لمسی (موبایل/تبلت): همیشه نمایان‌اند چون هاور نداریم
-          - در نوار خالی پایین کارت می‌نشینند تا روی تصویر/متن نیفتند */}
+      {/* دکمه‌های فعلی بدون تغییر شکل/جایگاه: بالا-چپ؛ hover دسکتاپ و نمایش دائمی لمسی. */}
       {showCardActions && (
         <div className="absolute top-3 left-3 flex z-20 gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
           <button

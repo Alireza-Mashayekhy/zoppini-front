@@ -45,14 +45,18 @@ const BASE_URL =
 
 function ProductCardSkeleton() {
   return (
-    <div className="flex h-full min-h-0 flex-col" aria-hidden="true">
-      {/* تصویر - نسبت 9/16 مثل ProductCard */}
-      <Skeleton className="relative aspect-9/16 w-full rounded-none" />
-      {/* اطلاعات محصول */}
-      <div className="flex flex-col sm:flex-row shrink-0 items-center justify-between gap-1 sm:gap-3 px-2 pb-12 pt-3 sm:px-5">
-        <Skeleton className="h-3 sm:h-4 w-2/3 self-start rounded" />
-        <div className="flex self-end flex-col items-end gap-1">
-          <Skeleton className="h-3 sm:h-4 w-16 rounded" />
+    <div
+      className="flex h-full min-h-0 flex-col overflow-hidden border border-[#e8e6e3] bg-white"
+      aria-hidden="true"
+    >
+      <Skeleton className="relative aspect-[4/5] w-full rounded-none" />
+      <div className="flex shrink-0 flex-col gap-2 px-3 py-3 sm:px-4">
+        <div className="flex min-h-5 items-start">
+          <Skeleton className="h-4 w-4/5 rounded" />
+        </div>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <Skeleton className="h-4 w-24 rounded" />
+          <Skeleton className="h-3 w-16 rounded" />
         </div>
       </div>
     </div>

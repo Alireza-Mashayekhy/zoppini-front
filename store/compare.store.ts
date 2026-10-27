@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { preferencesAllowed } from '@/lib/consent/client';
 
 /** حداکثر تعداد محصولاتی که می‌توانند هم‌زمان مقایسه شوند */
 export const MAX_COMPARE = 4;
@@ -66,8 +67,22 @@ export const useCompareStore = create<CompareStore>()(
     }),
     {
       name: 'zoppini-compare-items',
+      storage: createJSONStorage(() => ({
+        getItem: key =>
+          preferencesAllowed() ? localStorage.getItem(key) : null,
+        setItem: (key, value) => {
+          if (preferencesAllowed()) localStorage.setItem(key, value);
+        },
+        removeItem: key => localStorage.removeItem(key),
+      })),
       // فقط لیست محصولات ذخیره شود؛ hydrated هر بار صفر می‌شود
       partialize: state => ({ items: state.items }),
     },
   ),
 );
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('privacy-changed', () => {
+    if (preferencesAllowed()) void useCompareStore.persist.rehydrate();
+  });
+}
