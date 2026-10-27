@@ -81,7 +81,7 @@ export default function ProductCard({
 
           {hasDiscount && (
             <span
-              className="absolute right-3 top-0 z-10 flex h-14 w-11 items-start justify-center bg-[#ad2e38] pt-3 text-xs font-semibold text-white"
+              className="absolute left-3 top-0 z-10 flex h-14 w-11 items-start justify-center bg-[#ad2e38] pt-3 text-xs font-semibold text-white"
               style={{
                 clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
               }}
@@ -128,7 +128,7 @@ export default function ProductCard({
 
       {/* دکمه‌های فعلی بدون تغییر شکل/جایگاه: بالا-چپ؛ hover دسکتاپ و نمایش دائمی لمسی. */}
       {showCardActions && (
-        <div className="absolute top-3 left-3 flex z-20 gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
+        <div className="absolute top-3 right-3 flex z-20 gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
           <button
             type="button"
             onClick={() => setQuickAddOpen(true)}
