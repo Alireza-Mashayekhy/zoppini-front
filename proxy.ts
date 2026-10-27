@@ -112,7 +112,7 @@ function normalizeRedirectPath(pathname: string): string {
 }
 
 /**
- * مسیرهایی که نباید ریدایرکت 301 شوند:
+ * مسیرهایی که نباید ریدایرکت 301 شوند (BFF رضایت `/privacy` هم مستثناست):
  * پنل‌های مدیریت، checkout، API و فایل‌های استاتیک.
  */
 function isPathOrChild(pathname: string, basePath: string): boolean {
@@ -125,6 +125,8 @@ function shouldCheckRedirect(pathname: string): boolean {
     isPathOrChild(pathname, '/dashboard') ||
     isPathOrChild(pathname, '/checkout') ||
     isPathOrChild(pathname, '/api') ||
+    // BFF consent routes: a 301 here would break saving the cookie choice.
+    isPathOrChild(pathname, '/privacy') ||
     isPathOrChild(pathname, '/_next')
   ) {
     return false;

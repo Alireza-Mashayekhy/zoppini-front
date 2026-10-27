@@ -15,6 +15,7 @@ import {
   setConsent,
   track,
 } from '@/lib/consent/client';
+import { privacyUrl } from '@/lib/consent/endpoints';
 import { Consent, denied, Selection } from '@/lib/consent/policy';
 
 declare global {
@@ -83,8 +84,11 @@ export default function ConsentManager() {
         location.reload();
       };
     const initialRevision = revision.current;
-    void fetch('/api/privacy/state', { cache: 'no-store' })
-      .then(r => r.json())
+    void fetch(privacyUrl('state'), { cache: 'no-store' })
+      .then(r => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
       .then(d => {
         if (revision.current !== initialRevision) return;
         setConsent(d.consent);
@@ -151,7 +155,7 @@ export default function ConsentManager() {
     (window as unknown as Record<string, unknown>)['ga-disable-G-9X59F9BJFQ'] =
       true;
     try {
-      const r = await fetch('/api/privacy/consent', {
+      const r = await fetch(privacyUrl('consent'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ ...value, choice }),

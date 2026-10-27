@@ -7,6 +7,7 @@ import {
   setConsent,
   track,
 } from '../lib/consent/client';
+import { privacyUrl } from '../lib/consent/endpoints';
 import { CATEGORY_VERSION, POLICY } from '../lib/consent/policy';
 
 test('optional collection is fail closed, strips URLs, and withdrawal stops collection', async () => {
@@ -39,6 +40,9 @@ test('optional collection is fail closed, strips URLs, and withdrawal stops coll
   });
   await track('page_view');
   assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, privacyUrl('event'));
+  assert.equal(await analyticsContext(), 'test-token');
+  assert.equal(calls[1].url, privacyUrl('context'));
   const body = JSON.parse(String(calls[0].init?.body));
   assert.equal(body.source, 'google');
   assert.equal(body.medium, 'email');
@@ -51,5 +55,5 @@ test('optional collection is fail closed, strips URLs, and withdrawal stops coll
   assert.equal(String(calls[0].init?.body).includes('redacted'), false);
   setConsent(null);
   await track('add_to_cart', { variant: 1 });
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
 });
