@@ -32,12 +32,25 @@ export default function BranchesMap({
   location: locationsPropes;
 }) {
   const [isMounted, setIsMounted] = useState(false);
+  const [requested, setRequested] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     fixLeafletIcons();
   }, []);
+
+  if (!requested)
+    return (
+      <button
+        type="button"
+        className="w-full h-full bg-gray-100 p-6 rounded-xl"
+        onClick={() => setRequested(true)}
+      >
+        نمایش نقشه خارجی (OpenStreetMap) — با کلیک، اتصال به ارائه‌دهنده نقشه
+        برقرار می‌شود.
+      </button>
+    );
 
   if (!isMounted) {
     return (

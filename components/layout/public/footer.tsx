@@ -1,3 +1,4 @@
+import { CookieSettingsLink } from '@/components/consent/manager';
 import Image from 'next/image';
 
 import AnimateLink from '@/components/shared/animate-link';
@@ -22,6 +23,7 @@ export default function Footer() {
         </div>
         <div className="flex flex-col gap-5">
           <span className="text-sm font-semibold">لینک های مفید</span>
+          <CookieSettingsLink />
           <ul className="flex flex-col gap-4 text-sm">
             <AnimateLink href="/blog">
               <li>مقالات</li>

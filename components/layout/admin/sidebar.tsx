@@ -121,9 +121,9 @@ export default function AdminSidebar({
         name: 'gamification',
       },
       {
-        link: '/admin/visits',
+        link: '/admin/analytics',
         icon: Eye,
-        name: 'بازدید لندینگ و گیمیفیکیشن',
+        name: 'تحلیل رفتار کاربران',
       },
     );
   }
