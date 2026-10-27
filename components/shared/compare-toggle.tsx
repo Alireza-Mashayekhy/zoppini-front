@@ -1,6 +1,6 @@
 'use client';
 
-import { Scale } from 'lucide-react';
+import { GitCompare, Scale } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -71,7 +71,7 @@ export default function CompareToggle({
         className,
       )}
     >
-      <Scale className="size-4" />
+      <GitCompare className="size-4" />
     </button>
   );
 }

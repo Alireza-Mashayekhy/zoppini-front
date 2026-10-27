@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { track } from '@/lib/consent/client';
 import { toast } from 'sonner';
 
 import ProductColors from '@/components/pages/product/colors';
@@ -26,6 +27,13 @@ export default function ProductContent({
   guides?: ProductGuidesForCustomer | null;
 }) {
   const product = products.product;
+  useEffect(() => {
+    const run = () => {
+      void track('product_view', { product: product.id });
+    };
+    window.addEventListener('analytics-page', run);
+    return () => window.removeEventListener('analytics-page', run);
+  }, [product.id]);
 
   // ==================== استخراج رنگ‌ها از variants ====================
   // ۱. رنگ‌های خود محصول

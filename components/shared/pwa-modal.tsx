@@ -1,5 +1,6 @@
 'use client';
 
+import { preferencesAllowed } from '@/lib/consent/client';
 import { Download } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -83,7 +84,9 @@ export default function PWAModal() {
 
       setPrompt(e);
 
-      const dismissed = localStorage.getItem(PWA_DISMISSED_KEY);
+      const dismissed = preferencesAllowed()
+        ? localStorage.getItem(PWA_DISMISSED_KEY)
+        : null;
 
       if (dismissed) {
         const dismissedDate = new Date(dismissed).getTime();
@@ -107,7 +110,7 @@ export default function PWAModal() {
     const handleAppInstalled = () => {
       setOpen(false);
       setPrompt(null);
-      localStorage.removeItem(PWA_DISMISSED_KEY);
+      if (preferencesAllowed()) localStorage.removeItem(PWA_DISMISSED_KEY);
     };
 
     window.addEventListener(
@@ -136,7 +139,8 @@ export default function PWAModal() {
       const { outcome } = await prompt.userChoice;
 
       if (outcome !== 'accepted') {
-        localStorage.setItem(PWA_DISMISSED_KEY, new Date().toISOString());
+        if (preferencesAllowed())
+          localStorage.setItem(PWA_DISMISSED_KEY, new Date().toISOString());
       }
 
       setPrompt(null);
@@ -147,7 +151,8 @@ export default function PWAModal() {
   };
 
   const handleLater = () => {
-    localStorage.setItem(PWA_DISMISSED_KEY, new Date().toISOString());
+    if (preferencesAllowed())
+      localStorage.setItem(PWA_DISMISSED_KEY, new Date().toISOString());
     setOpen(false);
   };
 

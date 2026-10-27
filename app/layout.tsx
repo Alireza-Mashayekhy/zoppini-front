@@ -1,7 +1,7 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import ConsentManager from '@/components/consent/manager';
 
 import { iranSans } from '@/components/font';
 import { cn } from '@/lib/utils';
@@ -31,19 +31,7 @@ export default function RootLayout({
           <AuthProvider initialUser={null}>{children}</AuthProvider>
         </Providers>
 
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-9X59F9BJFQ"
-          strategy="afterInteractive"
-        />
-
-        <Script id="google-analytics">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){window.dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-9X59F9BJFQ');
-          `}
-        </Script>
+        <ConsentManager />
       </body>
     </html>
   );

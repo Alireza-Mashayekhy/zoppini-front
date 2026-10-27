@@ -7,7 +7,12 @@ const getGuestId = (): string => {
   let guestId = Cookies.get('guestId');
   if (!guestId) {
     guestId = uuidv4();
-    Cookies.set('guestId', guestId, { expires: 30 });
+    Cookies.set('guestId', guestId, {
+      expires: 30,
+      secure: location.protocol === 'https:',
+      sameSite: 'Lax',
+      path: '/',
+    });
   }
   return guestId;
 };
@@ -18,7 +23,9 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const guestId = getGuestId();
+  const guestId = config.url?.startsWith('/cart')
+    ? getGuestId()
+    : Cookies.get('guestId');
   if (guestId) {
     config.headers['x-guest-id'] = guestId;
   }

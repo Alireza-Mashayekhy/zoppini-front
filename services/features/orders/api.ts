@@ -1,3 +1,4 @@
+import { analyticsContext, track } from '@/lib/consent/client';
 import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
@@ -29,5 +30,11 @@ export const cancelOrder = async (id: number): Promise<void> => {
 
 export const confirmOrderFromWallet = async (id: number): Promise<void> => {
   const url = endpoints.order.confirmFromWallet(id);
-  await api.post(url);
+  await track('checkout_started');
+  const context = await analyticsContext();
+  await api.post(
+    url,
+    {},
+    { headers: context ? { 'X-Analytics-Context': context } : {} },
+  );
 };
