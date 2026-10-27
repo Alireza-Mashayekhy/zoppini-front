@@ -1,3 +1,4 @@
+import { privacyUrl } from './endpoints';
 import { Consent } from './policy';
 let current: Consent | null = null;
 export function getConsent() {
@@ -13,7 +14,7 @@ export function preferencesAllowed() {
 export async function analyticsContext() {
   if (!current?.analytics) return '';
   try {
-    const r = await fetch('/api/privacy/context', {
+    const r = await fetch(privacyUrl('context'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
@@ -81,7 +82,7 @@ export async function track(
     .then(async () => {
       if (!current?.analytics || current.at !== selection) return;
       try {
-        await fetch('/api/privacy/event', {
+        await fetch(privacyUrl('event'), {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body,
