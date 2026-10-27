@@ -15,3 +15,13 @@ export const denied: Selection = {
   analytics: false,
   marketing: false,
 };
+/** Strip server metadata before sending a selection back to the privacy BFF. */
+export function toSelection(value: Selection | null | undefined): Selection {
+  return value
+    ? {
+        preferences: value.preferences,
+        analytics: value.analytics,
+        marketing: value.marketing,
+      }
+    : denied;
+}

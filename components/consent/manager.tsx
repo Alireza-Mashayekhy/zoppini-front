@@ -1,14 +1,30 @@
 'use client';
+import {
+  BarChart3,
+  Check,
+  ChevronLeft,
+  Cookie,
+  Info,
+  Loader2,
+  Lock,
+  Megaphone,
+  ShieldCheck,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import {
   cleanOptionalStorage,
   getConsent,
@@ -16,7 +32,7 @@ import {
   track,
 } from '@/lib/consent/client';
 import { privacyUrl } from '@/lib/consent/endpoints';
-import { Consent, denied, Selection } from '@/lib/consent/policy';
+import { Consent, denied, Selection, toSelection } from '@/lib/consent/policy';
 
 declare global {
   interface Window {
@@ -24,6 +40,37 @@ declare global {
     gtag?: (...args: unknown[]) => void;
   }
 }
+
+type Choice = 'all' | 'reject' | 'custom';
+
+const all: Selection = {
+  preferences: true,
+  analytics: true,
+  marketing: true,
+};
+
+const optionalCategories = [
+  {
+    key: 'preferences',
+    title: 'ترجیحات',
+    description: 'یادآوری تنظیمات رابط و بارگذاری ویجت پشتیبانی RamonAI.',
+    Icon: SlidersHorizontal,
+  },
+  {
+    key: 'analytics',
+    title: 'تحلیل',
+    description:
+      'اندازهگیری استفاده و قیف خرید با شناسه تصادفی؛ نگهداری پیشفرض ۱۸۰ روز.',
+    Icon: BarChart3,
+  },
+  {
+    key: 'marketing',
+    title: 'بازاریابی',
+    description: 'در حال حاضر فناوری بازاریابی فعالی روی سایت نداریم.',
+    Icon: Megaphone,
+  },
+] as const;
+
 function PageTracking() {
   const path = usePathname();
   useEffect(() => {
@@ -38,28 +85,47 @@ function PageTracking() {
   }, [path]);
   return null;
 }
+
+function ErrorNotice({ message }: { message: string }) {
+  if (!message) return null;
+  return (
+    <p
+      role="alert"
+      className="flex items-start gap-2 border border-red-200 bg-red-50 px-3 py-2 text-xs leading-6 text-red-700"
+    >
+      <Info className="mt-1 size-3.5 shrink-0" aria-hidden="true" />
+      <span>{message}</span>
+    </p>
+  );
+}
+
+/** Permanent link used in the public footer. */
 export function CookieSettingsLink() {
   return (
     <button
       type="button"
-      className="underline text-sm"
+      className="inline-flex items-center gap-1.5 text-sm underline underline-offset-4 transition-colors hover:text-black"
       onClick={() => window.dispatchEvent(new Event('privacy-open'))}
     >
-      تنظیمات کوکی‌ها
+      <Cookie className="size-3.5" aria-hidden="true" />
+      تنظیمات کوکیها
     </button>
   );
 }
+
 export default function ConsentManager() {
   const [banner, showBanner] = useState(false);
   const [panel, showPanel] = useState(false);
+  const [ready, setReady] = useState(false);
   const [draft, setDraft] = useState<Selection>(denied);
-  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<Choice | null>(null);
   const [error, setError] = useState('');
   const loaded = useRef(false);
   const revision = useRef(0);
   useEffect(() => {
     const open = () => {
-      setDraft(getConsent() || denied);
+      setDraft(toSelection(getConsent()));
+      setError('');
       showPanel(true);
     };
     window.addEventListener('privacy-open', open);
@@ -92,11 +158,12 @@ export default function ConsentManager() {
       .then(d => {
         if (revision.current !== initialRevision) return;
         setConsent(d.consent);
-        setDraft(d.consent || denied);
+        setDraft(toSelection(d.consent));
         showBanner(!d.consent);
         cleanOptionalStorage();
       })
-      .catch(() => showBanner(true));
+      .catch(() => showBanner(true))
+      .finally(() => setReady(true));
     return () => {
       window.removeEventListener('privacy-open', open);
       window.removeEventListener('pageshow', restore);
@@ -145,9 +212,9 @@ export default function ConsentManager() {
     window.addEventListener('privacy-changed', load);
     return () => window.removeEventListener('privacy-changed', load);
   }, []);
-  async function save(value: Selection, choice: string) {
+  async function save(value: Selection, choice: Choice) {
     revision.current++;
-    setBusy(true);
+    setPending(choice);
     setError('');
     const previous = getConsent();
     // Stop local event dispatch immediately, including while withdrawal is being saved.
@@ -158,7 +225,7 @@ export default function ConsentManager() {
       const r = await fetch(privacyUrl('consent'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...value, choice }),
+        body: JSON.stringify({ ...toSelection(value), choice }),
       });
       if (!r.ok) throw new Error();
       const data: { consent: Consent } = await r.json();
@@ -183,120 +250,272 @@ export default function ConsentManager() {
       setError('انتخاب ذخیره نشد. ردیابی متوقف است؛ دوباره تلاش کنید.');
       showBanner(true);
     } finally {
-      setBusy(false);
+      setPending(null);
     }
   }
-  const all = { preferences: true, analytics: true, marketing: true };
+  function openSettings() {
+    setDraft(toSelection(getConsent()));
+    setError('');
+    showPanel(true);
+  }
+
   return (
     <>
       <Suspense fallback={null}>
         <PageTracking />
       </Suspense>
-      <div className="fixed bottom-2 left-2 z-40 rounded border bg-white p-2 shadow">
-        <CookieSettingsLink />
-      </div>
-      {banner && (
-        <section
-          aria-label="رضایت کوکی‌ها"
-          dir="rtl"
-          className="fixed bottom-0 inset-x-0 z-50 border-t bg-white p-5 shadow-xl"
+
+      {/* Compact control for pages without the public footer. */}
+      {ready && !banner && !panel && (
+        <button
+          type="button"
+          aria-label="تنظیمات کوکیها"
+          onClick={() => window.dispatchEvent(new Event('privacy-open'))}
+          className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-2 border border-black/10 bg-white/90 px-3 py-2 text-xs font-medium text-gray-600 shadow-sm backdrop-blur transition-colors hover:border-black/30 hover:text-black animate-in fade-in-0 slide-in-from-bottom-2 motion-reduce:animate-none"
         >
-          <button
-            type="button"
-            aria-label="بستن موقت بنر بدون ثبت انتخاب"
-            className="float-left p-2"
-            onClick={() => showBanner(false)}
-          >
-            ×
-          </button>
-          <p className="max-w-5xl leading-8">
-            زوپینی برای عملکرد درست فروشگاه از کوکی‌های ضروری استفاده می‌کند. با
-            اجازه‌ی شما، کوکی‌های تحلیل به ما کمک می‌کنند نحوه‌ی استفاده از سایت
-            را بفهمیم و آن را بهتر کنیم. کوکی‌های بازاریابی فقط با انتخاب شما
-            فعال می‌شوند.
-          </p>
-          <div className="flex flex-wrap gap-3 mt-4">
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => {
-                setDraft(getConsent() || denied);
-                showPanel(true);
-              }}
-            >
-              مدیریت ترجیحات
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => void save(all, 'all')}
-            >
-              پذیرش همه
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => void save(denied, 'reject')}
-            >
-              رد کوکی‌های غیرضروری
-            </Button>
-          </div>
-          <p role="status">{error}</p>
-        </section>
+          <Cookie className="size-4" aria-hidden="true" />
+          <span className="hidden sm:inline">تنظیمات کوکیها</span>
+        </button>
       )}
+
+      {banner && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/10 to-transparent" />
+          <section
+            aria-label="رضایت کوکیها"
+            dir="rtl"
+            className="pointer-events-auto relative mx-auto mb-3 w-[calc(100%-1.5rem)] max-w-6xl border border-black/10 bg-white/95 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.45)] backdrop-blur-md animate-in fade-in-0 slide-in-from-bottom-4 duration-300 motion-reduce:animate-none sm:mb-5"
+          >
+            <div className="flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-center lg:gap-10 lg:p-8">
+              <div className="flex flex-1 items-start gap-4">
+                <div className="hidden size-11 shrink-0 items-center justify-center border border-black/10 bg-gray-50 text-gray-800 sm:flex">
+                  <Cookie className="size-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1 space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[10px] font-semibold tracking-[0.22em] text-gray-400">
+                      ZOPPINI
+                    </span>
+                    <span className="h-px w-6 bg-gray-200" />
+                    <span className="text-[11px] font-medium text-gray-400">
+                      حریم خصوصی
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-semibold leading-8 text-gray-900 sm:text-xl">
+                    ما از کوکیها استفاده میکنیم
+                  </h2>
+                  <p className="max-w-2xl text-[13px] leading-7 text-gray-600 sm:text-sm">
+                    کوکیهای ضروری برای کارکرد فروشگاه، ورود و سبد درخواستی لازماند.
+                    با اجازهی شما، کوکیهای تحلیل به بهتر شدن تجربهی خرید کمک
+                    میکنند و کوکیهای بازاریابی فقط با انتخاب شما فعال میشوند.
+                    هرزمان میتوانید انتخاب خود را تغییر دهید.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex w-full shrink-0 flex-col gap-2 lg:w-60">
+                <Button
+                  variant="dark"
+                  disabled={pending !== null}
+                  onClick={() => void save(all, 'all')}
+                  className="h-11 w-full justify-between px-4 text-sm font-semibold"
+                >
+                  <span>پذیرش همه</span>
+                  {pending === 'all' ? (
+                    <Loader2 className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Check aria-hidden="true" />
+                  )}
+                </Button>
+                <Button
+                  variant="darkOutline"
+                  disabled={pending !== null}
+                  onClick={() => void save(denied, 'reject')}
+                  className="h-11 w-full justify-between border-black/30 px-4 text-sm"
+                >
+                  <span>فقط کوکیهای ضروری</span>
+                  {pending === 'reject' ? (
+                    <Loader2 className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ShieldCheck aria-hidden="true" />
+                  )}
+                </Button>
+                <button
+                  type="button"
+                  disabled={pending !== null}
+                  onClick={openSettings}
+                  className="inline-flex h-9 items-center justify-center gap-1.5 text-xs font-medium text-gray-500 underline-offset-4 transition-colors hover:text-black hover:underline disabled:opacity-50"
+                >
+                  <SlidersHorizontal className="size-3.5" aria-hidden="true" />
+                  تنظیمات کوکیها
+                  <ChevronLeft className="size-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="border-t border-red-100 bg-red-50/60 px-5 py-3 sm:px-7">
+                <ErrorNotice message={error} />
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-black/5 bg-gray-50/70 px-5 py-2.5 text-[11px] text-gray-500 sm:px-7">
+              <p className="flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
+                انتخاب شما ۱۸۰ روز محفوظ میماند و به حساب کاربری وصل نیست.
+              </p>
+              <button
+                type="button"
+                aria-label="بستن موقت بنر بدون ثبت انتخاب"
+                title="بستن موقت بنر بدون ثبت انتخاب"
+                onClick={() => showBanner(false)}
+                className="inline-flex items-center gap-1 transition-colors hover:text-black"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+                بستن موقت
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       <Dialog open={panel} onOpenChange={showPanel}>
-        <DialogContent dir="rtl">
-          <DialogTitle>مدیریت ترجیحات کوکی‌ها</DialogTitle>
-          <DialogDescription>
-            تحلیل فقط با شناسه تصادفی انجام می‌شود و به حساب مشتری متصل نمی‌شود.
-            تغییر انتخاب در هر زمان ممکن است. با اجازه ترجیحات، ویجت پشتیبانی
-            RamonAI از سرویس خارجی بارگذاری می‌شود. بازاریابی فعلاً فناوری فعال
-            ندارد.
-          </DialogDescription>
-          <label className="flex gap-3 p-3">
-            <input type="checkbox" checked disabled readOnly />
-            ضروری — همیشه روشن، برای ورود و سبد درخواستی
-          </label>
-          {(['preferences', 'analytics', 'marketing'] as const).map(
-            (key, i) => (
-              <label key={key} className="flex gap-3 p-3">
-                <input
-                  type="checkbox"
-                  checked={draft[key]}
-                  onChange={e =>
-                    setDraft({ ...draft, [key]: e.target.checked })
-                  }
-                />
-                {
-                  [
-                    'ترجیحات — یادآوری تنظیمات رابط و ویجت پشتیبانی RamonAI',
-                    'تحلیل — اندازه‌گیری استفاده و قیف خرید، نگهداری پیش‌فرض ۱۸۰ روز',
-                    'بازاریابی — فعلاً فناوری فعال ندارد',
-                  ][i]
-                }
-              </label>
-            ),
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Button disabled={busy} onClick={() => void save(draft, 'custom')}>
-              ذخیره‌ی انتخاب من
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => void save(all, 'all')}
-            >
-              پذیرش همه
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => void save(denied, 'reject')}
-            >
-              رد کوکی‌های غیرضروری
-            </Button>
+        <DialogContent
+          dir="rtl"
+          showCloseButton={false}
+          className="gap-0 p-0 sm:max-w-lg"
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-black/10 px-5 py-5 sm:px-6">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center border border-black/10 bg-gray-50 text-gray-800">
+                <Cookie className="size-4" aria-hidden="true" />
+              </div>
+              <DialogHeader className="gap-1.5 text-start">
+                <span className="text-[10px] font-semibold tracking-[0.2em] text-gray-400">
+                  ZOPPINI / PRIVACY
+                </span>
+                <DialogTitle className="text-lg font-semibold text-gray-900">
+                  مدیریت ترجیحات کوکیها
+                </DialogTitle>
+                <DialogDescription className="max-w-sm text-[13px] leading-6 text-gray-500">
+                  هر دسته را جداگانه انتخاب کنید. کوکیهای ضروری همیشه فعالاند و
+                  تغییر انتخاب در هر زمان ممکن است.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="بستن پنجره"
+                className="-mt-1 -ms-1 shrink-0 text-gray-400 hover:text-black"
+              >
+                <X aria-hidden="true" />
+              </Button>
+            </DialogClose>
           </div>
-          <p role="status">{error}</p>
+
+          <div className="max-h-[min(58vh,26rem)] space-y-2.5 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="flex items-start justify-between gap-4 border border-black/10 bg-gray-50/70 p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-black/10 bg-white text-gray-700">
+                  <Lock className="size-4" aria-hidden="true" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    ضروری{' '}
+                    <span className="text-xs font-normal text-gray-400">
+                      — همیشه فعال
+                    </span>
+                  </p>
+                  <p className="text-xs leading-6 text-gray-500">
+                    برای ورود، امنیت و سبد درخواستی لازم است و قابل خاموش کردن
+                    نیست.
+                  </p>
+                </div>
+              </div>
+              <span className="shrink-0 border border-black/10 bg-white px-2 py-1 text-[11px] font-medium text-gray-500">
+                فعال
+              </span>
+            </div>
+
+            {optionalCategories.map(({ key, title, description, Icon }) => (
+              <div
+                key={key}
+                className="flex items-start justify-between gap-4 border border-black/10 p-4 transition-colors hover:border-black/25"
+              >
+                <label
+                  htmlFor={`consent-${key}`}
+                  className="flex cursor-pointer items-start gap-3"
+                >
+                  <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-black/10 bg-gray-50 text-gray-700">
+                    <Icon className="size-4" aria-hidden="true" />
+                  </div>
+                  <span className="space-y-1">
+                    <span className="block text-sm font-medium text-gray-900">
+                      {title}
+                    </span>
+                    <span className="block text-xs leading-6 text-gray-500">
+                      {description}
+                    </span>
+                  </span>
+                </label>
+                <Switch
+                  id={`consent-${key}`}
+                  checked={draft[key]}
+                  onCheckedChange={checked =>
+                    setDraft({ ...draft, [key]: checked })
+                  }
+                  aria-label={title}
+                  className="mt-1.5 shrink-0"
+                />
+              </div>
+            ))}
+
+            <p className="flex items-start gap-2 pt-1 text-[11px] leading-6 text-gray-400">
+              <ShieldCheck
+                className="mt-1 size-3.5 shrink-0"
+                aria-hidden="true"
+              />
+              تحلیل فقط با شناسه تصادفی انجام میشود، به حساب مشتری متصل نیست و
+              اطلاعات ورود یا آدرس کامل صفحات ارسال نمیشود.
+            </p>
+            <ErrorNotice message={error} />
+          </div>
+
+          <div className="border-t border-black/10 bg-gray-50/70 px-5 py-4 sm:px-6">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Button
+                variant="dark"
+                disabled={pending !== null}
+                onClick={() => void save(draft, 'custom')}
+                className="h-10 w-full gap-2 px-3 text-xs font-semibold"
+              >
+                {pending === 'custom' ? (
+                  <Loader2 className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Check aria-hidden="true" />
+                )}
+                ذخیرهی انتخاب من
+              </Button>
+              <Button
+                variant="darkOutline"
+                disabled={pending !== null}
+                onClick={() => void save(all, 'all')}
+                className="h-10 w-full border-black/30 px-3 text-xs"
+              >
+                پذیرش همه
+              </Button>
+              <Button
+                variant="outline"
+                disabled={pending !== null}
+                onClick={() => void save(denied, 'reject')}
+                className="h-10 w-full px-3 text-xs"
+              >
+                فقط ضروری
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

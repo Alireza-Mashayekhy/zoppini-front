@@ -8,7 +8,13 @@ import {
   track,
 } from '../lib/consent/client';
 import { privacyUrl } from '../lib/consent/endpoints';
-import { CATEGORY_VERSION, POLICY } from '../lib/consent/policy';
+import {
+  CATEGORY_VERSION,
+  Consent,
+  denied,
+  POLICY,
+  toSelection,
+} from '../lib/consent/policy';
 
 test('optional collection is fail closed, strips URLs, and withdrawal stops collection', async () => {
   const calls: { url: string; init?: RequestInit }[] = [];
@@ -56,4 +62,19 @@ test('optional collection is fail closed, strips URLs, and withdrawal stops coll
   setConsent(null);
   await track('add_to_cart', { variant: 1 });
   assert.equal(calls.length, 2);
+});
+
+test('stored consent metadata never leaks into the BFF consent payload', () => {
+  const stored: Consent = {
+    ...denied,
+    policy: POLICY,
+    categories: CATEGORY_VERSION,
+    at: new Date().toISOString(),
+  };
+  assert.deepEqual(toSelection(stored), denied);
+  assert.deepEqual(toSelection(null), denied);
+  assert.deepEqual(
+    Object.keys({ ...toSelection(stored), choice: 'custom' }).sort(),
+    ['analytics', 'choice', 'marketing', 'preferences'],
+  );
 });
