@@ -67,15 +67,11 @@ export default async function HomePage() {
 
       <EndVideo />
 
-      <div className="flex justify-center my-10">
-        {/* <HlsVideo
-          src="/home/shoab/master.m3u8"
-          className="aspect-square w-full max-w-[200px] sm:max-w-[500px] object-cover"
-        /> */}
+      {/* <div className="flex justify-center my-10">
         <div className="w-[300px]">
           <StoreExperienceCard />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

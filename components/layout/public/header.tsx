@@ -23,12 +23,12 @@ export default async function Header() {
             <Menu categories={categories?.data ?? []} />
 
             <nav className="hidden items-center gap-5 lg:flex">
-              {/* <Link
+              <Link
                 href="/blog"
                 className="text-sm transition-colors hover:text-black/50"
               >
                 مقالات
-              </Link> */}
+              </Link>
 
               <Link
                 href="/about-us"
@@ -58,14 +58,14 @@ export default async function Header() {
                 باشگاه مشتریان{' '}
               </Link>
 
-              <span className="h-5 w-px bg-black" />
+              {/* <span className="h-5 w-px bg-black" />
 
               <Link
                 href="/landing/opening"
                 className="text-sm transition-colors text-red-600 hover:text-red-800"
               >
                 افتتاحیه{' '}
-              </Link>
+              </Link> */}
             </nav>
           </div>
 
