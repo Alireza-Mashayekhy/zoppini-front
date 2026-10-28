@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import { phoneField } from '@/lib/phone-field';
 import {
   useForgotPassword,
   useResetPassword,
@@ -49,10 +50,7 @@ function ForgotPasswordContent() {
 
   // شمای مرحله اول (شماره تلفن)
   const schemaStep1 = z.object({
-    phone: z
-      .string()
-      .length(11, 'شماره تلفن وارد شده اشتباه است.')
-      .startsWith('09', 'شماره تلفن وارد شده اشتباه است.'),
+    phone: phoneField,
   });
 
   // شمای مرحله دوم (کد + رمز جدید)
@@ -171,7 +169,14 @@ function ForgotPasswordContent() {
           onSubmit={methodsStep1.handleSubmit(onSubmitStep1)}
           className="space-y-3"
         >
-          <RHFInput label="شماره تلفن" name="phone" />
+          <RHFInput
+                    label="شماره تلفن"
+                    name="phone"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    dir="ltr"
+                    placeholder="09xxxxxxxxx"
+                  />
           <Button
             type="submit"
             loading={forgotPasswordMutation.isPending}

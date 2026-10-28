@@ -15,14 +15,12 @@ import RHFInput from '@/components/form/rhf-input';
 import { Button } from '@/components/ui/button';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import { phoneField } from '@/lib/phone-field';
 import { useLoginPassword } from '@/services/features/auth/hooks';
 import { LoginWithPasswordDto } from '@/services/features/auth/types';
 
 const schema = z.object({
-  phone: z
-    .string()
-    .length(11, 'شماره تلفن وارد شده اشتباه است.')
-    .startsWith('09', 'شماره تلفن وارد شده اشتباه است.'),
+  phone: phoneField,
   password: z.string().min(6, 'رمز عبور حداقل ۶ کاراکتر است'),
 });
 
@@ -67,7 +65,14 @@ function LoginWithPasswordContent() {
         onSubmit={methods.handleSubmit(onSubmit)}
         className="space-y-3"
       >
-        <RHFInput label="شماره تلفن" name="phone" />
+        <RHFInput
+          label="شماره تلفن"
+          name="phone"
+          inputMode="numeric"
+          autoComplete="tel"
+          dir="ltr"
+          placeholder="09xxxxxxxxx"
+        />
         <RHFInput label="رمز عبور" name="password" type="password" />
         <Button
           type="submit"

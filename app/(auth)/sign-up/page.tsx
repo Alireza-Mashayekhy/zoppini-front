@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import { phoneField } from '@/lib/phone-field';
 import { persianDateToISO } from '@/lib/utils';
 import { useSendOtp, useSignUp } from '@/services/features/auth/hooks';
 import { SignUpDto } from '@/services/features/auth/types';
@@ -46,10 +47,7 @@ function SignUpContent() {
   // شمای اعتبارسنجی مرحله اول
   const schemaStep1 = z.object({
     fullName: z.string().min(3, 'نام کامل حداقل ۳ کاراکتر است'),
-    phone: z
-      .string()
-      .length(11, 'شماره تلفن وارد شده اشتباه است.')
-      .startsWith('09', 'شماره تلفن وارد شده اشتباه است.'),
+    phone: phoneField,
     email: z.string().email('ایمیل نامعتبر است').optional().or(z.literal('')),
     password: z.string().min(6, 'رمز عبور حداقل ۶ کاراکتر است'),
     birthDate: z.string().optional(),
@@ -155,7 +153,14 @@ function SignUpContent() {
           className="space-y-3"
         >
           <RHFInput label="نام کامل" name="fullName" />
-          <RHFInput label="شماره تلفن" name="phone" />
+          <RHFInput
+                  label="شماره تلفن"
+                  name="phone"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  dir="ltr"
+                  placeholder="09xxxxxxxxx"
+                />
           <RHFInput label="ایمیل (اختیاری)" name="email" type="email" />
           <RHFInput label="رمز عبور" name="password" type="password" />
           <PersianDatePicker
