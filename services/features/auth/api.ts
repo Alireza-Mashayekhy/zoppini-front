@@ -1,3 +1,4 @@
+import { normalizeIranMobile } from '@/lib/phone';
 import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiSingleResponse } from '@/services/api/types';
@@ -13,10 +14,18 @@ import {
   SignUpDto,
 } from './types';
 
+/**
+ * همیشه شماره را یکدست می‌فرستیم (`09xxxxxxxxx`)، حتی اگر کاربر اعداد فارسی،
+ * فاصله یا پیش‌شماره +۹۸ وارد کرده باشد.
+ */
+function withNormalizedPhone<T extends { phone: string }>(dto: T): T {
+  return { ...dto, phone: normalizeIranMobile(dto.phone) };
+}
+
 export async function login(dto: LoginDto) {
   const { data } = await api.post<ApiSingleResponse<LoginResponse>>(
     endpoints.auth.login,
-    dto,
+    withNormalizedPhone(dto),
   );
 
   return data;
@@ -25,7 +34,7 @@ export async function login(dto: LoginDto) {
 export async function sendOtp(dto: sendOtpDto) {
   const { data } = await api.post<ApiSingleResponse<sendOtpResponse>>(
     endpoints.auth.otp,
-    dto,
+    withNormalizedPhone(dto),
   );
 
   return data;
@@ -37,22 +46,34 @@ export async function logout() {
 }
 
 export async function signUp(formData: SignUpDto) {
-  const { data } = await api.post(endpoints.auth.signUp, formData);
+  const { data } = await api.post(
+    endpoints.auth.signUp,
+    withNormalizedPhone(formData),
+  );
   return data;
 }
 
 export async function loginPassword(formData: LoginWithPasswordDto) {
-  const { data } = await api.post(endpoints.auth.loginPassword, formData);
+  const { data } = await api.post(
+    endpoints.auth.loginPassword,
+    withNormalizedPhone(formData),
+  );
   return data;
 }
 
 export async function forgotPassword(formData: ForgetPasswordDto) {
-  const { data } = await api.post(endpoints.auth.forgotPassword, formData);
+  const { data } = await api.post(
+    endpoints.auth.forgotPassword,
+    withNormalizedPhone(formData),
+  );
   return data;
 }
 
 export async function resetPassword(formData: ResetPasswordDto) {
-  const { data } = await api.post(endpoints.auth.resetPassword, formData);
+  const { data } = await api.post(
+    endpoints.auth.resetPassword,
+    withNormalizedPhone(formData),
+  );
   return data;
 }
 

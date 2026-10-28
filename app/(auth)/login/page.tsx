@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import { phoneField } from '@/lib/phone-field';
 import { useLogin, useSendOtp } from '@/services/features/auth/hooks';
 import { sendOtpDto } from '@/services/features/auth/types';
 
@@ -42,10 +43,7 @@ function LoginContent() {
   const callbackUrl = useCallbackUrl();
 
   const schema = z.object({
-    phone: z
-      .string()
-      .length(11, 'شماره تلفن وارد شده اشتباه است.')
-      .startsWith('09', 'شماره تلفن وارد شده اشتباه است.'),
+    phone: phoneField,
   });
 
   const methods = useForm<sendOtpDto>({
@@ -130,7 +128,14 @@ function LoginContent() {
           onSubmit={methods.handleSubmit(onSubmit)}
           className="space-y-3"
         >
-          <RHFInput label="شماره تلفن" name="phone" />
+          <RHFInput
+            label="شماره تلفن"
+            name="phone"
+            inputMode="numeric"
+            autoComplete="tel"
+            dir="ltr"
+            placeholder="09xxxxxxxxx"
+          />
           <Button
             type="submit"
             loading={sendOtpMutation.isPending}
