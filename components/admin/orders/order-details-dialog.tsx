@@ -24,6 +24,7 @@ import {
   useAdminOrder,
   useUpdateAdminOrderStatus,
 } from '@/services/features/orders/admin.hooks';
+import { useCancelSnappayPayment } from '@/services/features/payment/hooks';
 
 interface Props {
   order: AdminOrder | null;
@@ -92,6 +93,8 @@ export default function OrderDetailsDialog({
 
   const updateStatus = useUpdateAdminOrderStatus();
 
+  const cancelSnappay = useCancelSnappayPayment();
+
   const currentOrder = data?.data ?? order;
 
   const [status, setStatus] = useState<OrderStatus | undefined>(
@@ -119,6 +122,28 @@ export default function OrderDetailsDialog({
     } catch (error) {
       toast.error('خطا در به روز رسانی وضعیت سفارش.');
       console.log(error);
+    }
+  };
+
+  const handleCancelSnappay = async (paymentId: number) => {
+    if (
+      !confirm(
+        'لغو تراکنش اسنپ‌پی برگشت‌ناپذیر است؛ وجه به اعتبار کاربر در اسنپ‌پی برمی‌گردد و این سفارش هم لغو می‌شود. ادامه می‌دهید؟',
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await cancelSnappay.mutateAsync({
+        paymentId,
+        orderId: currentOrder.id,
+      });
+      toast.success('تراکنش اسنپ‌پی لغو شد و سفارش به‌روزرسانی شد.');
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || 'خطا در لغو تراکنش اسنپ‌پی.',
+      );
     }
   };
 
@@ -343,13 +368,34 @@ export default function OrderDetailsDialog({
                 {currentOrder?.paymentBreakdown?.gateways?.length ? (
                   currentOrder?.paymentBreakdown?.gateways.map(item => (
                     <div
-                      key={item.id}
+                      key={item.paymentId ?? item.id ?? item.gateway}
                       className="flex items-center justify-between gap-4 p-4"
                     >
-                      <div className="font-medium">{item?.gateway}</div>
-
                       <div className="font-medium">
-                        {formatPrice(item?.amount)}
+                        {item?.gatewayLabel ?? item?.gateway}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="font-medium">
+                          {formatPrice(item?.amount)}
+                        </div>
+
+                        {item.gateway === 'snappay' &&
+                          item.paymentId &&
+                          currentOrder.status !==
+                            OrderStatus.CANCELLED && (
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              disabled={cancelSnappay.isPending}
+                              onClick={() =>
+                                handleCancelSnappay(item.paymentId!)
+                              }
+                            >
+                              لغو تراکنش اسنپ‌پی
+                            </Button>
+                          )}
                       </div>
                     </div>
                   ))

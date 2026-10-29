@@ -27,7 +27,10 @@ import {
   OrderStatus,
   ShippingMethod,
 } from '@/services/features/orders/type';
-import { useStartPayment } from '@/services/features/payment/hooks';
+import {
+  useSnappayEligibility,
+  useStartPayment,
+} from '@/services/features/payment/hooks';
 import { PaymentGateway } from '@/services/features/payment/type';
 import { useWallet } from '@/services/features/wallet/hooks';
 
@@ -80,7 +83,8 @@ export default function CheckoutForm() {
     ShippingMethod.TIBAX,
   ]);
 
-  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(
+  const [selectedGatewayState, setSelectedGateway] =
+    useState<PaymentGateway | null>(
     null,
   );
 
@@ -124,6 +128,38 @@ export default function CheckoutForm() {
     useWalletPayment &&
     estimatedFinalPrice > 0 &&
     walletBalance >= estimatedFinalPrice;
+
+  /**
+   * اسنپ‌پی: مبلغ قابل پرداخت با درگاه به ریال. با هر تغییر سبد/ارسال/
+   * تخفیف/کیف پول دوباره از اسنپ‌پی استعلام می‌شود و فقط اگر مجاز باشد،
+   * با همان عنوان و توضیح داینامیک اسنپ‌پی در پایین نمایش داده می‌شود.
+   */
+  const snappayPayableToman =
+    estimatedFinalPrice -
+    (useWalletPayment
+      ? Math.min(walletBalance, Math.max(0, estimatedFinalPrice))
+      : 0);
+
+  const snappayAmountIrr = Math.round(Math.max(0, snappayPayableToman) * 10);
+
+  const { data: snappayEligibilityData } = useSnappayEligibility(
+    { amount: snappayAmountIrr },
+    snappayAmountIrr > 0 && !walletFullyCovers,
+  );
+
+  const snappayEligibility = snappayEligibilityData?.data;
+
+  const snappayAvailable = Boolean(
+    snappayEligibility?.eligible && snappayEligibility?.title_message,
+  );
+
+  // اگر استعلام اسنپ‌پی دیگر مجاز نباشد، انتخاب قبلی آن خودکار بی‌اثر می‌شود.
+  const selectedGateway =
+    selectedGatewayState === PaymentGateway.SNAPPAY &&
+    snappayEligibility &&
+    !snappayEligibility.eligible
+      ? null
+      : selectedGatewayState;
 
   /**
    * ==========================================
@@ -723,6 +759,15 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
+                {snappayAvailable && (
+                  <GatewayCard
+                    gateway={PaymentGateway.SNAPPAY}
+                    title={snappayEligibility?.title_message ?? ''}
+                    description={snappayEligibility?.description ?? ''}
+                    selectedGateway={selectedGateway}
+                    onSelect={setSelectedGateway}
+                  />
+                )}
               </div>
             </section>
 

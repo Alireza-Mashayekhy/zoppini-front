@@ -6,17 +6,42 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStartPayment } from '@/services/features/payment/hooks';
+import {
+  useSnappayEligibility,
+  useStartPayment,
+} from '@/services/features/payment/hooks';
 import { PaymentGateway } from '@/services/features/payment/type';
 
 export default function PaymentSelectionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
-  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(
+  const [selectedGatewayState, setSelectedGateway] =
+    useState<PaymentGateway | null>(
     null,
   );
   const { mutate, isPending } = useStartPayment();
+
+  // اسنپ‌پی: مبلغ از روی همین سفارش سمت سرور محاسبه و استعلام می‌شود؛
+  // فقط در صورت eligible بودن با عنوان/توضیح داینامیک اسنپ‌پی نمایش داده می‌شود.
+  const { data: snappayEligibilityData } = useSnappayEligibility(
+    { orderId: orderId ? Number(orderId) : undefined },
+    Boolean(orderId),
+  );
+
+  const snappayEligibility = snappayEligibilityData?.data;
+
+  const snappayAvailable = Boolean(
+    snappayEligibility?.eligible && snappayEligibility?.title_message,
+  );
+
+  // اگر استعلام اسنپ‌پی دیگر مجاز نباشد، انتخاب قبلی آن خودکار بی‌اثر می‌شود.
+  const selectedGateway =
+    selectedGatewayState === PaymentGateway.SNAPPAY &&
+    snappayEligibility &&
+    !snappayEligibility.eligible
+      ? null
+      : selectedGatewayState;
 
   const handlePayment = () => {
     if (!orderId) {
@@ -154,6 +179,34 @@ export default function PaymentSelectionContent() {
             <span className="text-sm text-gray-500">(درگاه اینترنتی)</span>
           </CardContent>
         </Card>
+
+        {snappayAvailable && (
+          <Card
+            className={`cursor-pointer border-2 transition-all ${
+              selectedGateway === PaymentGateway.SNAPPAY
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={() => setSelectedGateway(PaymentGateway.SNAPPAY)}
+          >
+            <CardContent className="flex items-center gap-3 p-4">
+              <input
+                type="radio"
+                checked={selectedGateway === PaymentGateway.SNAPPAY}
+                onChange={() => setSelectedGateway(PaymentGateway.SNAPPAY)}
+                className="w-4 h-4 shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="font-medium">
+                  {snappayEligibility?.title_message}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {snappayEligibility?.description}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Button

@@ -147,6 +147,9 @@ export const endpoints = {
   payment: {
     start: '/payment/start',
     startWalletCharge: '/payment/start-wallet-charge',
+    snappayEligibility: '/payment/snappay/eligibility',
+    snappayAdminCancel: (paymentId: number) =>
+      `/payment/snappay/admin/payments/${paymentId}/cancel`,
   },
 
   wallet: {

@@ -74,8 +74,10 @@ export interface AdminOrder {
     walletAmount?: number;
     gatewayAmount: number;
     gateways: {
-      id: string;
+      id?: string;
+      paymentId?: number;
       gateway: string;
+      gatewayLabel?: string;
       amount: number;
     }[];
   };
