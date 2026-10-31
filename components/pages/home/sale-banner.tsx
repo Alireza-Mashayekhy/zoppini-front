@@ -37,7 +37,7 @@ export default function SaleBanner() {
       <Link href="/products">
         <div className="relative w-full aspect-[9/16] max-h-[80vh] overflow-hidden">
           <Image
-            src="/home/sale_mobile_3.webp"
+            src="/home/mobile_sale_3.webp"
             alt="محصولات تخفیف‌دار زوپینی"
             fill
             sizes="100vw"
