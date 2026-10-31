@@ -118,6 +118,14 @@ export default function Menu({
                 مشاهده همه
               </Link>
 
+              <Link
+                href={`/category/${category.slug}`}
+                className="block rounded-none border border-transparent px-4 py-2 text-sm hover:border-black"
+                onClick={() => setIsMobileOpen(false)}
+              >
+                دسته‌بندی {category.name}
+              </Link>
+
               {category.children.map(child => (
                 <MobileCategoryNode key={child.id} category={child} />
               ))}
@@ -190,7 +198,11 @@ export default function Menu({
                     return (
                       <Link
                         key={category.id}
-                        href={`/product-category/${category.slug}`}
+                        href={
+                          hasChildren
+                            ? `/category/${category.slug}`
+                            : `/product-category/${category.slug}`
+                        }
                         onMouseEnter={() => {
                           setActiveCategory(hasChildren ? category : null);
                           setHoveredCategory(category);
@@ -240,7 +252,11 @@ export default function Menu({
                         {activeCategory.children.map(child => (
                           <Link
                             key={child.id}
-                            href={`/product-category/${child.slug}`}
+                            href={
+                              child.children.length
+                                ? `/category/${child.slug}`
+                                : `/product-category/${child.slug}`
+                            }
                             className="group flex items-center justify-between border-b border-transparent py-2 text-sm text-gray-600 transition-colors hover:border-gray-200 hover:text-black"
                           >
                             <span>{child.name}</span>
