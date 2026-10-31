@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import AdminSidebar from '@/components/layout/admin/sidebar';
+import Header from '@/components/layout/public/header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
@@ -42,12 +43,16 @@ export default async function AdminLayout({
   const isSeo = roleArray.includes('seo');
 
   return (
-    <SidebarProvider>
-      <AdminSidebar isAdmin={isAdmin} isSeo={isSeo} />
+    <>
+      <Header />
 
-      <SidebarInset className="bg-border min-w-0 overflow-x-hidden">
-        <main className="p-4 min-w-0 w-full">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+      <SidebarProvider>
+        <AdminSidebar isAdmin={isAdmin} isSeo={isSeo} />
+
+        <SidebarInset className="bg-border min-w-0 overflow-x-hidden">
+          <main className="p-4 min-w-0 w-full">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </>
   );
 }
