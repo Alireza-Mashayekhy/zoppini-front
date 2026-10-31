@@ -1,4 +1,5 @@
 import { analyticsContext, track } from '@/lib/consent/client';
+import { torobAttributionContext } from '@/lib/consent/torob-client';
 import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
@@ -6,7 +7,12 @@ import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 import { CreateOrderDto, OrderResponse } from './type';
 
 export const createOrder = async (dto: CreateOrderDto) => {
-  const { data } = await api.post(endpoints.order.create, dto);
+  void track('checkout_started');
+  const context = await analyticsContext();
+  const attribution = await torobAttributionContext();
+  const { data } = await api.post(endpoints.order.create, dto, {
+    headers: { ...(attribution ? { 'X-Torob-Attribution': attribution } : {}), ...(context ? { 'X-Analytics-Context': context } : {}) },
+  });
   return data;
 };
 
@@ -30,7 +36,7 @@ export const cancelOrder = async (id: number): Promise<void> => {
 
 export const confirmOrderFromWallet = async (id: number): Promise<void> => {
   const url = endpoints.order.confirmFromWallet(id);
-  await track('checkout_started');
+  void track('checkout_started');
   const context = await analyticsContext();
   await api.post(
     url,

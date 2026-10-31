@@ -13,8 +13,11 @@ export function preferencesAllowed() {
 }
 export async function analyticsContext() {
   if (!current?.analytics) return '';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1500);
   try {
     const r = await fetch(privacyUrl('context'), {
+      signal: controller.signal,
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: '{}',
@@ -23,12 +26,14 @@ export async function analyticsContext() {
     return r.ok && current?.analytics ? (d.token as string) : '';
   } catch {
     return '';
+  } finally {
+    clearTimeout(timeout);
   }
 }
 let pending: Promise<unknown> = Promise.resolve();
 export async function track(
   name: string,
-  fields: { product?: number; variant?: number } = {},
+  fields: { product?: number; variant?: number; category?: number } = {},
 ) {
   if (
     !current?.analytics ||
@@ -81,13 +86,16 @@ export async function track(
     .catch(() => {})
     .then(async () => {
       if (!current?.analytics || current.at !== selection) return;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
       try {
         await fetch(privacyUrl('event'), {
+          signal: controller.signal,
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body,
         });
-      } catch {}
+      } catch {} finally { clearTimeout(timeout); }
     });
   await pending;
 }

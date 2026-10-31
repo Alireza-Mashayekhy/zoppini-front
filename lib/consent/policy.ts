@@ -1,4 +1,4 @@
-export const POLICY = '2026-10-27.2';
+export const POLICY = '2026-10-31.2';
 export const CATEGORY_VERSION = 'necessary,preferences,analytics,marketing';
 export type Selection = {
   preferences: boolean;
