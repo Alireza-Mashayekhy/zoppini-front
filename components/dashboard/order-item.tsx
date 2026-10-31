@@ -11,7 +11,11 @@ import {
   useCancelOrder,
   useConfirmOrderFromWallet,
 } from '@/services/features/orders/hooks';
-import { OrderResponse, OrderStatus } from '@/services/features/orders/type';
+import {
+  OrderResponse,
+  OrderStatus,
+  ShippingMethod,
+} from '@/services/features/orders/type';
 
 const statusMap: Record<OrderStatus, { label: string; color: string }> = {
   pending: {
@@ -118,7 +122,11 @@ export default function OrderItem({ order }: OrderItemProps) {
 
           <div className="flex flex-wrap justify-between items-center pt-2 border-t">
             <div className="space-y-1 text-sm">
-              <p>آدرس: {order.shippingAddress || 'ثبت نشده'}</p>
+              {order.shippingMethod === ShippingMethod.PICKUP ? (
+                <p>روش تحویل: تحویل حضوری در هدیش مال</p>
+              ) : (
+                <p>آدرس: {order.shippingAddress || 'ثبت نشده'}</p>
+              )}
               <p>تلفن: {order.phone || 'ثبت نشده'}</p>
               {order.note && <p>توضیحات: {order.note}</p>}
             </div>

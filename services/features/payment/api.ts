@@ -45,7 +45,7 @@ export async function cancelSnappayPayment(paymentId: number) {
 }
 
 export async function startPayment(orderId: number, gateway: PaymentGateway) {
-  await track('checkout_started');
+  void track('checkout_started');
   const context = await analyticsContext();
   const { data } = await api.post<ApiSingleResponse<StartPaymentResponse>>(
     endpoints.payment.start,

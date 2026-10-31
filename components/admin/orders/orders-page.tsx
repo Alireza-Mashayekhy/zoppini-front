@@ -1,6 +1,7 @@
 'use client';
 
 import { RefreshCcw } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 
 import CustomPagination from '@/components/shared/custom-pagination';
@@ -58,6 +59,9 @@ export default function AdminOrdersPage() {
           </p>
         </div>
 
+        <Link href="/admin/reports" className="text-sm underline">
+          گزارش‌های فروش
+        </Link>
         <Button
           variant="outline"
           onClick={() => refetch()}

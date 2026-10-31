@@ -33,6 +33,7 @@ import {
 } from '@/lib/consent/client';
 import { privacyUrl } from '@/lib/consent/endpoints';
 import { Consent, denied, Selection, toSelection } from '@/lib/consent/policy';
+import { captureTorobClick } from '@/lib/consent/torob-client';
 
 declare global {
   interface Window {
@@ -66,7 +67,8 @@ const optionalCategories = [
   {
     key: 'marketing',
     title: 'بازاریابی',
-    description: 'در حال حاضر فناوری بازاریابی فعالی روی سایت نداریم.',
+    description:
+      'با رضایت شما شناسه کلیک ترب برای انتساب خرید تا هفت روز نگهداری و اطلاعات سفارش منتسب به ترب ارسال می‌شود.',
     Icon: Megaphone,
   },
 ] as const;
@@ -75,6 +77,7 @@ function PageTracking() {
   const path = usePathname();
   useEffect(() => {
     const run = () => {
+      void captureTorobClick();
       void track('page_view').then(() =>
         window.dispatchEvent(new Event('analytics-page')),
       );
@@ -305,10 +308,10 @@ export default function ConsentManager() {
                     ما از کوکیها استفاده میکنیم
                   </h2>
                   <p className="max-w-2xl text-[13px] leading-7 text-gray-600 sm:text-sm">
-                    کوکیهای ضروری برای کارکرد فروشگاه، ورود و سبد درخواستی لازماند.
-                    با اجازهی شما، کوکیهای تحلیل به بهتر شدن تجربهی خرید کمک
-                    میکنند و کوکیهای بازاریابی فقط با انتخاب شما فعال میشوند.
-                    هرزمان میتوانید انتخاب خود را تغییر دهید.
+                    کوکیهای ضروری برای کارکرد فروشگاه، ورود و سبد درخواستی
+                    لازماند. با اجازهی شما، کوکیهای تحلیل به بهتر شدن تجربهی
+                    خرید کمک میکنند و کوکیهای بازاریابی فقط با انتخاب شما فعال
+                    میشوند. هرزمان میتوانید انتخاب خود را تغییر دهید.
                   </p>
                 </div>
               </div>

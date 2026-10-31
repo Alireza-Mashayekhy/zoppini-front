@@ -4,10 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Wallet } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as z from 'zod';
 
 import Addresses from '@/components/dashboard/addresses';
 import FormProvider from '@/components/form/form-provider';
@@ -34,24 +33,9 @@ import {
 import { PaymentGateway } from '@/services/features/payment/type';
 import { useWallet } from '@/services/features/wallet/hooks';
 
+import { CheckoutFormValues,checkoutSchema } from './checkout-schema';
 import OrderSummary from './order-summary';
 import { calculateCheckoutShipping } from './shipping';
-
-const checkoutSchema = z.object({
-  addressId: z.number().min(1, 'انتخاب آدرس الزامی است'),
-
-  shippingMethod: z.enum([
-    ShippingMethod.POST,
-    ShippingMethod.COURIER,
-    ShippingMethod.TIBAX,
-  ]),
-
-  note: z.string().optional(),
-
-  discountCode: z.string().optional(),
-});
-
-type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutForm() {
   const router = useRouter();
@@ -78,15 +62,8 @@ export default function CheckoutForm() {
     number | undefined
   >();
 
-  const [availableMethods, setAvailableMethods] = useState<ShippingMethod[]>([
-    ShippingMethod.POST,
-    ShippingMethod.TIBAX,
-  ]);
-
   const [selectedGatewayState, setSelectedGateway] =
-    useState<PaymentGateway | null>(
-    null,
-  );
+    useState<PaymentGateway | null>(null);
 
   const [appliedDiscount, setAppliedDiscount] =
     useState<ApplyDiscountResponse | null>(null);
@@ -106,9 +83,12 @@ export default function CheckoutForm() {
     },
   });
 
-  const { handleSubmit, watch, setValue, register, getValues } = methods;
+  const { handleSubmit, setValue, register, getValues } = methods;
 
-  const selectedShipping = watch('shippingMethod');
+  const selectedShipping = useWatch({
+    control: methods.control,
+    name: 'shippingMethod',
+  });
 
   const { isFreeShipping, shippingCost } = calculateCheckoutShipping(
     cartItems,
@@ -161,44 +141,17 @@ export default function CheckoutForm() {
       ? null
       : selectedGatewayState;
 
-  /**
-   * ==========================================
-   * تغییر روش ارسال بر اساس شهر
-   * ==========================================
-   */
-
-  useEffect(() => {
-    if (!selectedAddressId || !addresses?.data) {
-      return;
-    }
-
-    const address = addresses.data.find(
-      address => address.id === selectedAddressId,
-    );
-
-    if (!address) {
-      return;
-    }
-
-    const isTehran = address.city?.name === 'تهران';
-
-    const methods: ShippingMethod[] = [
-      ShippingMethod.POST,
-      ShippingMethod.TIBAX,
-    ];
-
-    if (isTehran) {
-      methods.push(ShippingMethod.COURIER);
-    }
-
-    setAvailableMethods(methods);
-
-    if (!methods.includes(selectedShipping)) {
-      setValue('shippingMethod', ShippingMethod.POST, {
-        shouldValidate: true,
-      });
-    }
-  }, [selectedAddressId, addresses, selectedShipping, setValue]);
+  // The courier option depends on the currently selected city; pickup is available everywhere.
+  const selectedAddress = addresses?.data?.find(
+    address => address.id === selectedAddressId,
+  );
+  const availableMethods = [
+    ShippingMethod.POST,
+    ShippingMethod.TIBAX,
+    ShippingMethod.PICKUP,
+  ];
+  if (selectedAddress?.city?.name === 'تهران')
+    availableMethods.push(ShippingMethod.COURIER);
 
   /**
    * ==========================================
@@ -283,9 +236,14 @@ export default function CheckoutForm() {
       return;
     }
 
-    if (!data.addressId) {
+    if (data.shippingMethod !== ShippingMethod.PICKUP && !data.addressId) {
       toast.error('لطفاً آدرس تحویل را انتخاب کنید');
 
+      return;
+    }
+
+    if (!availableMethods.includes(data.shippingMethod)) {
+      toast.error('روش ارسال برای آدرس انتخاب‌شده در دسترس نیست');
       return;
     }
 
@@ -297,7 +255,10 @@ export default function CheckoutForm() {
 
     try {
       const orderData: CreateOrderDto = {
-        addressId: data.addressId,
+        addressId:
+          data.shippingMethod === ShippingMethod.PICKUP
+            ? undefined
+            : data.addressId,
 
         shippingMethod: data.shippingMethod,
 
@@ -493,17 +454,46 @@ export default function CheckoutForm() {
                 آدرس تحویل
               </h2>
 
-              <Addresses
-                mode="checkout"
-                selectedAddressId={selectedAddressId}
-                onAddressSelect={id => {
-                  setSelectedAddressId(id);
+              <p className="mb-3 text-sm text-gray-500">
+                برای ارسال انتخاب آدرس الزامی است؛ برای تحویل حضوری نیازی به
+                آدرس نیست.
+              </p>
+              {selectedShipping === ShippingMethod.PICKUP ? (
+                <p className="text-sm text-gray-600">
+                  تحویل در هدیش مال انجام می‌شود و آدرس ارسال برای این سفارش ثبت
+                  نخواهد شد.
+                </p>
+              ) : (
+                <>
+                  <Addresses
+                    mode="checkout"
+                    selectedAddressId={selectedAddressId}
+                    onAddressSelect={id => {
+                      const newAddress = addresses?.data?.find(
+                        address => address.id === id,
+                      );
+                      if (
+                        selectedShipping === ShippingMethod.COURIER &&
+                        newAddress?.city?.name !== 'تهران'
+                      ) {
+                        setValue('shippingMethod', ShippingMethod.POST, {
+                          shouldValidate: true,
+                        });
+                      }
+                      setSelectedAddressId(id);
 
-                  setValue('addressId', id, {
-                    shouldValidate: true,
-                  });
-                }}
-              />
+                      setValue('addressId', id, {
+                        shouldValidate: true,
+                      });
+                    }}
+                  />
+                  {methods.formState.errors.addressId && (
+                    <p role="alert" className="mt-2 text-sm text-red-600">
+                      {methods.formState.errors.addressId.message}
+                    </p>
+                  )}
+                </>
+              )}
             </section>
 
             {/* ================================= */}
@@ -515,67 +505,83 @@ export default function CheckoutForm() {
                 روش ارسال
               </h2>
 
-              {!selectedAddressId ? (
-                <p className="text-sm text-gray-500">
-                  لطفاً ابتدا آدرس خود را انتخاب کنید.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {availableMethods.includes(ShippingMethod.POST) && (
-                    <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        value={ShippingMethod.POST}
-                        {...register('shippingMethod')}
-                      />
+              {!selectedAddressId &&
+                selectedShipping !== ShippingMethod.PICKUP && (
+                  <p className="mb-3 text-sm text-gray-500">
+                    برای ارسال، ابتدا آدرس خود را انتخاب کنید.
+                  </p>
+                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                {availableMethods.includes(ShippingMethod.POST) && (
+                  <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      value={ShippingMethod.POST}
+                      {...register('shippingMethod')}
+                    />
 
-                      <div>
-                        <div className="font-medium">پست</div>
+                    <div>
+                      <div className="font-medium">پست</div>
 
-                        <div className="text-xs text-gray-500">
-                          {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
-                        </div>
+                      <div className="text-xs text-gray-500">
+                        {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
                       </div>
-                    </label>
-                  )}
+                    </div>
+                  </label>
+                )}
 
-                  {availableMethods.includes(ShippingMethod.COURIER) && (
-                    <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        value={ShippingMethod.COURIER}
-                        {...register('shippingMethod')}
-                      />
+                {availableMethods.includes(ShippingMethod.COURIER) && (
+                  <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      value={ShippingMethod.COURIER}
+                      {...register('shippingMethod')}
+                    />
 
-                      <div>
-                        <div className="font-medium">پیک</div>
+                    <div>
+                      <div className="font-medium">پیک</div>
 
-                        <div className="text-xs text-green-600">
-                          {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                        </div>
+                      <div className="text-xs text-green-600">
+                        {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
                       </div>
-                    </label>
-                  )}
+                    </div>
+                  </label>
+                )}
 
-                  {availableMethods.includes(ShippingMethod.TIBAX) && (
-                    <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        value={ShippingMethod.TIBAX}
-                        {...register('shippingMethod')}
-                      />
-
-                      <div>
-                        <div className="font-medium">تیباکس</div>
-
-                        <div className="text-xs text-green-600">
-                          {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                        </div>
+                {availableMethods.includes(ShippingMethod.PICKUP) && (
+                  <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      value={ShippingMethod.PICKUP}
+                      {...register('shippingMethod')}
+                    />
+                    <div>
+                      <div className="font-medium">تحویل حضوری در هدیش مال</div>
+                      <div className="text-xs text-green-600">
+                        بدون هزینه ارسال
                       </div>
-                    </label>
-                  )}
-                </div>
-              )}
+                    </div>
+                  </label>
+                )}
+
+                {availableMethods.includes(ShippingMethod.TIBAX) && (
+                  <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      value={ShippingMethod.TIBAX}
+                      {...register('shippingMethod')}
+                    />
+
+                    <div>
+                      <div className="font-medium">تیباکس</div>
+
+                      <div className="text-xs text-green-600">
+                        {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
+                      </div>
+                    </div>
+                  </label>
+                )}
+              </div>
             </section>
 
             {/* ================================= */}
@@ -804,6 +810,7 @@ export default function CheckoutForm() {
           shippingCost={shippingCost}
           isFreeShipping={isFreeShipping}
           hasSelectedAddress={!!selectedAddressId}
+          isPickup={selectedShipping === ShippingMethod.PICKUP}
         />
       </div>
     </div>

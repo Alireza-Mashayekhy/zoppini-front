@@ -2,7 +2,7 @@
 
 import { Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -57,8 +57,9 @@ const statuses = [
 
 const shippingMethods: Record<string, string> = {
   post: 'پست',
+  tibax: 'تیباکس',
   courier: 'پیک',
-  pickup: 'تحویل حضوری',
+  pickup: 'تحویل حضوری در هدیش مال',
 };
 
 function formatPrice(value?: string | number | null) {
@@ -89,7 +90,7 @@ export default function OrderDetailsDialog({
   open,
   onOpenChange,
 }: Props) {
-  const { data, isLoading } = useAdminOrder(order?.id);
+  const { data, isLoading, isError } = useAdminOrder(order?.id);
 
   const updateStatus = useUpdateAdminOrderStatus();
 
@@ -97,13 +98,17 @@ export default function OrderDetailsDialog({
 
   const currentOrder = data?.data ?? order;
 
-  const [status, setStatus] = useState<OrderStatus | undefined>(
-    currentOrder?.status,
-  );
-
-  useEffect(() => {
-    setStatus(currentOrder?.status);
-  }, [currentOrder?.status]);
+  const [selection, setSelection] = useState<{
+    id: number;
+    original: OrderStatus;
+    value: OrderStatus;
+  } | null>(null);
+  const status =
+    selection &&
+    selection.id === currentOrder?.id &&
+    selection.original === currentOrder.status
+      ? selection.value
+      : currentOrder?.status;
 
   if (!currentOrder) {
     return null;
@@ -113,7 +118,7 @@ export default function OrderDetailsDialog({
     if (!status) return;
 
     try {
-      updateStatus.mutateAsync({
+      await updateStatus.mutateAsync({
         id: currentOrder.id,
         status,
       });
@@ -153,7 +158,13 @@ export default function OrderDetailsDialog({
     '-';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={value => {
+        if (!value) setSelection(null);
+        onOpenChange(value);
+      }}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>جزئیات سفارش {currentOrder.orderNumber}</DialogTitle>
@@ -175,7 +186,13 @@ export default function OrderDetailsDialog({
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Select
                   value={status}
-                  onValueChange={value => setStatus(value as OrderStatus)}
+                  onValueChange={value =>
+                    setSelection({
+                      id: currentOrder.id,
+                      original: currentOrder.status,
+                      value: value as OrderStatus,
+                    })
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="انتخاب وضعیت" />
@@ -281,17 +298,35 @@ export default function OrderDetailsDialog({
               </div>
 
               <div className="divide-y">
-                {currentOrder.items?.length ? (
-                  currentOrder.items.map(item => (
-                    <Link
-                      href={`/product/${item?.variant?.product?.slug}`}
+                {isLoading ? (
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    در حال دریافت اقلام سفارش...
+                  </div>
+                ) : isError || !Array.isArray(data?.data?.items) ? (
+                  <div
+                    role="alert"
+                    className="p-8 text-center text-sm text-red-700"
+                  >
+                    دریافت اقلام سفارش ناموفق بود؛ دوباره تلاش کنید.
+                  </div>
+                ) : data.data.items.length ? (
+                  data.data.items.map(item => (
+                    <div
                       key={item.id}
                       className="flex justify-between gap-4 p-4"
-                      target="_blank"
                     >
                       <div className="min-w-0">
                         <div className="font-medium">
-                          {item.variant?.product?.title ?? 'محصول'}
+                          {item.variant?.product?.slug ? (
+                            <Link
+                              target="_blank"
+                              href={`/product/${item.variant.product.slug}`}
+                            >
+                              {item.variant.product.title}
+                            </Link>
+                          ) : (
+                            'محصول حذف‌شده یا واریانت ناموجود'
+                          )}
                         </div>
 
                         <div className="mt-1 text-xs text-muted-foreground">
@@ -327,7 +362,7 @@ export default function OrderDetailsDialog({
                           {formatPrice(Number(item.price) * item.quantity)}
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))
                 ) : (
                   <div className="p-8 text-center text-sm text-muted-foreground">
@@ -382,8 +417,7 @@ export default function OrderDetailsDialog({
 
                         {item.gateway === 'snappay' &&
                           item.paymentId &&
-                          currentOrder.status !==
-                            OrderStatus.CANCELLED && (
+                          currentOrder.status !== OrderStatus.CANCELLED && (
                             <Button
                               type="button"
                               variant="destructive"
@@ -401,7 +435,7 @@ export default function OrderDetailsDialog({
                   ))
                 ) : (
                   <div className="p-8 text-center text-sm text-muted-foreground">
-                    محصولی برای این سفارش ثبت نشده است.
+                    پرداخت موفقی از درگاه برای این سفارش ثبت نشده است.
                   </div>
                 )}
               </div>

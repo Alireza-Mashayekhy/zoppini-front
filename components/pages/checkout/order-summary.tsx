@@ -16,6 +16,8 @@ interface OrderSummaryProps {
 
   hasSelectedAddress: boolean;
 
+  isPickup: boolean;
+
   pricing?: CartResponse['pricing'] | null;
 }
 
@@ -26,6 +28,7 @@ export default function OrderSummary({
   shippingCost,
   isFreeShipping,
   hasSelectedAddress,
+  isPickup,
 }: OrderSummaryProps) {
   return (
     <div dir="rtl" className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
@@ -128,7 +131,7 @@ export default function OrderSummary({
           <span className="text-gray-600">هزینه ارسال</span>
 
           <span>
-            {isFreeShipping
+            {isPickup || isFreeShipping
               ? 'رایگان'
               : !hasSelectedAddress
                 ? 'پس از انتخاب آدرس'

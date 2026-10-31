@@ -7,6 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CATEGORY_VERSION, Consent, POLICY } from '@/lib/consent/policy';
 import { allowRequest, readLimitedBody } from '@/lib/consent/rate-limit';
 import { sign, upstream, verify } from '@/lib/consent/server';
+import {
+  grantForConsent,
+  signTorobClick,
+  torobGrant,
+  validClickTime,
+  validClid,
+} from '@/lib/consent/torob-server';
 
 const options = {
   httpOnly: true,
@@ -74,6 +81,7 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
     )
   )
     return json({}, 429);
+  const failedGrantIds = new Set<string>();
   try {
     const text = await readLimitedBody(req);
     if (Buffer.byteLength(text) > 4096) return json({}, 413);
@@ -94,6 +102,29 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
         )
       )
         return json({}, 400);
+      // Revoke the prior grant whenever the choice changes, including a retry
+      // after a failed upstream request (the signed grant cookie is retained).
+      const previousGrant = verify<{ id?: string; ids?: string[] }>(
+        req.cookies.get('zp_torob_grant')?.value,
+      );
+      const oldConsentRaw = req.cookies.get('zp_consent')?.value;
+      const oldConsent = verify<Consent>(oldConsentRaw);
+      if (
+        (d.choice === 'all' &&
+          !(d.preferences && d.analytics && d.marketing)) ||
+        (d.choice === 'reject' && (d.preferences || d.analytics || d.marketing))
+      )
+        return json({}, 400);
+      if (previousGrant?.id) failedGrantIds.add(previousGrant.id);
+      if (Array.isArray(previousGrant?.ids))
+        for (const id of previousGrant.ids) failedGrantIds.add(id);
+      if (
+        oldConsentRaw &&
+        oldConsent?.marketing &&
+        process.env.TOROB_TRACKING_ENABLED === 'true'
+      )
+        failedGrantIds.add(grantForConsent(oldConsentRaw));
+      for (const id of failedGrantIds) await torobGrant('revoke', id);
       const next: Consent = {
         preferences: d.preferences,
         analytics: d.analytics,
@@ -127,6 +158,68 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
         maxAge: visitor ? age : 0,
       });
       res.cookies.set('zp_analytics', '', { ...options, maxAge: 0 });
+      res.cookies.set('zp_torob_click', '', { ...options, maxAge: 0 });
+      res.cookies.set('zp_torob_grant', '', { ...options, maxAge: 0 });
+      return res;
+    }
+    if (action === 'torob-click' || action === 'torob-context') {
+      if (process.env.TOROB_TRACKING_ENABLED !== 'true' || !c?.marketing)
+        return json({}, 403);
+      const consentCookie = req.cookies.get('zp_consent')?.value;
+      if (!consentCookie) return json({}, 403);
+      const grantId = grantForConsent(consentCookie);
+      if (action === 'torob-context') {
+        const click = verify<{
+          grantId: string;
+          clid: string;
+          clickedAt: number;
+        }>(req.cookies.get('zp_torob_click')?.value);
+        if (
+          !click ||
+          click.grantId !== grantId ||
+          !validClid(click.clid) ||
+          !validClickTime(click.clickedAt)
+        )
+          return json({ token: '' });
+        return json({
+          token: signTorobClick(grantId, click.clid, click.clickedAt),
+        });
+      }
+      if (
+        Object.keys(d).some(k => !['clid', 'clickedAt'].includes(k)) ||
+        !validClid(d.clid) ||
+        !validClickTime(d.clickedAt)
+      )
+        return json({}, 400);
+      await torobGrant('register', grantId);
+      const prior = verify<{
+        grantId: string;
+        clid: string;
+        clickedAt: number;
+      }>(req.cookies.get('zp_torob_click')?.value);
+      // Reloads of the same URL do not extend the 168-hour window.
+      const clickedAt =
+        prior?.grantId === grantId &&
+        prior.clid === d.clid &&
+        validClickTime(prior.clickedAt)
+          ? prior.clickedAt
+          : d.clickedAt;
+      const res = json({ saved: true });
+      res.cookies.set(
+        'zp_torob_click',
+        sign({ grantId, clid: d.clid, clickedAt }),
+        {
+          ...options,
+          maxAge: Math.max(
+            1,
+            Math.floor((clickedAt + 7 * 86400000 - Date.now()) / 1000),
+          ),
+        },
+      );
+      res.cookies.set('zp_torob_grant', sign({ id: grantId }), {
+        ...options,
+        maxAge: age,
+      });
       return res;
     }
     if (!c?.analytics) return json({}, 403);
@@ -175,10 +268,26 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
       },
       503,
     );
-    // Failure must not silently restore a previous opt-in on the next visit.
-    if (action === 'consent')
-      for (const name of ['zp_consent', 'zp_visitor', 'zp_analytics'])
+    // Retain the grant IDs for an idempotent retry even if revocation failed
+    // before a concurrent click's Set-Cookie reached the browser.
+    if (action === 'consent') {
+      if (failedGrantIds.size) {
+        try {
+          res.cookies.set(
+            'zp_torob_grant',
+            sign({ ids: [...failedGrantIds] }),
+            { ...options, maxAge: age },
+          );
+        } catch {}
+      }
+      for (const name of [
+        'zp_consent',
+        'zp_visitor',
+        'zp_analytics',
+        'zp_torob_click',
+      ])
         res.cookies.set(name, '', { ...options, maxAge: 0 });
+    }
     return res;
   }
 }

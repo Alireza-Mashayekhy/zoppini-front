@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import CategoryViewTracker from '@/components/shared/category-view-tracker';
 import { mergePageSeo } from '@/lib/seo';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
@@ -115,6 +116,7 @@ export default async function ProductsCategoryPage({
 
   return (
     <div className="pt-[52px]">
+      {category?.data?.id && <CategoryViewTracker id={category.data.id} />}
       {/* هدر با نام دسته‌بندی */}
       <h1 className="h-20 border-t px-6 flex items-center text-xl font-semibold">
         {category?.data?.name || 'دسته‌بندی'}

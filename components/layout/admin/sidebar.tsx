@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BarChart3,
   Book,
   Boxes,
   Briefcase,
@@ -31,7 +32,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
@@ -42,7 +42,6 @@ export default function AdminSidebar({
   isAdmin: boolean;
   isSeo: boolean;
 }) {
-  const { state } = useSidebar();
   const pathname = usePathname();
 
   const items = [];
@@ -95,6 +94,7 @@ export default function AdminSidebar({
         link: '/admin/product-guides',
         icon: Ruler,
       },
+      { link: '/admin/reports', icon: BarChart3, name: 'گزارش فروش' },
       {
         link: '/admin/orders',
         icon: ListOrdered,
@@ -133,10 +133,9 @@ export default function AdminSidebar({
       collapsible="icon"
       dir="rtl"
       side="right"
-      bgClassName="bg-white border-l border-sidebar-border"
+      bgClassName="bg-white border-l border-sidebar-border h-[calc(100vh-52px)] mt-[52px]"
     >
-      <SidebarHeader className="flex flex-row items-center justify-end">
-        {state !== 'collapsed' && <span className="ml-auto">Zoppini</span>}
+      <SidebarHeader className="flex flex-row items-center">
         <SidebarTrigger />
       </SidebarHeader>
 

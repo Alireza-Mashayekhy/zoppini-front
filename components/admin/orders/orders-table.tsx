@@ -103,7 +103,11 @@ export default function OrdersTable({ orders, onView, onCancel }: Props) {
                   {formatPrice(order.finalPrice)}
                 </TableCell>
 
-                <TableCell>{order.shippingMethod || '---'}</TableCell>
+                <TableCell>
+                  {order.shippingMethod === 'pickup'
+                    ? 'تحویل حضوری در هدیش مال'
+                    : order.shippingMethod || '---'}
+                </TableCell>
 
                 <TableCell>
                   <span className="text-sm">

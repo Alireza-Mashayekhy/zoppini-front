@@ -14,6 +14,7 @@ interface GetProductsParams {
   search?: string;
   sort?: string;
   categoryIds?: number[];
+  directCategory?: boolean;
   colorIds?: number[];
   sizeIds?: number[];
 }
@@ -28,6 +29,7 @@ export async function getProducts(params: GetProductsParams = {}) {
   if (params.categoryIds?.length) {
     searchParams.append('categoryIds', params.categoryIds.join(','));
   }
+  if (params.directCategory) searchParams.append('directCategory', 'true');
   if (params.colorIds?.length) {
     searchParams.append('colorIds', params.colorIds.join(','));
   }
