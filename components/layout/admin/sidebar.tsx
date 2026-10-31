@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BarChart3,
   Book,
   Boxes,
   Briefcase,
@@ -95,6 +96,7 @@ export default function AdminSidebar({
         link: '/admin/product-guides',
         icon: Ruler,
       },
+      { link: '/admin/reports', icon: BarChart3, name: 'گزارش فروش' },
       {
         link: '/admin/orders',
         icon: ListOrdered,

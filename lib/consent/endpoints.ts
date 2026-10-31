@@ -10,7 +10,8 @@
  */
 export const PRIVACY_BASE_PATH = '/privacy';
 
-export type PrivacyAction = 'state' | 'consent' | 'context' | 'event';
+export type PrivacyAction =
+  'state' | 'consent' | 'context' | 'event' | 'torob-click' | 'torob-context';
 
 export const privacyUrl = (action: PrivacyAction): string =>
   `${PRIVACY_BASE_PATH}/${action}`;

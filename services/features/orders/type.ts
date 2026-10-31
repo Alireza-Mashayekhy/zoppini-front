@@ -8,10 +8,11 @@ export enum ShippingMethod {
   POST = 'post',
   COURIER = 'courier',
   TIBAX = 'tibax',
+  PICKUP = 'pickup',
 }
 
 export interface CreateOrderDto {
-  addressId: number;
+  addressId?: number;
   note?: string;
   discountCode?: string;
   shippingMethod: ShippingMethod;
@@ -51,6 +52,7 @@ export interface OrderResponse {
   walletPayment?: string;
   status: OrderStatus;
   shippingAddress?: string;
+  shippingMethod?: ShippingMethod | null;
   phone?: string;
   note?: string;
   createdAt: string;
