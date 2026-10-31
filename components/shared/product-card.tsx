@@ -8,6 +8,7 @@ import { useState } from 'react';
 import CompareToggle, {
   cardActionButtonClass,
 } from '@/components/shared/compare-toggle';
+import InstallmentBadge from '@/components/shared/installment-badge';
 import QuickAddDialog from '@/components/shared/quick-add-dialog';
 import { cn } from '@/lib/utils';
 import { ProductDiscount } from '@/services/features/discounts/types';
@@ -124,6 +125,9 @@ export default function ProductCard({
             </div>
           )}
         </div>
+
+        {/* پایین‌ترین لبهٔ کارت: خرید اقساطی فقط برای محصول دارای قیمت. */}
+        {!!price && price !== 0 && <InstallmentBadge />}
       </Link>
 
       {/* دکمه‌های فعلی بدون تغییر شکل/جایگاه: بالا-چپ؛ hover دسکتاپ و نمایش دائمی لمسی. */}

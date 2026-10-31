@@ -1,8 +1,9 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import ConsentManager from '@/components/consent/manager';
 
+import YektanetAnalytics from '@/components/analytics/yektanet';
+import ConsentManager from '@/components/consent/manager';
 import { iranSans } from '@/components/font';
 import { cn } from '@/lib/utils';
 import AuthProvider from '@/providers/auth.provider';
@@ -26,6 +27,10 @@ export default function RootLayout({
       dir="rtl"
       className={cn('h-full', 'antialiased', 'font-sans', iranSans.variable)}
     >
+      <head>
+        {/* Yektanet — must stay the first script of <head> and must not be deferred. */}
+        <YektanetAnalytics />
+      </head>
       <body className="min-h-full flex flex-col">
         <Providers>
           <AuthProvider initialUser={null}>{children}</AuthProvider>

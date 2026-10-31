@@ -4,6 +4,12 @@ import { randomUUID } from 'node:crypto';
 
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  CONSENT_MAX_AGE_SECONDS,
+  currentConsent,
+  MARKETING_FLAG_COOKIE,
+  marketingGranted,
+} from '@/lib/consent/grant';
 import { CATEGORY_VERSION, Consent, POLICY } from '@/lib/consent/policy';
 import { allowRequest, readLimitedBody } from '@/lib/consent/rate-limit';
 import { sign, upstream, verify } from '@/lib/consent/server';
@@ -21,7 +27,7 @@ const options = {
   sameSite: 'lax' as const,
   path: '/',
 };
-const age = 180 * 86400;
+const age = CONSENT_MAX_AGE_SECONDS;
 type Context = {
   visitor: string;
   session: string;
@@ -30,12 +36,7 @@ type Context = {
   categories: string;
 };
 function consent(req: NextRequest) {
-  const c = verify<Consent>(req.cookies.get('zp_consent')?.value);
-  return c?.policy === POLICY &&
-    c.categories === CATEGORY_VERSION &&
-    Date.now() - Date.parse(c.at) < age * 1000
-    ? c
-    : null;
+  return currentConsent(verify<Consent>(req.cookies.get('zp_consent')?.value));
 }
 function json(body: unknown, status = 200) {
   return NextResponse.json(body, {
@@ -152,7 +153,15 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
         visitor,
       });
       const res = json({ consent: next });
+      const marketing = marketingGranted(next);
       res.cookies.set('zp_consent', sign(next), { ...options, maxAge: age });
+      // Readable mirror read by the Yektanet gate in <head>; see
+      // lib/consent/grant.ts for why the signed cookie cannot be used directly.
+      res.cookies.set(MARKETING_FLAG_COOKIE, marketing ? '1' : '', {
+        ...options,
+        httpOnly: false,
+        maxAge: marketing ? age : 0,
+      });
       res.cookies.set('zp_visitor', visitor ? sign({ visitor }) : '', {
         ...options,
         maxAge: visitor ? age : 0,
@@ -282,6 +291,7 @@ export async function handlePrivacyPost(req: NextRequest, action: string) {
       }
       for (const name of [
         'zp_consent',
+        MARKETING_FLAG_COOKIE,
         'zp_visitor',
         'zp_analytics',
         'zp_torob_click',
