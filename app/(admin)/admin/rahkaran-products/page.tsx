@@ -1,22 +1,11 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 
 import ProductCreateModal from '@/components/admin/product/create-modal';
-import FormProvider from '@/components/form/form-provider';
-import RHFMultiSelect from '@/components/form/rhf-multiselect';
-import RHFSelect from '@/components/form/rhf-select';
+import SelectProductModal from '@/components/admin/product/select-product-modal';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,39 +30,10 @@ import {
   useRahkaranProducsList,
 } from '@/services/features/products/hooks';
 import {
-  ColorResponse,
+  IncomingVariantFromRahkaran,
   ProductsResponse,
   RahkaranProductsResponse,
-  SizeResponse,
 } from '@/services/features/products/type';
-
-type VariantInitialData = {
-  colorId: string;
-  sizeId: string;
-  price: number;
-  stock: number;
-  sku: string;
-};
-
-type VariantFormValues = {
-  colorId: string;
-  sizeId: string[];
-};
-
-type ProductFromRahkaran = {
-  productCode: string;
-  title: string;
-  slug: string;
-  image: string;
-  description: string;
-  careInstructionsHtml: string;
-  variants: VariantInitialData[];
-  suggestedProducts: [];
-  categories: [];
-  comments: [];
-  colorImages: [];
-  sameColorProducts: [];
-};
 
 /*
  * تب انبارها:
@@ -91,7 +51,29 @@ const WAREHOUSE_TABS: {
   { value: 'retail', label: 'خرده‌فروشی' },
 ];
 
-export default function Products() {
+/**
+ * تبدیل کالای راهکاران به واریانتی که باید به محصول اضافه شود.
+ *
+ * نکته‌ی قیمت:
+ * قیمت راهکاران (`fee`) به ریال است و قیمت واریانت‌های سایت به تومان
+ * ذخیره می‌شود (همان تبدیلی که در Sync با راهکاران انجام می‌شود).
+ */
+function toIncomingVariant(
+  product: RahkaranProductsResponse,
+): IncomingVariantFromRahkaran {
+  const stock =
+    (Number(product.stockHadishMall) || 0) + (Number(product.stockRetail) || 0);
+
+  return {
+    productId: Number(product.productId),
+    productName: product.productName,
+    productNumber: product.productNumber || '',
+    price: Math.round((Number(product.fee) || 0) / 10),
+    stock,
+  };
+}
+
+export default function RahkaranProducts() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
@@ -99,20 +81,19 @@ export default function Products() {
   const [activeWarehouse, setActiveWarehouse] =
     useState<WarehouseTab>('hadish');
 
-  // انتخاب رنگ و سایز
-  const [openVariant, setOpenVariant] = useState(false);
+  // مودال انتخاب محصول مقصد
+  const [openSelectProduct, setOpenSelectProduct] = useState(false);
 
-  // مودال ایجاد محصول
+  // مودال ویرایش/افزودن محصول
   const [openModal, setOpenModal] = useState(false);
 
-  // محصول انتخاب شده از راهکاران
-  const [selectedRahkaranProduct, setSelectedRahkaranProduct] =
-    useState<RahkaranProductsResponse | null>(null);
+  // کالای انتخاب‌شده از راهکاران
+  const [incomingVariant, setIncomingVariant] =
+    useState<IncomingVariantFromRahkaran | null>(null);
 
-  // دیتایی که قرار است به ProductCreateModal برود
-  const [selectedProduct, setSelectedProduct] = useState<
-    ProductFromRahkaran | ProductsResponse | null
-  >(null);
+  // محصول مقصدی که این کالا به آن اضافه می‌شود
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductsResponse | null>(null);
 
   const { data: categoriesList } = useAdminCategoriesList({
     all: true,
@@ -136,88 +117,36 @@ export default function Products() {
       ? product.stockHadishMall
       : product.stockRetail;
 
-  const colorItems =
-    colorsData?.data?.map((color: ColorResponse) => ({
-      text: color.name,
-      value: String(color.id),
-    })) ?? [];
-
-  const sizeItems =
-    sizeData?.data?.map((size: SizeResponse) => ({
-      text: size.name,
-      value: String(size.id),
-    })) ?? [];
-
   /*
    * مرحله اول:
-   * کاربر روی "افزودن به محصولات" می‌زند.
+   * ادمین روی «افزودن به محصولات» می‌زند.
    *
-   * هنوز ProductCreateModal باز نمی‌شود.
-   * اول رنگ و سایز را می‌گیریم.
+   * چون هر کالای راهکاران در واقع یک واریانت از محصولات ماست،
+   * به‌جای انتخاب دستی رنگ و سایز، لیست محصولات را نشان می‌دهیم
+   * تا محصول مقصد انتخاب شود.
    */
   const handleAdd = (product: RahkaranProductsResponse) => {
-    setSelectedRahkaranProduct(product);
-    setOpenVariant(true);
+    setIncomingVariant(toIncomingVariant(product));
+    setSelectedProduct(null);
+    setOpenSelectProduct(true);
   };
-
-  const schema = z.object({
-    colorId: z.string().min(1, 'انتخاب رنگ الزامی است'),
-    sizeId: z.array(z.string()).min(1, 'حداقل یک سایز را انتخاب کنید'),
-  });
-
-  const methods = useForm<VariantFormValues>({
-    defaultValues: {
-      colorId: '',
-      sizeId: [],
-    },
-    resolver: zodResolver(schema),
-  });
-
-  const { reset } = methods;
 
   /*
    * مرحله دوم:
-   * بعد از انتخاب رنگ و سایز
-   *
-   * محصول اولیه ساخته می‌شود و سپس ProductCreateModal باز می‌شود.
+   * بعد از انتخاب محصول مقصد، مودال محصول باز می‌شود
+   * و کالای راهکاران به‌عنوان یک واریانت داخل آن قرار می‌گیرد
+   * تا ادمین اول ویرایش کند و بعد ذخیره.
    */
-  const onVariantSubmit = (data: VariantFormValues) => {
-    if (!selectedRahkaranProduct) return;
-
-    const variants: VariantInitialData[] = data.sizeId.map(sizeId => ({
-      colorId: data.colorId,
-      sizeId,
-      price: Number(selectedRahkaranProduct.fee) || 0,
-      stock:
-        (Number(selectedRahkaranProduct.stockHadishMall) || 0) +
-        (Number(selectedRahkaranProduct.stockRetail) || 0),
-      sku: selectedRahkaranProduct.productNumber || '',
-    }));
-
-    const newProduct: ProductFromRahkaran = {
-      productCode: String(selectedRahkaranProduct.productId),
-      title: selectedRahkaranProduct.productName,
-      slug: '',
-      image: '',
-      description: '',
-      careInstructionsHtml: '',
-      variants,
-      suggestedProducts: [],
-      categories: [],
-      comments: [],
-      colorImages: [],
-      sameColorProducts: [],
-    };
-
-    setSelectedProduct(newProduct);
-
-    // اول Dialog انتخاب رنگ و سایز بسته شود
-    setOpenVariant(false);
-
-    // بعد Modal ایجاد محصول باز شود
+  const handleSelectProduct = (product: ProductsResponse) => {
+    setSelectedProduct(product);
+    setOpenSelectProduct(false);
     setOpenModal(true);
+  };
 
-    reset();
+  const closeProductModal = () => {
+    setOpenModal(false);
+    setSelectedProduct(null);
+    setIncomingVariant(null);
   };
 
   return (
@@ -236,9 +165,7 @@ export default function Products() {
 
         <Tabs
           value={activeWarehouse}
-          onValueChange={value =>
-            setActiveWarehouse(value as WarehouseTab)
-          }
+          onValueChange={value => setActiveWarehouse(value as WarehouseTab)}
         >
           <TabsList>
             {WAREHOUSE_TABS.map(tab => (
@@ -258,138 +185,94 @@ export default function Products() {
               <TableHead className="w-10">آیدی</TableHead>
               <TableHead>نام محصول</TableHead>
               <TableHead>کد محصول</TableHead>
+              <TableHead>موجودی</TableHead>
               <TableHead>عملیات</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {productsList?.data.map((product: RahkaranProductsResponse) => (
-              <TableRow key={product.productId}>
-                <TableCell className="text-center">
-                  {product.productId}
-                </TableCell>
+            {productsList?.data.map((product: RahkaranProductsResponse) => {
+              const stock = getActiveWarehouseStock(product);
 
-                <TableCell>{product.productName}</TableCell>
+              return (
+                <TableRow key={product.productId}>
+                  <TableCell className="text-center">
+                    {product.productId}
+                  </TableCell>
 
-                <TableCell>{product.productNumber}</TableCell>
+                  <TableCell>{product.productName}</TableCell>
 
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="size-8">
-                        <MoreHorizontalIcon />
+                  <TableCell>{product.productNumber}</TableCell>
 
-                        <span className="sr-only">Open menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
+                  <TableCell>
+                    {stock === null || stock === undefined
+                      ? '—'
+                      : stock.toLocaleString('fa-IR')}
+                  </TableCell>
 
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleAdd(product)}>
-                        افزودن به محصولات
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-8">
+                          <MoreHorizontalIcon />
+
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleAdd(product)}>
+                          افزودن به محصولات
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
-
-        {/* ================================================== */}
-        {/* انتخاب رنگ و سایز */}
-        {/* ================================================== */}
-
-        <Dialog
-          open={openVariant}
-          onOpenChange={open => {
-            setOpenVariant(open);
-
-            if (!open) {
-              reset();
-            }
-          }}
-        >
-          <DialogContent dir="rtl" className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle>انتخاب رنگ و سایز</DialogTitle>
-            </DialogHeader>
-
-            {selectedRahkaranProduct && (
-              <div className="mb-4 rounded-lg bg-muted/50 p-4">
-                <div className="font-medium">
-                  {selectedRahkaranProduct.productName}
-                </div>
-
-                <div className="mt-1 text-sm text-muted-foreground">
-                  کد محصول: {selectedRahkaranProduct.productNumber}
-                </div>
-
-                <div className="mt-1 text-sm text-muted-foreground">
-                  قیمت:{' '}
-                  {Number(selectedRahkaranProduct.fee).toLocaleString('fa-IR')}
-                </div>
-
-                <div className="mt-1 text-sm text-muted-foreground">
-                  موجودی هدیش مال:{' '}
-                  {selectedRahkaranProduct.stockHadishMall === null ||
-                  selectedRahkaranProduct.stockHadishMall === undefined
-                    ? '—'
-                    : selectedRahkaranProduct.stockHadishMall.toLocaleString(
-                        'fa-IR',
-                      )}
-                  {' | '}
-                  خرده‌فروشی:{' '}
-                  {selectedRahkaranProduct.stockRetail === null ||
-                  selectedRahkaranProduct.stockRetail === undefined
-                    ? '—'
-                    : selectedRahkaranProduct.stockRetail.toLocaleString(
-                        'fa-IR',
-                      )}
-                </div>
-              </div>
-            )}
-
-            <FormProvider methods={methods} onSubmit={onVariantSubmit}>
-              <div className="grid grid-cols-1 gap-5">
-                <RHFSelect
-                  name="colorId"
-                  label="رنگ"
-                  items={colorItems}
-                  placeholder="انتخاب رنگ..."
-                  className="w-full"
-                />
-
-                <RHFMultiSelect name="sizeId" label="سایز" items={sizeItems} />
-
-                <Button type="submit" size="lg" className="w-full">
-                  ادامه و افزودن محصول
-                </Button>
-              </div>
-            </FormProvider>
-          </DialogContent>
-        </Dialog>
-
-        {/* ================================================== */}
-        {/* Modal اصلی ایجاد محصول */}
-        {/* ================================================== */}
-
-        <ProductCreateModal
-          categories={categoriesList?.data || []}
-          selectedData={selectedProduct}
-          isDefaultValue={true}
-          open={openModal}
-          onOpenChange={open => {
-            setOpenModal(open);
-
-            if (!open) {
-              setSelectedProduct(null);
-              setSelectedRahkaranProduct(null);
-            }
-          }}
-          colorsData={colorsData?.data || []}
-          sizeData={sizeData?.data || []}
-        />
       </div>
+
+      {/* ================================================== */}
+      {/* انتخاب محصول مقصد */}
+      {/* ================================================== */}
+
+      <SelectProductModal
+        /*
+         * با تغییر کالا، مودال از نو ساخته می‌شود تا
+         * جستجو و صفحه‌بندی قبلی باقی نماند.
+         */
+        key={incomingVariant?.productId ?? 'rahkaran-select'}
+        open={openSelectProduct}
+        onOpenChange={open => {
+          setOpenSelectProduct(open);
+
+          if (!open) {
+            setIncomingVariant(null);
+          }
+        }}
+        incoming={incomingVariant}
+        onSelectProduct={handleSelectProduct}
+      />
+
+      {/* ================================================== */}
+      {/* Modal ویرایش محصول + واریانت جدید */}
+      {/* ================================================== */}
+
+      <ProductCreateModal
+        categories={categoriesList?.data || []}
+        selectedData={selectedProduct}
+        open={openModal}
+        onOpenChange={open => {
+          if (!open) {
+            closeProductModal();
+          }
+        }}
+        colorsData={colorsData?.data || []}
+        sizeData={sizeData?.data || []}
+        incomingVariant={incomingVariant}
+      />
     </div>
   );
 }

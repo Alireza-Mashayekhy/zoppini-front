@@ -287,6 +287,20 @@ export async function rahkaranProductsList(query: {
   return data;
 }
 
+/**
+ * محصولی که یکی از واریانت‌هایش این کد کالا (SKU) را دارد.
+ *
+ * برای اتصال کالای راهکاران به محصول استفاده می‌شود تا مشخص شود
+ * این کالا قبلاً به کدام محصول اضافه شده است.
+ */
+export async function productByVariantSku(sku: string) {
+  const { data } = await api.get<ApiSingleResponse<ProductsResponse | null>>(
+    endpoints.products.adminBySku(sku),
+  );
+
+  return data.data;
+}
+
 export async function syncProduct(id: number) {
   const { data } = await api.post(endpoints.products.syncProduct(id));
 

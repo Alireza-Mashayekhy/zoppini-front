@@ -90,6 +90,10 @@ export const endpoints = {
     adminStyle: '/admin/style',
     removeStyle: (id: number) => `/admin/style/${id}`,
 
+    /** محصولی که واریانتش این SKU را دارد */
+    adminBySku: (sku: string) =>
+      `/admin/products/by-sku/${encodeURIComponent(sku)}`,
+
     rahkaranList: '/admin/products/rahkaran/search',
     syncProducts: '/admin/products/sync-rahkaran',
     syncProduct: (id: number) => `/admin/products/${id}/sync-rahkaran`,
