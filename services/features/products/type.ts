@@ -206,6 +206,23 @@ export interface RahkaranProductsResponse {
   stockRetail?: number | null;
 }
 
+/**
+ * کالایی که از راهکاران انتخاب شده و قرار است به‌عنوان یک واریانت
+ * (یک سایز از یک رنگ) به محصول فعلی اضافه شود.
+ */
+export interface IncomingVariantFromRahkaran {
+  /** شناسه کالا در راهکاران */
+  productId: number;
+  /** نام کالا در راهکاران */
+  productName: string;
+  /** بارکد کالا در راهکاران — همان SKU واریانت */
+  productNumber: string;
+  /** قیمت پیشنهادی به تومان */
+  price: number;
+  /** موجودی مجموع انبارها */
+  stock: number;
+}
+
 export interface InitialProductVariant {
   colorId: string;
   sizeId: string;

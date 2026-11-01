@@ -32,7 +32,7 @@ export default function CompareBar() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[calc(0.75rem+var(--zp-cookie-bar-height,0px))]">
       <div className="pointer-events-auto flex w-full max-w-2xl items-center gap-3 rounded-xl border bg-white/95 p-2 shadow-lg backdrop-blur">
         {/* تصاویر محصولات انتخابی */}
         <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto overflow-y-visible p-2">

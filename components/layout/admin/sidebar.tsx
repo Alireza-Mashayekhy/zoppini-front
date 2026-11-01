@@ -8,6 +8,7 @@ import {
   Eye,
   Gamepad,
   Grid2X2,
+  ImageIcon,
   ListOrdered,
   MessageCircle,
   Newspaper,
@@ -68,6 +69,11 @@ export default function AdminSidebar({
         link: '/admin/seo',
         icon: Search,
         name: 'سئو صفحات',
+      },
+      {
+        link: '/admin/site-images',
+        icon: ImageIcon,
+        name: 'تصاویر صفحه اصلی',
       },
     );
   }

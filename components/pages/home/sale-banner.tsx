@@ -1,68 +1,29 @@
-'use client';
-
-import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
-import { useIsMobile } from '@/hooks/use-mobile';
+import HomeImage from '@/components/shared/home-image';
+import { HomeImage as HomeImageData } from '@/lib/home-images';
 
 /**
- * Single-variant sale banner. Previously two `<Image priority quality={100}>`
- * (4269px desktop + 1080px mobile) were both in the DOM with CSS-only
- * `hidden` toggling — both downloaded on every device. Now exactly one
- * lazy image loads, below-fold (not LCP), quality 80.
+ * بنر فروش ویژه‌ی صفحه اصلی.
+ *
+ * تصویر و لینک از پنل مدیریت (`/admin/site-images`) می‌آید؛ اگر چیزی آپلود
+ * نشده باشد، تصویر پیش‌فرض قبلی سایت نمایش داده می‌شود.
+ *
+ * نسخه‌ی موبایل/دسکتاپ با `<picture>` انتخاب می‌شود؛ پس فقط یک تصویر
+ * دانلود می‌شود (قبلاً هر دو نسخه در DOM بودند).
  */
-export default function SaleBanner() {
-  const isMobile = useIsMobile();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // SSR placeholder reserves layout to avoid CLS; no image fetched on server
-  // beyond what Next needs. Client mounts the correct variant only.
-  if (!mounted) {
-    return (
-      <Link
-        href="/discounted-products"
-        aria-label="محصولات تخفیف‌دار زوپینی"
-        className="relative block w-full aspect-[16/9] sm:aspect-[16/9] overflow-hidden bg-neutral-200"
-      />
-    );
-  }
-
-  if (isMobile) {
-    return (
-      <Link href="/products">
-        <div className="relative w-full aspect-[9/16] max-h-[80vh] overflow-hidden">
-          <Image
-            src="/home/mobile_sale_3.webp"
-            alt="محصولات تخفیف‌دار زوپینی"
-            fill
-            sizes="100vw"
-            quality={80}
-            loading="lazy"
-            className="object-cover"
-          />
-        </div>
-      </Link>
-    );
+export default function SaleBanner({ image }: { image?: HomeImageData }) {
+  if (!image) {
+    return null;
   }
 
   return (
-    <Link href="/products">
-      <div className="relative w-full aspect-[16/9] overflow-hidden">
-        <Image
-          src="/home/sale_3.webp"
-          alt="محصولات تخفیف‌دار زوپینی"
-          fill
-          sizes="100vw"
-          quality={80}
-          loading="lazy"
-          className="object-cover"
-        />
-      </div>
+    <Link
+      href={image.linkUrl || '/products'}
+      aria-label={image.alt}
+      className="relative block w-full overflow-hidden bg-neutral-200 aspect-[9/16] max-h-[80vh] sm:aspect-[16/9] sm:max-h-none"
+    >
+      <HomeImage image={image} />
     </Link>
   );
 }

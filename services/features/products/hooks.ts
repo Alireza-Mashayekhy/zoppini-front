@@ -23,6 +23,7 @@ import {
   getProductById,
   getProductBySlug,
   getStyleProducts,
+  productByVariantSku,
   productsList,
   rahkaranProductsList,
   siezList,
@@ -125,6 +126,22 @@ export const useProductById = (id: string) => {
 };
 
 /** دریافت محصول با slug — برای خرید سریع از کارت و صفحه مقایسه */
+/**
+ * محصولی که این کد کالا (SKU) را در واریانت‌هایش دارد.
+ *
+ * وقتی کالایی از راهکاران انتخاب می‌شود، با این هوک مشخص می‌کنیم
+ * که آن کالا قبلاً به کدام محصول اضافه شده است.
+ */
+export const useProductByVariantSku = (sku: string | null | undefined) => {
+  return useQuery({
+    queryKey: ['product-by-sku', sku],
+    queryFn: () => productByVariantSku(sku as string),
+    enabled: !!sku,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useProductBySlug = (slug: string | null | undefined) => {
   return useQuery({
     queryKey: ['product-by-slug', slug],

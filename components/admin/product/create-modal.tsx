@@ -1,6 +1,7 @@
 // components/admin/product/create-modal.tsx
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { Trash2Icon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -14,6 +15,7 @@ import RHFPriceInput from '@/components/form/rhf-price-input';
 import RHFSelect from '@/components/form/rhf-select'; // <-- اضافه شد
 import { RHFTextEditor } from '@/components/form/rhf-text-editor';
 import RHFTextArea from '@/components/form/rhf-textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PendingVariant, resolveIncomingVariant } from '@/lib/rahkaran-variant';
+import { normalizeSku } from '@/lib/sku';
+import { formatPrice } from '@/lib/utils';
 import { CategoriesResponse } from '@/services/features/categories/types';
 import {
   useCreateProduct,
@@ -29,6 +42,7 @@ import {
 import {
   ColorResponse,
   createProductDto,
+  IncomingVariantFromRahkaran,
   InitialProductData,
   ProductsResponse,
   SizeResponse,
@@ -68,6 +82,7 @@ export default function ProductCreateModal({
   colorsData,
   sizeData,
   isDefaultValue,
+  incomingVariant,
 }: {
   categories: CategoriesResponse[];
   selectedData: ProductsResponse | InitialProductData | null;
@@ -76,6 +91,15 @@ export default function ProductCreateModal({
   colorsData: ColorResponse[];
   sizeData: SizeResponse[];
   isDefaultValue?: boolean;
+  /**
+   * کالای انتخاب‌شده از راهکاران
+   *
+   * وقتی ادمین در لیست محصولات راهکاران روی «افزودن به محصولات» می‌زند،
+   * محصول مقصد و این کالا به مودال پاس داده می‌شوند تا کالا به‌عنوان
+   * یک واریانت جدید به همان محصول اضافه شود (یا اگر از قبل وصل بود،
+   * قیمت و موجودی همان واریانت به‌روزرسانی شود).
+   */
+  incomingVariant?: IncomingVariantFromRahkaran | null;
 }) {
   const [isCreateColorOpen, setCreateColorModal] = useState(false);
   const [isCreateSizeOpen, setCreateSizeModal] = useState(false);
@@ -89,6 +113,15 @@ export default function ProductCreateModal({
       sku?: string;
     }[]
   >([]);
+  /** واریانت‌هایی که از راهکاران آمده‌اند و هنوز ذخیره نشده‌اند */
+  const [pendingVariants, setPendingVariants] = useState<PendingVariant[]>([]);
+
+  /** اگر کالای راهکاران از قبل به همین محصول وصل بود، سایز آن را نگه می‌داریم */
+  const [linkedIncoming, setLinkedIncoming] = useState<{
+    sizeId: string;
+    variantId?: number;
+  } | null>(null);
+
   const variantDataMapRef = useRef<
     Map<string, { price: number; stock: number; sku: string }>
   >(new Map());
@@ -233,6 +266,8 @@ export default function ProductCreateModal({
       });
 
       setVariants([]);
+      setPendingVariants([]);
+      setLinkedIncoming(null);
       return;
     }
 
@@ -308,17 +343,38 @@ export default function ProductCreateModal({
       sizeId: uniqueSizeIds,
     });
 
-    setVariants(
-      productVariants.map(v => ({
-        id: v.id,
-        colorId: String(v.color.id),
-        sizeId: String(v.size.id),
-        price: Number(v.price) || 0,
-        stock: Number(v.stock) || 0,
-        sku: v.sku || '',
-      })),
+    const existingVariants = productVariants.map(v => ({
+      id: v.id,
+      colorId: String(v.color.id),
+      sizeId: String(v.size.id),
+      price: Number(v.price) || 0,
+      stock: Number(v.stock) || 0,
+      sku: v.sku || '',
+    }));
+
+    setVariants(existingVariants);
+
+    // =========================================
+    // کالای انتخاب‌شده از راهکاران
+    // =========================================
+
+    /*
+     * اگر همین کد کالا از قبل روی یکی از واریانت‌های این محصول نشسته باشد،
+     * واریانت جدیدی ساخته نمی‌شود؛ فقط قیمت و موجودی همان واریانت
+     * با مقادیر راهکاران به‌روزرسانی می‌شود.
+     *
+     * اگر کد جدید باشد، به‌عنوان یک واریانت در انتظار اضافه می‌شود
+     * و رنگ آن همان رنگ محصول است؛ سایز را ادمین انتخاب می‌کند.
+     */
+    const resolution = resolveIncomingVariant(
+      existingVariants,
+      incomingVariant,
     );
-  }, [selectedData, isDefaultValue, reset]);
+
+    setVariants(resolution.variants);
+    setPendingVariants(resolution.pendingVariants);
+    setLinkedIncoming(resolution.linked);
+  }, [selectedData, isDefaultValue, incomingVariant, reset]);
   // ==================== ارسال فرم ====================
   const onSubmit = async (data: FormValues) => {
     try {
@@ -335,15 +391,61 @@ export default function ProductCreateModal({
         categories,
       } = data;
 
+      // =========================================
+      // اعتبارسنجی واریانت‌های در انتظار (کالای راهکاران)
+      // =========================================
+
+      if (pendingVariants.length > 0) {
+        const missingSize = pendingVariants.some(variant => !variant.sizeId);
+
+        if (missingSize) {
+          toast.error('سایز کالای راهکاران را انتخاب کنید');
+
+          return;
+        }
+
+        const usedSizes = new Set(
+          variants.map(variant => String(variant.sizeId)),
+        );
+
+        const duplicatedSize = pendingVariants.some(variant => {
+          const isDuplicate = usedSizes.has(String(variant.sizeId));
+
+          usedSizes.add(String(variant.sizeId));
+
+          return isDuplicate;
+        });
+
+        if (duplicatedSize) {
+          toast.error(
+            'این سایز قبلاً برای همین محصول ثبت شده است؛ سایز دیگری انتخاب کنید',
+          );
+
+          return;
+        }
+      }
+
       // ساخت payload واریانت‌ها
-      const variantsPayload = variants.map(v => ({
-        id: v.id,
-        colorId: Number(v.colorId),
-        sizeId: Number(v.sizeId),
-        price: Number(v.price),
-        stock: Number(v.stock) || 0,
-        sku: v.sku || '',
-      }));
+      const variantsPayload = [
+        ...variants.map(v => ({
+          id: v.id,
+          colorId: Number(v.colorId),
+          sizeId: Number(v.sizeId),
+          price: Number(v.price),
+          stock: Number(v.stock) || 0,
+          sku: v.sku || '',
+        })),
+
+        // واریانت‌های جدیدی که از راهکاران آمده‌اند (بدون id)
+        ...pendingVariants.map(v => ({
+          id: undefined,
+          colorId: Number(colorId),
+          sizeId: Number(v.sizeId),
+          price: Number(v.price) || 0,
+          stock: Number(v.stock) || 0,
+          sku: v.sku || '',
+        })),
+      ];
 
       const hasInvalid = variantsPayload.some(
         v =>
@@ -354,6 +456,19 @@ export default function ProductCreateModal({
       );
       if (hasInvalid) {
         toast.error('مقادیر رنگ یا سایز نامعتبر است');
+        return;
+      }
+
+      // SKU در دیتابیس یکتاست؛ قبل از ارسال، تکراری بودن آن را بررسی می‌کنیم
+      const skus = variantsPayload
+        .map(v => normalizeSku(v.sku))
+        .filter(Boolean);
+
+      if (new Set(skus).size !== skus.length) {
+        toast.error(
+          'این کد کالا (SKU) برای واریانت دیگری از همین محصول ثبت شده است',
+        );
+
         return;
       }
 
@@ -391,6 +506,9 @@ export default function ProductCreateModal({
       onOpenChange(false);
       reset();
       queryClient.invalidateQueries({ queryKey: ['products'] });
+
+      // اتصال کالای راهکاران به محصول، در لیست راهکاران هم باید تازه شود
+      queryClient.invalidateQueries({ queryKey: ['product-by-sku'] });
       toast.success(isEdit ? 'محصول ویرایش شد' : 'محصول ایجاد شد');
     } catch (error) {
       console.log(error);
@@ -422,11 +540,59 @@ export default function ProductCreateModal({
       )}
       <DialogContent className="max-w-full! h-full! rounded-none flex flex-col gap-10">
         <DialogHeader className="h-fit">
-          <DialogTitle>{isEdit ? 'ویرایش محصول' : 'افزودن محصول'}</DialogTitle>
+          <DialogTitle>
+            {incomingVariant
+              ? 'افزودن کالای راهکاران به محصول'
+              : isEdit
+                ? 'ویرایش محصول'
+                : 'افزودن محصول'}
+          </DialogTitle>
         </DialogHeader>
 
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <div className="grid grid-cols-2 gap-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin px-4">
+            {/* کالای در حال افزودن از راهکاران */}
+            {incomingVariant && (
+              <div className="col-span-2 rounded-lg border bg-muted/40 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">
+                      در حال افزودن از راهکاران: {incomingVariant.productName}
+                    </div>
+
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      کد کالا: {incomingVariant.productNumber || '—'} · قیمت:{' '}
+                      {formatPrice(incomingVariant.price)} تومان · موجودی:{' '}
+                      {incomingVariant.stock.toLocaleString('fa-IR')}
+                    </div>
+                  </div>
+
+                  <Badge variant={linkedIncoming ? 'secondary' : 'outline'}>
+                    {linkedIncoming
+                      ? 'قبلاً به این محصول وصل بود'
+                      : 'واریانت جدید'}
+                  </Badge>
+                </div>
+
+                {!incomingVariant.productNumber && (
+                  <p className="mt-2 text-xs text-destructive">
+                    این کالا در راهکاران کد کالا (بارکد) ندارد؛ بدون آن، قیمت و
+                    موجودی این واریانت به‌صورت خودکار با راهکاران Sync نمی‌شود.
+                  </p>
+                )}
+
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {linkedIncoming
+                    ? `این کالا از قبل روی سایز «${
+                        sizeData.find(
+                          size => String(size.id) === linkedIncoming.sizeId,
+                        )?.name ?? '—'
+                      }» نشسته است؛ قیمت و موجودی آن با مقادیر راهکاران به‌روزرسانی شد. می‌توانید قبل از ذخیره ویرایش کنید.`
+                    : 'سایز این کالا را در بخش «کالای در حال افزودن از راهکاران» مشخص کنید؛ بعد از ذخیره، به واریانت‌های محصول اضافه می‌شود.'}
+                </p>
+              </div>
+            )}
+
             <RHFInput name="title" label="نام محصول" />
             <RHFInput name="productCode" label="کد محصول" />
             <RHFInput name="slug" label="اسلاگ" />
@@ -461,6 +627,181 @@ export default function ProductCreateModal({
               label="دسته بندی ها"
               items={categoryItems}
             />
+
+            {/* ========================================= */}
+            {/* واریانت‌های در انتظار (از راهکاران) */}
+            {/* ========================================= */}
+
+            {pendingVariants.length > 0 && (
+              <div className="col-span-2 mt-4 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">
+                    کالای در حال افزودن از راهکاران
+                  </h3>
+
+                  <Badge variant="outline">حداکثر یک سایز</Badge>
+                </div>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  این کالا با همین کد (SKU) به محصول وصل می‌شود؛ بعد از آن، قیمت
+                  و موجودی آن در هر Sync از راهکاران به‌روز می‌شود.
+                </p>
+
+                {!colorId && (
+                  <p className="mt-2 text-xs text-destructive">
+                    این محصول هنوز رنگ ندارد؛ ابتدا رنگ محصول را از فیلد «رنگ»
+                    انتخاب کنید.
+                  </p>
+                )}
+
+                <div className="mt-3 overflow-hidden rounded-md border bg-background">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-2 text-right">رنگ</th>
+                        <th className="p-2 text-right">سایز</th>
+                        <th className="p-2 text-right">قیمت</th>
+                        <th className="p-2 text-right">موجودی</th>
+                        <th className="p-2 text-right">کد محصول (SKU)</th>
+                        <th className="p-2" />
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {pendingVariants.map((variant, index) => {
+                        const colorName = colorsData.find(
+                          color => String(color.id) === colorId,
+                        )?.name;
+
+                        return (
+                          <tr key={index} className="border-t">
+                            <td className="p-2">
+                              {colorName || (
+                                <span className="text-xs text-muted-foreground">
+                                  هم‌رنگ محصول
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="p-2">
+                              <Select
+                                value={variant.sizeId || undefined}
+                                onValueChange={value =>
+                                  setPendingVariants(current =>
+                                    current.map((item, itemIndex) =>
+                                      itemIndex === index
+                                        ? { ...item, sizeId: value }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-full min-w-32">
+                                  <SelectValue placeholder="انتخاب سایز..." />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                  {sizeItems.map(item => (
+                                    <SelectItem
+                                      key={item.value}
+                                      value={item.value}
+                                      disabled={variants.some(
+                                        existing =>
+                                          existing.sizeId === item.value,
+                                      )}
+                                    >
+                                      {item.text || item.value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </td>
+
+                            <td className="p-2">
+                              <Input
+                                type="number"
+                                className="w-28"
+                                value={variant.price}
+                                onChange={event =>
+                                  setPendingVariants(current =>
+                                    current.map((item, itemIndex) =>
+                                      itemIndex === index
+                                        ? {
+                                            ...item,
+                                            price: Number(event.target.value),
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-2">
+                              <Input
+                                type="number"
+                                className="w-24"
+                                value={variant.stock}
+                                onChange={event =>
+                                  setPendingVariants(current =>
+                                    current.map((item, itemIndex) =>
+                                      itemIndex === index
+                                        ? {
+                                            ...item,
+                                            stock: Number(event.target.value),
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-2">
+                              <Input
+                                className="w-36"
+                                value={variant.sku}
+                                onChange={event =>
+                                  setPendingVariants(current =>
+                                    current.map((item, itemIndex) =>
+                                      itemIndex === index
+                                        ? { ...item, sku: event.target.value }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                            </td>
+
+                            <td className="p-2 text-center">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon-sm"
+                                onClick={() =>
+                                  setPendingVariants(current =>
+                                    current.filter(
+                                      (_, itemIndex) => itemIndex !== index,
+                                    ),
+                                  )
+                                }
+                              >
+                                <Trash2Icon />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="mt-2 text-xs text-muted-foreground">
+                  اگر این کالا نباید به این محصول اضافه شود، سطر را حذف کنید؛
+                  محصول بدون تغییر ذخیره می‌شود.
+                </p>
+              </div>
+            )}
 
             {/* جدول واریانت‌ها */}
             {variants.length > 0 && (
@@ -642,7 +983,11 @@ export default function ProductCreateModal({
               size="lg"
               className="w-full col-span-2"
             >
-              {isEdit ? 'ویرایش محصول' : 'ثبت محصول'}
+              {incomingVariant
+                ? 'ذخیره و افزودن کالای راهکاران'
+                : isEdit
+                  ? 'ویرایش محصول'
+                  : 'ثبت محصول'}
             </Button>
           </div>
         </FormProvider>
