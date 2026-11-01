@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
+import { HomeImage } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 interface HeroSectionProps {
@@ -11,14 +12,41 @@ interface HeroSectionProps {
 
   // ref مربوط به لیست دسته بندی ها
   categoriesRef: React.RefObject<HTMLDivElement | null>;
+
+  /**
+   * پوستر ویدیوهای هدر (از پنل مدیریت).
+   *
+   * اگر مدیر تصویری آپلود کرده باشد، جای پوستر پیش‌فرض سایت را می‌گیرد؛
+   * در غیر این صورت همان فایل‌های قبلی استفاده می‌شوند.
+   */
+  posters?: {
+    first?: HomeImage;
+    second?: HomeImage;
+  };
 }
 
-export default function HeroSection(
-  {
-    // categories,
-    // categoriesRef,
-  }: HeroSectionProps,
-) {
+/** پوستر ویدیو؛ اگر مدیر تصویری ثبت کرده باشد همان، وگرنه فایل پیش‌فرض سایت */
+function posterSrc(image: HomeImage | undefined, fallback: string) {
+  if (!image) return fallback;
+
+  return image.desktop || fallback;
+}
+
+export default function HeroSection({
+  // categories,
+  // categoriesRef,
+  posters,
+}: HeroSectionProps) {
+  const firstPoster = posterSrc(
+    posters?.first,
+    '/home/hero_section_1/poster.webp',
+  );
+
+  const secondPoster = posterSrc(
+    posters?.second,
+    '/home/hero_section_2/poster.webp',
+  );
+
   const video1Ref = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
 
@@ -82,18 +110,8 @@ export default function HeroSection(
         پوستر ویدیوها از همان ابتدای لود HTML دانلود می‌شود
         تا تا رسیدن فریم اول ویدیو، جای آن مشکی نباشد.
       */}
-      <link
-        rel="preload"
-        as="image"
-        href="/home/hero_section_1/poster.webp"
-        fetchPriority="high"
-      />
-      <link
-        rel="preload"
-        as="image"
-        href="/home/hero_section_2/poster.webp"
-        fetchPriority="high"
-      />
+      <link rel="preload" as="image" href={firstPoster} fetchPriority="high" />
+      <link rel="preload" as="image" href={secondPoster} fetchPriority="high" />
 
       {/*
         شروع دانلود master.m3u8 موازی با دانلود JS صفحه:
@@ -113,7 +131,7 @@ export default function HeroSection(
           <HlsVideo
             ref={video1Ref}
             src="/home/hero_section_1/master.m3u8"
-            poster="/home/hero_section_1/poster.webp"
+            poster={firstPoster}
             lazy={false}
             muted
             loop
@@ -151,7 +169,7 @@ export default function HeroSection(
           <HlsVideo
             ref={video2Ref}
             src="/home/hero_section_2/master.m3u8"
-            poster="/home/hero_section_2/poster.webp"
+            poster={secondPoster}
             lazy={false}
             muted
             loop

@@ -7,6 +7,7 @@ import { useRef } from 'react';
 
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
+import { HomeImages } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 import { FeaturedProductResponse } from '@/services/features/products/type';
 
@@ -15,11 +16,17 @@ gsap.registerPlugin(ScrollTrigger);
 interface HeroNewInTransitionProps {
   categories: CategoriesResponse[];
   products: FeaturedProductResponse[];
+  /** پوستر ویدیوهای هدر (از پنل مدیریت) */
+  heroPosters?: {
+    first?: HomeImages['home.hero-1-poster'];
+    second?: HomeImages['home.hero-2-poster'];
+  };
 }
 
 export default function HeroNewInTransition({
   categories,
   products,
+  heroPosters,
 }: HeroNewInTransitionProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -125,7 +132,11 @@ export default function HeroNewInTransition({
     >
       {/* Hero */}
       <div className="relative sm:absolute inset-0 z-20 h-screen sm:h-auto">
-        <HeroSection categories={categories} categoriesRef={categoriesRef} />
+        <HeroSection
+          categories={categories}
+          categoriesRef={categoriesRef}
+          posters={heroPosters}
+        />
       </div>
 
       {/* New In */}

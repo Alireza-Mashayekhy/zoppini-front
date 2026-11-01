@@ -50,6 +50,14 @@ export const endpoints = {
     delete: (id: number) => `/admin/seo/pages/${id}`,
   },
 
+  siteImages: {
+    /** تصاویر فعال صفحه اصلی (عمومی) */
+    list: '/site-images',
+    adminList: '/admin/site-images',
+    update: (slot: string) => `/admin/site-images/${encodeURIComponent(slot)}`,
+    reset: (slot: string) => `/admin/site-images/${encodeURIComponent(slot)}`,
+  },
+
   files: {
     image: '/admin/files/image',
     video: '/admin/files/video',

@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
+import { HomeImage } from '@/lib/home-images';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,7 +17,16 @@ gsap.registerPlugin(ScrollTrigger);
  * قبلاً با User-Agent تصمیم گرفته می‌شد که روی تبلت/اندروید با
  * نمایشگر بزرگ، نسخه اشتباه (و چه بسا ویدیوی 4K) دانلود می‌شد.
  */
-export default function EndVideo() {
+export default function EndVideo({
+  poster,
+}: {
+  /**
+   * پوستر ویدیوی پایانی (از پنل مدیریت).
+   *
+   * اگر مدیر تصویری آپلود نکرده باشد، پوسترهای پیش‌فرض سایت استفاده می‌شوند.
+   */
+  poster?: HomeImage;
+} = {}) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
@@ -75,7 +85,12 @@ export default function EndVideo() {
             isMobile ? '/home/mobile_end/master.m3u8' : '/home/end/master.m3u8'
           }
           poster={
-            isMobile ? '/home/mobile_end/poster.webp' : '/home/end/poster.webp'
+            /* تصویر موبایل اختیاری است؛ اگر نباشد همان دسکتاپ استفاده می‌شود */
+            isMobile
+              ? poster?.mobile ||
+                poster?.desktop ||
+                '/home/mobile_end/poster.webp'
+              : poster?.desktop || '/home/end/poster.webp'
           }
           preload="metadata"
           className="w-full h-full object-cover"

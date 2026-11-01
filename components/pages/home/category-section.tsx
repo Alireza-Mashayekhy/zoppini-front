@@ -8,14 +8,26 @@ import Link from 'next/link';
 import { useRef } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
+import HomeImage from '@/components/shared/home-image';
+import { HomeImage as HomeImageData } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function CategoriesSection({
   categories,
+  images,
 }: {
   categories: CategoriesResponse[];
+  /**
+   * تصاویر بخش دسته‌بندی‌ها (از پنل مدیریت).
+   *
+   * اگر مدیر تصویری آپلود نکرده باشد، تصویر پیش‌فرض سایت استفاده می‌شود.
+   */
+  images?: {
+    first?: HomeImageData;
+    second?: HomeImageData;
+  };
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const firstSectionRef = useRef<HTMLDivElement>(null);
@@ -104,26 +116,12 @@ export default function CategoriesSection({
       >
         {/* تصویر اول */}
         <div className="relative col-span-2 aspect-square hidden sm:block bg-gray-200">
-          <Image
-            src="/home/category_1_2.webp"
-            fill
-            alt="image category 1"
-            className="object-cover"
-            sizes="50vw"
-            loading="lazy"
-          />
+          {images?.first && <HomeImage image={images.first} />}
         </div>
 
         {/* تصویر دوم */}
         <div className="relative col-span-2 aspect-square bg-gray-200">
-          <Image
-            src="/home/category_2_2.webp"
-            fill
-            alt="image category 2"
-            className="object-cover"
-            sizes="(min-width: 640px) 50vw, 100vw"
-            loading="lazy"
-          />
+          {images?.second && <HomeImage image={images.second} />}
         </div>
 
         {/* دسته بندی های 1 تا 4 */}
