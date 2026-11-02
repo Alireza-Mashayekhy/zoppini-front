@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { track } from '@/lib/consent/client';
 import { toast } from 'sonner';
 
 import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
+import { track } from '@/lib/consent/client';
 import { resolveHtmlMedia } from '@/lib/media';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
@@ -16,7 +16,9 @@ import {
 } from '@/services/features/products/type';
 import { useCartStore } from '@/store/cart.store';
 
+import InstallmentInfo from './installment-info';
 import RelatedSlider from './relatedSlider';
+import TrustStrip from './trust-strip';
 import WishlistButton from './wishlist-button';
 
 export default function ProductContent({
@@ -184,6 +186,7 @@ export default function ProductContent({
               </button>
               <WishlistButton productId={product.id} />
             </div>
+            {price > 0 && <InstallmentInfo className="mt-3" />}
           </div>
           {product?.description && (
             <div
@@ -195,6 +198,7 @@ export default function ProductContent({
           )}
         </div>
       </div>
+      <TrustStrip />
       <RelatedSlider
         products={product.suggestedProducts}
         label="محصولات پیشنهادی"
