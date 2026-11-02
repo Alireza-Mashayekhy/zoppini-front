@@ -1,7 +1,7 @@
 'use client';
 
 import { Plus, Rows3, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -28,37 +28,21 @@ import {
   useGuideUsage,
   useSizeTable,
 } from '@/services/features/product-guides/hooks';
-import { SizeTableResponse } from '@/services/features/product-guides/type';
 
-type ColumnDraft = { id?: number; label: string };
-type RowDraft = { id?: number; label: string; values: string[] };
-
-const DEFAULT_COLUMNS: ColumnDraft[] = [
-  { label: 'S' },
-  { label: 'M' },
-  { label: 'L' },
-  { label: 'XL' },
-];
-
-const DEFAULT_ROWS: RowDraft[] = [
-  { label: 'عرض سینه', values: ['', '', '', ''] },
-  { label: 'قد آستین', values: ['', '', '', ''] },
-];
-
-const toDrafts = (table: SizeTableResponse) => ({
-  name: table.name,
-  unit: table.unit ?? 'سانتیمتر',
-  notes: table.notes ?? '',
-  columns: table.columns.map(column => ({
-    id: column.id,
-    label: column.label,
-  })),
-  rows: table.rows.map(row => ({
-    id: row.id,
-    label: row.label,
-    values: table.columns.map((column, index) => row.values?.[index] ?? ''),
-  })),
-});
+import type { SizeTableDraft } from './size-table-draft';
+import {
+  addColumn as addColumnToDraft,
+  addRow as addRowToDraft,
+  buildPayload as buildDraftPayload,
+  createEmptyDraft,
+  loadKeyFor,
+  removeColumn as removeColumnFromDraft,
+  removeRow as removeRowFromDraft,
+  toDrafts,
+  updateCell as updateCellInDraft,
+  updateColumn as updateColumnInDraft,
+  updateRowLabel as updateRowLabelInDraft,
+} from './size-table-draft';
 
 /**
  * ادیتور جدول سایزبندی
@@ -85,57 +69,54 @@ export default function SizeTableModal({
 
   const { saveSizeTable } = useGuideMutations();
 
-  const [name, setName] = useState('');
-  const [unit, setUnit] = useState('سانتیمتر');
-  const [notes, setNotes] = useState('');
-  const [columns, setColumns] = useState<ColumnDraft[]>(DEFAULT_COLUMNS);
-  const [rows, setRows] = useState<RowDraft[]>(DEFAULT_ROWS);
+  const loadKey = loadKeyFor({
+    open,
+    tableId,
+    dataId: data?.data?.id,
+  });
+
+  /**
+   * الگوی مستند React برای «بازنشانی state هنگام تغییر props»: به‌جای
+   * useEffect، همان هنگام render مقدار‌دهی انجام می‌شود. کلید فقط به
+   * شناسهٔ جدول وابسته است، نه هویت شیء پاسخ؛ پس بارگذاری دوبارهٔ
+   * پس‌زمینه‌ای (باطل شدن کش سایر جهش‌ها یا فوکوس دوبارهٔ پنجره)
+   * ویرایش‌های ذخیره‌نشده را پاک نمی‌کند.
+   */
+  const [form, setForm] = useState<{ key: string; draft: SizeTableDraft }>(
+    () => ({ key: '', draft: createEmptyDraft() }),
+  );
+
+  if (form.key !== loadKey) {
+    setForm({
+      key: loadKey,
+      draft: tableId && data?.data ? toDrafts(data.data) : createEmptyDraft(),
+    });
+  }
+
+  const draft = form.draft;
+  const { name, unit, notes, columns, rows } = draft;
+
+  const setDraft = (updater: (previous: SizeTableDraft) => SizeTableDraft) =>
+    setForm(previous => ({ ...previous, draft: updater(previous.draft) }));
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    if (!tableId) {
-      setName('');
-      setUnit('سانتیمتر');
-      setNotes('');
-      setColumns(DEFAULT_COLUMNS);
-      setRows(DEFAULT_ROWS);
-
-      return;
-    }
-
-    if (!data?.data) return;
-
-    const drafts = toDrafts(data.data);
-
-    setName(drafts.name);
-    setUnit(drafts.unit);
-    setNotes(drafts.notes);
-    setColumns(drafts.columns);
-    setRows(drafts.rows);
-  }, [open, tableId, data]);
 
   const dependents = usage?.data;
 
   const totalProducts = dependents?.totalProducts ?? 0;
   const totalCategories = dependents?.categories.length ?? 0;
 
-  const addColumn = () => {
-    setColumns(previous => [...previous, { label: '' }]);
+  const setName = (value: string) =>
+    setDraft(previous => ({ ...previous, name: value }));
+  const setUnit = (value: string) =>
+    setDraft(previous => ({ ...previous, unit: value }));
+  const setNotes = (value: string) =>
+    setDraft(previous => ({ ...previous, notes: value }));
 
-    setRows(previous =>
-      previous.map(row => ({ ...row, values: [...row.values, ''] })),
-    );
-  };
+  const addColumn = () =>
+    setDraft(previous => addColumnToDraft(previous));
 
-  const updateColumn = (index: number, label: string) => {
-    setColumns(previous =>
-      previous.map((column, position) =>
-        position === index ? { ...column, label } : column,
-      ),
-    );
-  };
+  const updateColumn = (index: number, label: string) =>
+    setDraft(previous => updateColumnInDraft(previous, index, label));
 
   const removeColumn = (index: number) => {
     if (columns.length <= 1) {
@@ -144,47 +125,18 @@ export default function SizeTableModal({
       return;
     }
 
-    setColumns(previous =>
-      previous.filter((_, position) => position !== index),
-    );
-
-    setRows(previous =>
-      previous.map(row => ({
-        ...row,
-        values: row.values.filter((_, position) => position !== index),
-      })),
-    );
+    setDraft(previous => removeColumnFromDraft(previous, index));
   };
 
-  const addRow = () => {
-    setRows(previous => [
-      ...previous,
-      { label: '', values: new Array(columns.length).fill('') },
-    ]);
-  };
+  const addRow = () => setDraft(previous => addRowToDraft(previous));
 
-  const updateRowLabel = (index: number, label: string) => {
-    setRows(previous =>
-      previous.map((row, position) =>
-        position === index ? { ...row, label } : row,
-      ),
-    );
-  };
+  const updateRowLabel = (index: number, label: string) =>
+    setDraft(previous => updateRowLabelInDraft(previous, index, label));
 
-  const updateCell = (rowIndex: number, columnIndex: number, value: string) => {
-    setRows(previous =>
-      previous.map((row, position) =>
-        position === rowIndex
-          ? {
-              ...row,
-              values: row.values.map((cell, cellIndex) =>
-                cellIndex === columnIndex ? value : cell,
-              ),
-            }
-          : row,
-      ),
+  const updateCell = (rowIndex: number, columnIndex: number, value: string) =>
+    setDraft(previous =>
+      updateCellInDraft(previous, rowIndex, columnIndex, value),
     );
-  };
 
   const removeRow = (index: number) => {
     if (rows.length <= 1) {
@@ -193,46 +145,19 @@ export default function SizeTableModal({
       return;
     }
 
-    setRows(previous => previous.filter((_, position) => position !== index));
+    setDraft(previous => removeRowFromDraft(previous, index));
   };
 
   const buildPayload = () => {
-    if (!name.trim()) {
-      toast.error('نام جدول سایزبندی را وارد کنید.');
+    const result = buildDraftPayload(draft);
+
+    if (result.error) {
+      toast.error(result.error);
 
       return null;
     }
 
-    const cleanedColumns = columns.map(column => ({
-      id: column.id,
-      label: column.label.trim(),
-    }));
-
-    if (cleanedColumns.some(column => !column.label)) {
-      toast.error('برچسب همه سایزها را وارد کنید.');
-
-      return null;
-    }
-
-    const cleanedRows = rows.map(row => ({
-      id: row.id,
-      label: row.label.trim(),
-      values: row.values.map(value => value.trim()),
-    }));
-
-    if (cleanedRows.some(row => !row.label)) {
-      toast.error('نام همه مشخصه‌های اندازه‌گیری را وارد کنید.');
-
-      return null;
-    }
-
-    return {
-      name: name.trim(),
-      unit: unit.trim() || 'سانتیمتر',
-      notes: notes.trim() || null,
-      columns: cleanedColumns,
-      rows: cleanedRows,
-    };
+    return result.payload;
   };
 
   const submit = async () => {
@@ -345,7 +270,7 @@ export default function SizeTableModal({
                 <div className="flex flex-wrap gap-2">
                   {columns.map((column, index) => (
                     <div
-                      key={column.id ?? `new-${index}`}
+                      key={column.key}
                       className="flex items-center gap-1 rounded-lg border bg-white p-1"
                     >
                       <Input
@@ -398,7 +323,7 @@ export default function SizeTableModal({
 
                         {columns.map((column, index) => (
                           <th
-                            key={column.id ?? `head-${index}`}
+                            key={`head-${column.key}`}
                             className="min-w-24 p-2 text-center font-medium"
                           >
                             {column.label || `سایز ${index + 1}`}
@@ -412,7 +337,7 @@ export default function SizeTableModal({
                     <tbody>
                       {rows.map((row, rowIndex) => (
                         <tr
-                          key={row.id ?? `row-${rowIndex}`}
+                          key={row.key}
                           className="border-t"
                         >
                           <td className="p-1.5">
@@ -428,7 +353,7 @@ export default function SizeTableModal({
 
                           {columns.map((column, columnIndex) => (
                             <td
-                              key={column.id ?? `col-${columnIndex}`}
+                              key={`cell-${column.key}`}
                               className="p-1.5"
                             >
                               <Input
