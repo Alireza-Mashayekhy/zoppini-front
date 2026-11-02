@@ -2,8 +2,14 @@ export interface sendOtpDto {
   phone: string;
 }
 
+/**
+ * محتوای `data`ی پاسخ `/auth/send-otp` (بعد از ResponseInterceptor).
+ * `expiresIn` همان TTL کد فعال است و دقیقاً زمان مجاز ارسال مجدد هم هست.
+ */
 export interface sendOtpResponse {
-  code: string;
+  sent: boolean;
+  alreadySent: boolean;
+  expiresIn: number;
 }
 
 export interface LoginDto {
@@ -12,7 +18,11 @@ export interface LoginDto {
 }
 
 export interface LoginResponse {
-  user: string[];
+  /** کاربری با این شماره وجود ندارد → فرانت باید اطلاعات ثبتنام را بگیرد */
+  signupRequired?: boolean;
+  /** ثانیههای باقیمانده از کدی که هنوز مصرف نشده */
+  expiresIn?: number;
+  message?: string;
 }
 
 export interface ForgetPasswordDto {
@@ -34,7 +44,8 @@ export interface SignUpDto {
   phone: string;
   password: string;
   fullName: string;
-  email: string;
-  birthDate: string;
+  /** اختیاری — اگر خالی باشد ارسال نمیشود */
+  email?: string | null;
+  birthDate?: string;
   code: string;
 }

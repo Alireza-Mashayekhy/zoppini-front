@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as z from 'zod';
 
 import FormProvider from '@/components/form/form-provider';
 import { PersianDatePicker } from '@/components/form/persian-date-picker';
@@ -20,10 +19,19 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
-import { phoneField } from '@/lib/phone-field';
-import { persianDateToISO } from '@/lib/utils';
+import {
+  isAlreadySentError,
+  isOtpExpiredError,
+  OTP_TTL_SECONDS,
+  otpErrorMessage,
+  readOtpWindow,
+} from '@/lib/otp-window';
+import {
+  buildSignUpPayload,
+  signUpDetailsSchema,
+  SignUpFormData,
+} from '@/lib/sign-up';
 import { useSendOtp, useSignUp } from '@/services/features/auth/hooks';
-import { SignUpDto } from '@/services/features/auth/types';
 
 export default function SignUp() {
   return (
@@ -36,7 +44,7 @@ export default function SignUp() {
 function SignUpContent() {
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState('');
-  const [timeLeft, setTimeLeft] = useState(120);
+  const [timeLeft, setTimeLeft] = useState(OTP_TTL_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
   const sendOtpMutation = useSendOtp();
@@ -44,18 +52,7 @@ function SignUpContent() {
   const router = useRouter();
   const callbackUrl = useCallbackUrl();
 
-  // شمای اعتبارسنجی مرحله اول
-  const schemaStep1 = z.object({
-    fullName: z.string().min(3, 'نام کامل حداقل ۳ کاراکتر است'),
-    phone: phoneField,
-    email: z.string().email('ایمیل نامعتبر است').optional().or(z.literal('')),
-    password: z.string().min(6, 'رمز عبور حداقل ۶ کاراکتر است'),
-    birthDate: z.string().optional(),
-  });
-
-  type FormData = z.infer<typeof schemaStep1>;
-
-  const methods = useForm<FormData>({
+  const methods = useForm<SignUpFormData>({
     defaultValues: {
       fullName: '',
       phone: '',
@@ -63,38 +60,42 @@ function SignUpContent() {
       password: '',
       birthDate: '',
     },
-    resolver: zodResolver(schemaStep1),
+    resolver: zodResolver(signUpDetailsSchema),
     mode: 'onChange',
   });
 
   // تایمر
   useEffect(() => {
-    if (step === 2 && timeLeft > 0) {
+    if (step !== 2) return;
+
+    if (timeLeft > 0) {
       const timer = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
+        setTimeLeft(prev => Math.max(0, prev - 1));
       }, 1000);
       return () => clearTimeout(timer);
     }
-    if (timeLeft === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCanResend(true);
-    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanResend(true);
   }, [step, timeLeft]);
 
+  const goToOtpStep = (expiresIn: number) => {
+    setTimeLeft(expiresIn);
+    setCanResend(false);
+    setStep(2);
+  };
+
   // مرحله اول: ارسال اطلاعات و درخواست کد
-  const onSubmitStep1 = async (data: FormData) => {
+  const onSubmitStep1 = async (data: SignUpFormData) => {
     try {
-      await sendOtpMutation.mutateAsync({ phone: data.phone });
-      setStep(2);
-      setTimeLeft(120);
-      setCanResend(false);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
-      if (message === 'کد قبلا برای شما ارسال شده است') {
-        setStep(2);
+      const result = await sendOtpMutation.mutateAsync({ phone: data.phone });
+      goToOtpStep(readOtpWindow(result).expiresIn);
+    } catch (error) {
+      if (isAlreadySentError(error)) {
+        // کد قبلی هنوز معتبر است: پیامک جدید نمیخواهیم، فقط برو مرحلهی کد
+        goToOtpStep(timeLeft > 0 ? timeLeft : OTP_TTL_SECONDS);
       } else {
-        toast.error(message);
+        toast.error(otpErrorMessage(error, 'خطا در ارسال کد'));
       }
     }
   };
@@ -103,38 +104,39 @@ function SignUpContent() {
   const onSubmitStep2 = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = methods.getValues();
-    const payload: SignUpDto = {
-      fullName: formData.fullName,
-      phone: formData.phone,
-      email: formData.email || '',
-      code,
-      password: formData.password,
-      birthDate: persianDateToISO(formData.birthDate || ''),
-    };
+    const payload = buildSignUpPayload(formData, formData.phone, code);
 
     try {
       await signUpMutation.mutateAsync(payload);
       toast.success('ثبت‌نام موفق');
       await router.push(callbackUrl ?? '/');
       router.refresh();
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ثبت‌نام';
-      toast.error(message);
+    } catch (error) {
+      if (isOtpExpiredError(error)) {
+        setCode('');
+        setTimeLeft(0);
+        setCanResend(true);
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ثبت‌نام'));
     }
   };
 
   // ارسال مجدد کد
   const handleResendCode = async () => {
     try {
-      await sendOtpMutation.mutateAsync({ phone: methods.getValues('phone') });
-      setTimeLeft(120);
+      const result = await sendOtpMutation.mutateAsync({
+        phone: methods.getValues('phone'),
+      });
+      const window = readOtpWindow(result);
+      setTimeLeft(window.expiresIn);
       setCanResend(false);
-      setCode('');
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال مجدد';
-      toast.error(message);
+      if (window.sent) setCode('');
+    } catch (error) {
+      if (isAlreadySentError(error)) {
+        setCanResend(true);
+        return;
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ارسال مجدد'));
     }
   };
 

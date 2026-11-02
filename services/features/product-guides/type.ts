@@ -18,7 +18,17 @@ export interface SizeTableRowDto {
   id?: number;
   label: string;
   /** مقدار هر خانه به ترتیب ستون‌ها — خالی یعنی «اندازه وارد نشده» */
-  values: (string | null)[];
+  values?: (string | null)[];
+}
+
+/**
+ * پاسخ ادمین: سرور سلول‌ها را با شناسهٔ ستون (`cells`) می‌فرستد تا حذف و
+ * جابه‌جایی سایزها مقادیر را جابه‌جا نکند؛ `values` موقعیتی هم برای سازگاری
+ * با کلاینت‌های قدیمی همراه آن ارسال می‌شود. فرم ادمین `cells` را ترجیح می‌دهد.
+ */
+export interface SizeTableResponseRowDto extends SizeTableRowDto {
+  id: number;
+  cells?: { columnId: number; value: string | null }[];
 }
 
 export interface SizeTableResponse {
@@ -28,7 +38,7 @@ export interface SizeTableResponse {
   notes?: string | null;
   isArchived?: boolean;
   columns: SizeTableColumnDto[];
-  rows: SizeTableRowDto[];
+  rows: SizeTableResponseRowDto[];
 }
 
 export interface UpsertSizeTableDto {

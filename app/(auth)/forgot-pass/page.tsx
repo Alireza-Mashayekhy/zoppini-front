@@ -20,6 +20,13 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import {
+  isAlreadySentError,
+  isOtpExpiredError,
+  OTP_TTL_SECONDS,
+  otpErrorMessage,
+  readOtpWindow,
+} from '@/lib/otp-window';
 import { phoneField } from '@/lib/phone-field';
 import {
   useForgotPassword,
@@ -39,7 +46,7 @@ export default function ForgotPassword() {
 function ForgotPasswordContent() {
   const [step, setStep] = useState<number>(1);
   const [phone, setPhone] = useState('');
-  const [timeLeft, setTimeLeft] = useState(120);
+  const [timeLeft, setTimeLeft] = useState(OTP_TTL_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
   const sendOtpMutation = useSendOtp();
@@ -79,38 +86,40 @@ function ForgotPasswordContent() {
     resolver: zodResolver(schemaStep2),
   });
 
-  // تایمر
+  // تایمر — بر اساس TTL واقعی کد در سرور (همان زمان مجاز ارسال مجدد)
   useEffect(() => {
-    if (step === 2 && timeLeft > 0) {
+    if (step !== 2) return;
+
+    if (timeLeft > 0) {
       const timer = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
+        setTimeLeft(prev => Math.max(0, prev - 1));
       }, 1000);
       return () => clearTimeout(timer);
     }
-    if (timeLeft === 0) {
-      setCanResend(true);
-    }
+
+    setCanResend(true);
   }, [step, timeLeft]);
+
+  const goToOtpStep = (expiresIn: number) => {
+    setTimeLeft(expiresIn);
+    setCanResend(false);
+    setStep(2);
+  };
 
   // مرحله اول: ارسال کد به شماره
   const onSubmitStep1 = async (data: sendOtpDto) => {
     try {
-      await forgotPasswordMutation.mutateAsync(data);
+      const result = await forgotPasswordMutation.mutateAsync(data);
       setPhone(data.phone);
-      setStep(2);
-      setTimeLeft(120);
-      setCanResend(false);
+      goToOtpStep(readOtpWindow(result).expiresIn);
       toast.success('کد به شماره شما ارسال شد');
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
-      if (message === 'کد قبلا برای شما ارسال شده است') {
+    } catch (error) {
+      if (isAlreadySentError(error)) {
+        // کد قبلی معتبر است: پیامک جدیدی ارسال نشد، همان کد وارد میشود
         setPhone(data.phone);
-        setStep(2);
-        setTimeLeft(120);
-        setCanResend(false);
+        goToOtpStep(timeLeft > 0 ? timeLeft : OTP_TTL_SECONDS);
       } else {
-        toast.error(message);
+        toast.error(otpErrorMessage(error, 'خطا در ارسال کد'));
       }
     }
   };
@@ -131,27 +140,34 @@ function ForgotPasswordContent() {
       await resetPasswordMutation.mutateAsync(payload);
       toast.success('رمز عبور با موفقیت تغییر کرد');
       router.push(withCallbackUrl('/login', callbackUrl));
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        error.message ||
-        'خطا در تغییر رمز عبور';
-      toast.error(message);
+    } catch (error) {
+      if (isOtpExpiredError(error)) {
+        methodsStep2.setValue('code', '');
+        setTimeLeft(0);
+        setCanResend(true);
+      }
+      toast.error(otpErrorMessage(error, 'خطا در تغییر رمز عبور'));
     }
   };
 
   // ارسال مجدد کد
   const handleResendCode = async () => {
     try {
-      await sendOtpMutation.mutateAsync({ phone });
-      setTimeLeft(120);
+      const result = await sendOtpMutation.mutateAsync({ phone });
+      const window = readOtpWindow(result);
+      setTimeLeft(window.expiresIn);
       setCanResend(false);
-      methodsStep2.setValue('code', ''); // پاک کردن کد قبلی
-      toast.success('کد جدید ارسال شد');
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال مجدد';
-      toast.error(message);
+      // فقط وقتی پیامک تازهای رفته، کد واردشده پاک شود
+      if (window.sent) {
+        methodsStep2.setValue('code', '');
+        toast.success('کد جدید ارسال شد');
+      }
+    } catch (error) {
+      if (isAlreadySentError(error)) {
+        setCanResend(true);
+        return;
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ارسال مجدد'));
     }
   };
 

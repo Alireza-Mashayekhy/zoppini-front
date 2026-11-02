@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import FormProvider from '@/components/form/form-provider';
+import { PersianDatePicker } from '@/components/form/persian-date-picker';
 import RHFInput from '@/components/form/rhf-input';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,8 +20,20 @@ import {
 } from '@/components/ui/input-otp';
 import { useCallbackUrl } from '@/hooks/use-callback-url';
 import { withCallbackUrl } from '@/lib/callback-url';
+import {
+  isAlreadySentError,
+  isOtpExpiredError,
+  OTP_TTL_SECONDS,
+  otpErrorMessage,
+  readOtpWindow,
+} from '@/lib/otp-window';
 import { phoneField } from '@/lib/phone-field';
-import { useLogin, useSendOtp } from '@/services/features/auth/hooks';
+import {
+  buildSignUpPayload,
+  LoginSignUpDetails,
+  loginSignUpDetailsSchema,
+} from '@/lib/sign-up';
+import { useLogin, useSendOtp, useSignUp } from '@/services/features/auth/hooks';
 import { sendOtpDto } from '@/services/features/auth/types';
 
 export default function Login() {
@@ -32,13 +45,15 @@ export default function Login() {
 }
 
 function LoginContent() {
+  // ۱: شماره | ۲: کد | ۳: تکمیل اطلاعات ثبتنام (کاربر تازهای که کدش تأیید شد)
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState('');
-  const [timeLeft, setTimeLeft] = useState(120); // ۲ دقیقه به ثانیه
+  const [timeLeft, setTimeLeft] = useState(OTP_TTL_SECONDS);
   const [canResend, setCanResend] = useState(false);
 
   const sendOtpMutation = useSendOtp();
   const loginMutation = useLogin();
+  const signUpMutation = useSignUp();
   const router = useRouter();
   const callbackUrl = useCallbackUrl();
 
@@ -53,33 +68,52 @@ function LoginContent() {
     resolver: zodResolver(schema),
   });
 
-  // تایمر
+  // همان فیلدها و همان استایل فرم ثبتنام، فقط بدون شماره (شماره تأیید شده است)
+  const signUpMethods = useForm<LoginSignUpDetails>({
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      birthDate: '',
+    },
+    resolver: zodResolver(loginSignUpDetailsSchema),
+    mode: 'onChange',
+  });
+
+  // تایمر — مقدار اولیه و هر ریست، از `expiresIn` سرور گرفته میشود تا دقیقاً
+  // با انقضای کد و زمان مجاز ارسال مجدد یکی باشد.
   useEffect(() => {
-    if (step === 2 && timeLeft > 0) {
+    if (step !== 2) return;
+
+    if (timeLeft > 0) {
       const timer = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
+        setTimeLeft(prev => Math.max(0, prev - 1));
       }, 1000);
       return () => clearTimeout(timer);
     }
-    if (timeLeft === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCanResend(true);
-    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanResend(true);
   }, [step, timeLeft]);
+
+  const goToOtpStep = (expiresIn: number) => {
+    setTimeLeft(expiresIn);
+    setCanResend(false);
+    setStep(2);
+  };
 
   const onSubmit = async (data: sendOtpDto) => {
     try {
-      await sendOtpMutation.mutateAsync(data);
-      setStep(2);
-      setTimeLeft(120); // ریست تایمر
-      setCanResend(false);
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
-      if (message == 'کد قبلا برای شما ارسال شده است') {
-        setStep(2);
+      const result = await sendOtpMutation.mutateAsync(data);
+      // پاسخ موفق «کد قبلا ارسال شده» هم اینجاست: پیامک جدیدی نرفته،
+      // ولی باید برویم مرحلهی کد تا همان کد قبلی وارد شود.
+      goToOtpStep(readOtpWindow(result).expiresIn);
+    } catch (error) {
+      if (isAlreadySentError(error)) {
+        // نسخهی قدیمی بکاند 429 «صبر کنید» میداد؛ خطا نشان نمیدهیم
+        goToOtpStep(timeLeft > 0 ? timeLeft : OTP_TTL_SECONDS);
       } else {
-        toast.error(message);
+        toast.error(otpErrorMessage(error, 'خطا در ارسال کد'));
       }
     }
   };
@@ -87,29 +121,78 @@ function LoginContent() {
   const onSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await loginMutation.mutateAsync({
+      const result = await loginMutation.mutateAsync({
         code,
         phone: methods.getValues().phone,
       });
 
+      // شماره تأیید شد ولی حسابی وجود ندارد: کد مصرف نشده، پس همان کد را
+      // همراه اطلاعات ثبتنام به /auth/sign-up میفرستیم.
+      if (result?.data?.signupRequired || result?.message === 'signup_required') {
+        if (result.data?.expiresIn && result.data.expiresIn > 0) {
+          setTimeLeft(result.data.expiresIn);
+        }
+        setStep(3);
+        return;
+      }
+
       await router.push(callbackUrl ?? '/');
       router.refresh();
-    } catch (error: any) {
-      const message =
-        error?.response?.data?.message || error.message || 'خطا در ارسال کد';
-      toast.error(message);
+    } catch (error) {
+      // کد منقضی/باطل شده → سرور همان لحظه ارسال مجدد را آزاد کرده است
+      if (isOtpExpiredError(error)) {
+        setCode('');
+        setTimeLeft(0);
+        setCanResend(true);
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ورود'));
+    }
+  };
+
+  const onSubmitSignUp = async (data: LoginSignUpDetails) => {
+    const payload = buildSignUpPayload(
+      data,
+      methods.getValues('phone'),
+      code,
+    );
+
+    try {
+      await signUpMutation.mutateAsync(payload);
+      toast.success('ثبت‌نام موفق');
+      await router.push(callbackUrl ?? '/');
+      router.refresh();
+    } catch (error) {
+      if (isOtpExpiredError(error)) {
+        // کد در فاصلهی پرکردن فرم منقضی شده → برگرد به مرحلهی کد برای ارسال مجدد
+        toast.error(otpErrorMessage(error, 'کد منقضی شده است'));
+        setCode('');
+        setTimeLeft(0);
+        setCanResend(true);
+        setStep(2);
+        return;
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ثبتنام'));
     }
   };
 
   // ارسال مجدد کد
   const handleResendCode = async () => {
     try {
-      await sendOtpMutation.mutateAsync({ phone: methods.getValues().phone });
-      setTimeLeft(120);
+      const result = await sendOtpMutation.mutateAsync({
+        phone: methods.getValues().phone,
+      });
+      const window = readOtpWindow(result);
+      setTimeLeft(window.expiresIn);
       setCanResend(false);
-      setCode('');
+      // فقط وقتی پیامک تازهای رفته کد واردشده را پاک میکنیم
+      if (window.sent) setCode('');
     } catch (error) {
-      console.log(error);
+      if (isAlreadySentError(error)) {
+        // سازگاری با بکاند قدیمی: خطای «صبر کنید» یعنی کد قبلی هنوز معتبر است
+        setCanResend(true);
+        return;
+      }
+      toast.error(otpErrorMessage(error, 'خطا در ارسال مجدد'));
     }
   };
 
@@ -155,7 +238,7 @@ function LoginContent() {
             بازگشت به خانه <ArrowLeft className="size-4" />
           </Link>
         </FormProvider>
-      ) : (
+      ) : step === 2 ? (
         <form onSubmit={onSubmitLogin} className="space-y-4">
           <p className="text-sm text-center">
             کد به شماره{' '}
@@ -233,6 +316,50 @@ function LoginContent() {
             ورود
           </Button>
         </form>
+      ) : (
+        <FormProvider
+          methods={signUpMethods}
+          onSubmit={signUpMethods.handleSubmit(onSubmitSignUp)}
+          className="space-y-3"
+        >
+          <p className="text-sm text-center">
+            برای ادامه، اطلاعات ثبت‌نام را تکمیل کنید
+          </p>
+          <RHFInput label="نام کامل" name="fullName" />
+          <RHFInput label="ایمیل (اختیاری)" name="email" type="email" />
+          <RHFInput label="رمز عبور" name="password" type="password" />
+          <PersianDatePicker
+            name="birthDate"
+            label="تاریخ تولد"
+            placeholder="تاریخ تولد را انتخاب کنید"
+          />
+          <Button
+            type="submit"
+            loading={signUpMutation.isPending}
+            size="lg"
+            variant="dark"
+            className="w-full"
+          >
+            ثبت‌نام
+          </Button>
+          <div className="flex items-center justify-between">
+            <span
+              onClick={() => {
+                setCode('');
+                setStep(1);
+              }}
+              className="text-xs text-gray-400 cursor-pointer hover:text-gray-600 transition"
+            >
+              تغییر شماره
+            </span>
+            <Link href={withCallbackUrl('/login-with-pass', callbackUrl)}>
+              ورود با رمز عبور
+            </Link>
+          </div>
+          <Link href="/" className="flex items-center justify-center gap-2">
+            بازگشت به خانه <ArrowLeft className="size-4" />
+          </Link>
+        </FormProvider>
       )}
     </div>
   );
