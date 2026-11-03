@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { careInstructionsLabel } from '@/lib/care-instructions';
 import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
@@ -182,8 +183,7 @@ export default function ProductGuidesSheet({
   const hasMeasurement = Boolean(guides?.measurementGuide?.images.length);
   const hasCare = Boolean(guides?.careGuide || product?.careInstructionsHtml);
 
-  console.log(guides);
-  if (!hasSizeTable && !hasMeasurement) return null;
+  if (!hasSizeTable && !hasMeasurement && !hasCare) return null;
 
   return (
     <Sheet>
@@ -205,7 +205,15 @@ export default function ProductGuidesSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-4">
-          <Tabs defaultValue={hasSizeTable ? 'table' : 'measurement'}>
+          <Tabs
+            defaultValue={
+              hasSizeTable
+                ? 'table'
+                : hasMeasurement
+                  ? 'measurement'
+                  : 'careInstructions'
+            }
+          >
             <TabsList className="mb-4 bg-muted">
               {hasSizeTable && (
                 <TabsTrigger value="table">جدول سایزبندی</TabsTrigger>
@@ -216,7 +224,9 @@ export default function ProductGuidesSheet({
               )}
 
               {hasCare && (
-                <TabsTrigger value="careInstructions">نحوه شستشو</TabsTrigger>
+                <TabsTrigger value="careInstructions">
+                  {careInstructionsLabel(product.careInstructionsTitle)}
+                </TabsTrigger>
               )}
             </TabsList>
 
@@ -273,12 +283,18 @@ export default function ProductGuidesSheet({
                         </p>
                       </div>
                     )}
-                    {product?.careInstructionsHtml && !guides?.careGuide && (
-                      <div>
+                    {product?.careInstructionsHtml && (
+                      <div
+                        className={
+                          guides?.careGuide ? 'border-t pt-4' : undefined
+                        }
+                      >
                         <span
                           className="zp-prose block text-sm"
                           dangerouslySetInnerHTML={{
-                            __html: resolveHtmlMedia(product.careInstructionsHtml),
+                            __html: resolveHtmlMedia(
+                              product.careInstructionsHtml,
+                            ),
                           }}
                         />
                       </div>

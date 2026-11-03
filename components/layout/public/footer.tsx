@@ -40,41 +40,44 @@ export default function Footer() {
             </AnimateLink>
           </ul>
         </div>
-        <div className="flex flex-col gap-5">
-          <span className="text-sm font-semibold">راهنما</span>
-          <ul className="flex flex-col gap-4 text-sm">
-            <AnimateLink href="/branches">
-              <li>آدرس شعب</li>
-            </AnimateLink>
-            <AnimateLink href="/frequently-asked-questions">
-              <li>سوالات متداول</li>
-            </AnimateLink>
-            <AnimateLink href="/return-and-exchange-conditions">
-              <li>شرایط مرجوع</li>
-            </AnimateLink>
-            <AnimateLink href="/events">
-              <li>رویداد ها</li>
-            </AnimateLink>
-            <AnimateLink href="/b2bsale">
-              <li>فروش سازمانی</li>
-            </AnimateLink>
-          </ul>
+        <div className="flex w-full gap-4 sm:contents">
+          <div className="flex w-1/2 shrink-0 flex-col gap-5 sm:w-auto">
+            <span className="text-sm font-semibold">راهنما</span>
+            <ul className="flex flex-col gap-4 text-sm">
+              <AnimateLink href="/branches">
+                <li>آدرس شعب</li>
+              </AnimateLink>
+              <AnimateLink href="/frequently-asked-questions">
+                <li>سوالات متداول</li>
+              </AnimateLink>
+              <AnimateLink href="/return-and-exchange-conditions">
+                <li>شرایط مرجوع</li>
+              </AnimateLink>
+              <AnimateLink href="/events">
+                <li>رویداد ها</li>
+              </AnimateLink>
+              <AnimateLink href="/b2bsale">
+                <li>فروش سازمانی</li>
+              </AnimateLink>
+            </ul>
+          </div>
+          <a
+            href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
+            target="_blank"
+            rel="noopener"
+            className="flex min-w-0 flex-1 items-center justify-center sm:hidden"
+          >
+            <Image
+              className="h-auto max-w-full"
+              src="/footer/enamd_1.webp"
+              alt="نماد اعتماد الکترونیکی زوپینی"
+              width={160}
+              height={160}
+              loading="lazy"
+              sizes="(max-width: 400px) 35vw, 160px"
+            />
+          </a>
         </div>
-        <a
-          href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
-          target="_blank"
-          rel="noopener"
-          className="sm:hidden"
-        >
-          <Image
-            src="/footer/enamd_1.webp"
-            alt="نماد اعتماد الکترونیکی زوپینی"
-            width={130}
-            height={130}
-            loading="lazy"
-            sizes="130px"
-          />
-        </a>
         {/* <div className="flex flex-col gap-5 max-w-72">
           <span className="text-sm font-semibold">خبرنامه</span>
           <p className="text-sm">
