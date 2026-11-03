@@ -17,6 +17,7 @@ import {
 import { useCartStore } from '@/store/cart.store';
 
 import InstallmentInfo from './installment-info';
+import { selectedProductPrice } from './installment-price';
 import RelatedSlider from './relatedSlider';
 import TrustStrip from './trust-strip';
 import WishlistButton from './wishlist-button';
@@ -103,17 +104,23 @@ export default function ProductContent({
   );
 
   const activeColorId = selectedColorId || defaultColorId;
-  const firstVariant = product.variants?.[0];
-  const price = firstVariant?.price || 0;
-  const discountedPrice = firstVariant?.discountedPrice;
+  const selectedVariant = product.variants?.find(
+    v => v.color?.id === activeColorId && v.size?.id === selectedSizeId,
+  );
+  const displayVariant = selectedVariant ?? product.variants?.[0];
+  const price = displayVariant?.price || 0;
+  const discountedPrice = displayVariant?.discountedPrice;
+  const installmentPrice = selectedProductPrice(
+    product.variants,
+    activeColorId,
+    selectedSizeId,
+  );
 
   const addToCart = useAddToCart();
   const { openCart } = useCartStore();
 
   const handleAddToCart = () => {
-    const variant = product.variants?.find(
-      v => v.color.id === activeColorId && v.size.id === selectedSizeId,
-    );
+    const variant = selectedVariant;
     if (!variant) {
       toast.error('لطفاً رنگ و سایز را انتخاب کنید');
       return;
@@ -186,7 +193,9 @@ export default function ProductContent({
               </button>
               <WishlistButton productId={product.id} />
             </div>
-            {price > 0 && <InstallmentInfo className="mt-3" />}
+            {installmentPrice !== null && (
+              <InstallmentInfo className="mt-3" price={installmentPrice} />
+            )}
           </div>
           {product?.description && (
             <div

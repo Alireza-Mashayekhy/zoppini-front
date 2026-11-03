@@ -33,7 +33,7 @@ export default function TrustStrip({ className }: { className?: string }) {
             با خیال راحت خرید کنید
           </h2>
           <p className="text-xs leading-6 text-[#85817c] sm:text-sm">
-            زوپینی بپوش، اصالت و کیفیت را تضمین می‌کند.
+            زوپینی ، اصالت و کیفیت را تضمین می‌کند.
           </p>
         </div>
 

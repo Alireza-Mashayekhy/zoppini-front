@@ -54,6 +54,8 @@ export interface ColorImageResponse {
   };
 }
 
+export type CareInstructionsTitle = 'washing' | 'maintenance';
+
 export interface ProductsResponse {
   id: number;
   productCode: string;
@@ -71,6 +73,7 @@ export interface ProductsResponse {
   followable?: boolean;
   discount?: ProductDiscount;
   careInstructionsHtml: string;
+  careInstructionsTitle?: CareInstructionsTitle;
   createdAt: string;
   updatedAt: string;
   suggestedProducts: ProductsResponse[];
@@ -102,6 +105,7 @@ export interface createProductDto {
   followable?: boolean;
   slug: string;
   careInstructionsHtml: string;
+  careInstructionsTitle: CareInstructionsTitle;
   categories: string[];
   colorId: string[];
   sizeId: string[];
@@ -110,6 +114,7 @@ export interface createProductDto {
 export interface createApiProductDto {
   id?: string;
   careInstructionsHtml: string;
+  careInstructionsTitle?: CareInstructionsTitle;
   categoryIds: number[];
   productCode: string;
   description: string;
