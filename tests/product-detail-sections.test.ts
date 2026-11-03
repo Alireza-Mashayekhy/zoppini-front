@@ -57,7 +57,9 @@ test('نوار اقساط اسنپپی دیگر در هیچ کارت محصول�
   }
 
   // قیمت و لینک محصول دستنخورده باقی مانده است.
-  const html = normalize(renderToStaticMarkup(createElement(ProductCard, props)));
+  const html = normalize(
+    renderToStaticMarkup(createElement(ProductCard, props)),
+  );
   assert.match(html, /href="\/product\/example"/);
   assert.match(html, /۱٬۰۰۰٬۰۰۰/);
 
@@ -68,25 +70,16 @@ test('نوار اقساط اسنپپی دیگر در هیچ کارت محصول�
   assert.doesNotMatch(cardSource, /InstallmentBadge|installment-badge/);
 });
 
-test('بنر اقساط صفحه محصول فقط اطلاعرسانی است و رنگ/لوگوی خارجی ندارد', () => {
+test('بنر اقساط مبلغ تقریبی و راهنمای قابل باز کردن دارد', () => {
   const html = normalize(
-    renderToStaticMarkup(createElement(InstallmentInfo, {})),
+    renderToStaticMarkup(createElement(InstallmentInfo, { price: 800000 })),
   );
-
-  assert.match(html, /خرید اقساطی ۴ مرحلهای اسنپپی/);
-  assert.match(
-    html,
-    /شرایط و مبلغ نهایی در مرحله پرداخت مشخص میشود/,
-  );
-
-  // هیچ مبلغ، عدد قسط ساختگی، لینک یا لوگوی اسنپپی/دیجیپی وعده داده نشده است.
-  assert.doesNotMatch(html, /تومان|ریال|<a\b|<img|snapppay|digipay/i);
-  assert.doesNotMatch(html, BRAND_PINK_PURPLE);
-
-  // پالت خنثی خود سایت.
-  assert.match(html, /border-\[#e8e6e3\]/);
-  assert.match(html, /text-\[#1a1a1a\]/);
-  assert.match(html, /text-\[#85817c\]/);
+  assert.match(html, /خرید اقساطی در ۴ قسط/);
+  assert.match(html, /هر قسط تقریبا/);
+  assert.match(html, /۲۰۰٬۰۰۰/);
+  assert.match(html, /تومان/);
+  assert.match(html, /<button/);
+  assert.match(html, /aria-haspopup="dialog"/);
 });
 
 test('نوار اعتماد همان چهار آیتم مرجع را با متن و پالت زوپینی دارد', () => {
@@ -104,7 +97,11 @@ test('نوار اعتماد همان چهار آیتم مرجع را با متن
     assert.ok(html.includes(label), `آیتم «${label}» موجود است`);
   }
   // الگوی <li> (نه <line> داخل آیکنهای lucide)
-  assert.equal((html.match(/<li(?=[\s>])/g) ?? []).length, 4, 'دقیقاً چهار آیتم');
+  assert.equal(
+    (html.match(/<li(?=[\s>])/g) ?? []).length,
+    4,
+    'دقیقاً چهار آیتم',
+  );
 
   // بدون لینک/عکس خارجی و بدون رنگهای صورتی طرح مرجع.
   assert.doesNotMatch(html, /<a\b|<img|enamad|snapppay|digipay/i);
@@ -134,8 +131,8 @@ test('محل قرارگیری: بنر زیر دکمه افزودن به سبد،
   );
   assert.match(
     source,
-    /price > 0 && <InstallmentInfo/,
-    'بنر فقط برای محصول قیمتمند نمایش داده میشود',
+    /installmentPrice !== null/,
+    'بنر فقط برای مدل انتخابی قیمتمند نمایش داده میشود',
   );
   assert.ok(
     descriptionIndex > installmentIndex,

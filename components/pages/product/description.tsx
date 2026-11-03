@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { careInstructionsLabel } from '@/lib/care-instructions';
 import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
@@ -36,7 +37,9 @@ const SheetContentBody = memo(
       return (
         <div
           className="zp-prose text-sm leading-relaxed max-w-none"
-          dangerouslySetInnerHTML={{ __html: resolveHtmlMedia(product.description) }}
+          dangerouslySetInnerHTML={{
+            __html: resolveHtmlMedia(product.description),
+          }}
         />
       );
     }
@@ -132,7 +135,9 @@ export default function ProductInfo({ product, guides }: ProductInfoProps) {
         >
           <SheetHeader>
             <SheetTitle>
-              {sheetContent === 'description' ? 'توضیحات محصول' : 'نحوه شستشو'}
+              {sheetContent === 'description'
+                ? 'توضیحات محصول'
+                : careInstructionsLabel(product.careInstructionsTitle)}
             </SheetTitle>
           </SheetHeader>
 

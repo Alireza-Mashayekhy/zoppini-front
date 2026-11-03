@@ -162,6 +162,7 @@ export default function ProductCreateModal({
     indexable: z.boolean(),
     followable: z.boolean(),
     careInstructionsHtml: z.string().nonempty('این فیلد اجباری است'),
+    careInstructionsTitle: z.enum(['washing', 'maintenance']),
     slug: z.string().nonempty('این فیلد اجباری است'),
     productCode: z.string().nonempty('این فیلد اجباری است'),
     categories: z.array(z.string()).nonempty('این فیلد اجباری است'),
@@ -180,6 +181,7 @@ export default function ProductCreateModal({
       indexable: true,
       followable: true,
       careInstructionsHtml: '',
+      careInstructionsTitle: 'washing',
       slug: '',
       productCode: '',
       categories: [],
@@ -258,6 +260,7 @@ export default function ProductCreateModal({
         indexable: true,
         followable: true,
         careInstructionsHtml: '',
+        careInstructionsTitle: 'washing',
         slug: '',
         productCode: '',
         categories: [],
@@ -299,6 +302,7 @@ export default function ProductCreateModal({
         indexable: true,
         followable: true,
         careInstructionsHtml: selectedData.careInstructionsHtml || '',
+        careInstructionsTitle: 'washing',
         slug: selectedData.slug || '',
         productCode: String(selectedData.productCode || ''),
         categories: selectedData.categories?.map(c => String(c.id)) || [],
@@ -336,6 +340,10 @@ export default function ProductCreateModal({
       indexable: product.indexable ?? true,
       followable: product.followable ?? true,
       careInstructionsHtml: product.careInstructionsHtml || '',
+      careInstructionsTitle:
+        product.careInstructionsTitle === 'maintenance'
+          ? 'maintenance'
+          : 'washing',
       slug: product.slug || '',
       productCode: String(product.productCode || ''),
       categories: product.categories?.map(c => String(c.id)) || [],
@@ -386,6 +394,7 @@ export default function ProductCreateModal({
         indexable,
         followable,
         careInstructionsHtml,
+        careInstructionsTitle,
         slug,
         productCode,
         categories,
@@ -482,6 +491,7 @@ export default function ProductCreateModal({
       formData.append('indexable', (indexable ?? true).toString());
       formData.append('followable', (followable ?? true).toString());
       formData.append('careInstructionsHtml', careInstructionsHtml || '');
+      formData.append('careInstructionsTitle', careInstructionsTitle);
       formData.append('categoryIds', JSON.stringify(categories.map(Number)));
       formData.append('variants', JSON.stringify(variantsPayload));
 
@@ -882,7 +892,24 @@ export default function ProductCreateModal({
               <RHFTextEditor name="description" label="توضیحات" />
             </div>
             <div className="col-span-2">
-              <RHFTextEditor name="careInstructionsHtml" label="نحوه شستشو" />
+              <RHFSelect
+                name="careInstructionsTitle"
+                label="عنوان راهنمای محصول"
+                items={[
+                  { value: 'washing', text: 'نحوه شستشو' },
+                  { value: 'maintenance', text: 'نحوه نگهداری' },
+                ]}
+              />
+            </div>
+            <div className="col-span-2">
+              <RHFTextEditor
+                name="careInstructionsHtml"
+                label={
+                  watch('careInstructionsTitle') === 'maintenance'
+                    ? 'نحوه نگهداری'
+                    : 'نحوه شستشو'
+                }
+              />
             </div>
 
             {isEdit &&
