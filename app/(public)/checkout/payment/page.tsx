@@ -4,10 +4,12 @@ import PaymentSelectionContent from '@/components/pages/checkout/payment-section
 
 export default function PaymentSelectionPage() {
   return (
-    <Suspense
-      fallback={<div className="text-center py-10">در حال بارگذاری...</div>}
-    >
-      <PaymentSelectionContent />
-    </Suspense>
+    <main className="pt-[52px]">
+      <Suspense
+        fallback={<div className="text-center py-10">در حال بارگذاری...</div>}
+      >
+        <PaymentSelectionContent />
+      </Suspense>
+    </main>
   );
 }

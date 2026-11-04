@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 
 import YektanetAnalytics from '@/components/analytics/yektanet';
 import ConsentManager from '@/components/consent/manager';
+import GoogleAnalytics from '@/components/analytics/google-analytics';
 import { iranSans } from '@/components/font';
 import { cn } from '@/lib/utils';
 import AuthProvider from '@/providers/auth.provider';
@@ -36,6 +37,7 @@ export default function RootLayout({
           <AuthProvider initialUser={null}>{children}</AuthProvider>
         </Providers>
 
+        <GoogleAnalytics />
         <ConsentManager />
       </body>
     </html>

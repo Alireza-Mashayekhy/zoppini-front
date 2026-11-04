@@ -16,7 +16,7 @@ export function selectedProductPrice(
 
 /** The actual payment schedule is determined by the provider at checkout. */
 export function formatInstallment(price: number): string {
-  return new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 }).format(
+  return new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 4 }).format(
     price / 4,
   );
 }

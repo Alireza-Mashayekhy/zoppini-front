@@ -2,13 +2,12 @@
 
 import {
   ChevronLeft,
-  ChevronRight,
   CreditCard,
+  LockKeyhole,
   ShoppingBag,
-  WalletCards,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   Dialog,
@@ -22,8 +21,35 @@ import { cn } from '@/lib/utils';
 
 import { formatInstallment } from './installment-price';
 
-const SLIDE_DURATION = 7000;
-const SLIDE_COUNT = 3;
+const DURATION = 7000;
+const SLIDES = [
+  {
+    provider: 'دیجی‌پی',
+    theme: 'blue',
+    title: 'پرداخت آسان و اقساطی',
+    description: 'خریدتان را با اعتبار دیجی‌پی در چهار قسط پرداخت کنید.',
+  },
+  {
+    provider: 'دیجی‌پی',
+    theme: 'blue',
+    title: 'چطور قسطی خرید کنم؟',
+    description:
+      'پس از افزودن کالا به سبد، در مرحله پرداخت دیجی‌پی را انتخاب و شرایط اعتبار را بررسی کنید.',
+  },
+  {
+    provider: 'اسنپ‌پی',
+    theme: 'green',
+    title: 'خرید امروز، پرداخت قسطی',
+    description: 'با اعتبار اسنپ‌پی خریدتان را در چهار قسط پرداخت کنید.',
+  },
+  {
+    provider: 'اسنپ‌پی',
+    theme: 'green',
+    title: 'چطور قسطی خرید کنم؟',
+    description:
+      'پس از افزودن کالا به سبد، در مرحله پرداخت اسنپ‌پی را انتخاب و شرایط اعتبار را بررسی کنید.',
+  },
+] as const;
 
 /** Product-only estimate; checkout and the payment provider determine the actual terms. */
 export default function InstallmentInfo({
@@ -35,8 +61,15 @@ export default function InstallmentInfo({
 }) {
   const [open, setOpen] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+  const [holding, setHolding] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const pointer = useRef<{ time: number; x: number; id: number } | null>(null);
   const amount = formatInstallment(price);
+  const current = SLIDES[slide];
+  const green = current.theme === 'green';
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -45,19 +78,59 @@ export default function InstallmentInfo({
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
-
   useEffect(() => {
-    if (!open || reducedMotion || slide === SLIDE_COUNT - 1) return;
-    const timer = window.setTimeout(
-      () => setSlide(current => current + 1),
-      SLIDE_DURATION,
-    );
-    return () => window.clearTimeout(timer);
-  }, [open, reducedMotion, slide]);
+    const update = () => setHidden(document.hidden);
+    update();
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  useEffect(() => {
+    if (
+      !open ||
+      holding ||
+      hidden ||
+      reducedMotion ||
+      slide === SLIDES.length - 1
+    )
+      return;
+    let previous = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      const elapsed = now - previous;
+      previous = now;
+      progressRef.current = Math.min(
+        1,
+        progressRef.current + elapsed / DURATION,
+      );
+      if (progressRef.current >= 1) {
+        window.clearInterval(timer);
+        progressRef.current = 0;
+        setProgress(0);
+        setSlide(value => Math.min(value + 1, SLIDES.length - 1));
+      } else {
+        setProgress(progressRef.current);
+      }
+    }, 50);
+    return () => window.clearInterval(timer);
+  }, [open, holding, hidden, reducedMotion, slide]);
 
+  function go(direction: number) {
+    const next = Math.max(0, Math.min(SLIDES.length - 1, slide + direction));
+    if (next !== slide) {
+      setSlide(next);
+      progressRef.current = 0;
+      setProgress(0);
+    }
+  }
   function changeOpen(next: boolean) {
     setOpen(next);
-    if (next) setSlide(0);
+    setHolding(false);
+    pointer.current = null;
+    if (next) {
+      setSlide(0);
+      progressRef.current = 0;
+      setProgress(0);
+    }
   }
 
   return (
@@ -83,7 +156,7 @@ export default function InstallmentInfo({
               خرید اقساطی در ۴ قسط
             </span>
             <span className="text-[11px] leading-5 text-[#77716a] sm:text-xs">
-              هر قسط تقریباً{' '}
+              هر قسط{' '}
               <strong className="font-bold text-[#27231f]">
                 {amount} تومان
               </strong>
@@ -94,236 +167,187 @@ export default function InstallmentInfo({
           </span>
         </button>
       </DialogTrigger>
-
       <DialogContent
         dir="rtl"
         showCloseButton={false}
-        className="flex h-[min(690px,calc(100dvh-2rem))] w-[min(390px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden rounded-[24px] border-0 bg-[#f4f1eb] p-0 text-[#211e1a] shadow-2xl ring-0 sm:max-w-none"
+        className={cn(
+          'flex h-[min(690px,calc(100dvh-2rem))] w-[min(390px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden rounded-[16px] border-0 p-0 text-white shadow-2xl ring-0 sm:max-w-none',
+          green ? 'bg-[#00a968]' : 'bg-[#063af2]',
+        )}
         onKeyDown={event => {
-          if (event.key === 'ArrowLeft')
-            setSlide(current => Math.min(current + 1, SLIDE_COUNT - 1));
-          if (event.key === 'ArrowRight')
-            setSlide(current => Math.max(current - 1, 0));
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            go(1);
+          }
+          if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            go(-1);
+          }
         }}
       >
         <DialogTitle className="sr-only">راهنمای خرید اقساطی</DialogTitle>
         <DialogDescription className="sr-only">
-          راهنمای خرید اقساطی با اسنپ‌پی و دیجی‌پی و مبلغ تقریبی اقساط این محصول
+          برای صفحه بعد سمت راست و برای صفحه قبل سمت چپ را لمس کنید. با نگه
+          داشتن، پخش متوقف می‌شود.
         </DialogDescription>
-
-        <div className="relative z-10 px-5 pt-5">
+        <div className="relative z-20 px-4 pt-4">
           <div
-            className="flex gap-1.5"
+            className="flex gap-1"
             dir="ltr"
-            aria-label={`اسلاید ${slide + 1} از ${SLIDE_COUNT}`}
+            role="progressbar"
+            aria-label={`صفحه ${slide + 1} از ${SLIDES.length}`}
+            aria-valuemin={1}
+            aria-valuemax={SLIDES.length}
+            aria-valuenow={slide + 1}
           >
-            {Array.from({ length: SLIDE_COUNT }, (_, index) => (
-              <button
+            {SLIDES.map((_, index) => (
+              <span
                 key={index}
-                type="button"
-                aria-label={`رفتن به اسلاید ${index + 1}`}
-                aria-current={index === slide ? 'step' : undefined}
-                onClick={() => setSlide(index)}
-                className="relative h-3 flex-1 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#766854]"
+                className="h-1 flex-1 overflow-hidden rounded-full bg-white/35"
               >
-                <span className="block h-1 overflow-hidden rounded-full bg-[#d7d0c5]">
-                  <span
-                    key={`${slide}-${index}`}
-                    className={cn(
-                      'block h-full origin-left rounded-full bg-[#28231e]',
-                      index < slide
-                        ? 'w-full'
-                        : index > slide
-                          ? 'w-0'
-                          : 'w-full',
-                    )}
-                    style={
-                      index === slide &&
-                      slide < SLIDE_COUNT - 1 &&
-                      !reducedMotion
-                        ? {
-                            animation: `installment-progress ${SLIDE_DURATION}ms linear forwards`,
-                          }
-                        : undefined
-                    }
-                  />
-                </span>
-              </button>
+                <span
+                  className="block h-full rounded-full bg-white"
+                  style={{
+                    width: `${index < slide ? 100 : index > slide ? 0 : progress * 100}%`,
+                  }}
+                />
+              </span>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-9 items-center justify-center rounded-full bg-[#24201b] text-xs font-bold text-white">
-                ز
-              </span>
-              <div>
-                <p className="text-xs font-bold">زوپینی</p>
-                <p className="mt-0.5 text-[10px] text-[#857d72]">
-                  راهنمای خرید اقساطی
-                </p>
-              </div>
-            </div>
+          <div className="mt-3 flex justify-start">
             <DialogClose asChild>
               <button
                 type="button"
                 aria-label="بستن راهنمای خرید اقساطی"
-                className="flex size-9 items-center justify-center rounded-full bg-white/70 text-[#403a33] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-[#766854]"
+                className="flex size-9 items-center justify-center rounded-full text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
               >
-                <X className="size-4" />
+                <X className="size-6" />
               </button>
             </DialogClose>
           </div>
         </div>
-
         <div
-          className="relative flex flex-1 flex-col justify-center overflow-y-auto px-7 py-5 sm:px-8"
+          className="pointer-events-none absolute inset-x-0 bottom-0 top-14 flex flex-col items-center overflow-hidden px-7 pb-5 pt-5 text-center"
           aria-live="polite"
         >
-          {slide === 0 && (
-            <div>
-              <div className="mb-7 flex size-20 items-center justify-center rounded-[26px] bg-[#e5ded2] text-[#554a3e]">
-                <CreditCard className="size-9" strokeWidth={1.3} />
-              </div>
-              <p className="mb-3 text-xs font-bold tracking-wide text-[#97846a]">
-                خرید راحت‌تر از زوپینی
-              </p>
-              <h2 className="text-[27px] font-bold leading-[1.6] sm:text-[30px]">
-                این محصول را
-                <br />۴ قسطه بخرید.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-[#746c62]">
-                بدون نیاز به پرداخت یک‌جای مبلغ محصول، شرایط پرداخت اقساطی را در
-                مرحله پرداخت بررسی کنید.
-              </p>
-              <div className="mt-7 rounded-2xl border border-[#e4ddd3] bg-white/75 p-5">
-                <p className="text-xs text-[#82786d]">
-                  مبلغ تقریبی هر قسط این محصول
-                </p>
-                <p className="mt-2 text-2xl font-bold">
-                  {amount}{' '}
-                  <span className="text-xs font-normal text-[#82786d]">
-                    تومان
-                  </span>
-                </p>
-                <p className="mt-2 text-[10px] leading-5 text-[#968d82]">
-                  بر اساس قیمت یک عدد محصول، بدون هزینه ارسال و تخفیف سبد خرید
-                </p>
-              </div>
-            </div>
-          )}
-          {slide === 1 && (
-            <div>
-              <div className="mb-7 flex size-20 items-center justify-center rounded-[26px] bg-[#e5ded2] text-[#554a3e]">
-                <ShoppingBag className="size-9" strokeWidth={1.3} />
-              </div>
-              <p className="mb-3 text-xs font-bold text-[#97846a]">
-                فقط چند قدم ساده
-              </p>
-              <h2 className="text-[27px] font-bold leading-[1.6]">
-                چطور قسطی
-                <br />
-                خرید کنم؟
-              </h2>
-              <ol className="mt-7 space-y-5">
-                {[
-                  [
-                    '۱',
-                    'محصول را به سبد اضافه کنید',
-                    'مدل دلخواهتان را انتخاب و خریدتان را شروع کنید.',
-                  ],
-                  [
-                    '۲',
-                    'به مرحله پرداخت بروید',
-                    'در صورت ارائه، روش پرداخت اعتباری دلخواهتان را انتخاب کنید.',
-                  ],
-                  [
-                    '۳',
-                    'شرایط را بررسی و پرداخت کنید',
-                    'مبلغ و زمان‌بندی نهایی را در سرویس پرداخت ببینید.',
-                  ],
-                ].map(([number, title, description]) => (
-                  <li key={number} className="flex gap-3">
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#d9cfc1] text-xs font-bold text-[#8d7961]">
-                      {number}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold">{title}</p>
-                      <p className="mt-1 text-xs leading-6 text-[#81786d]">
-                        {description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-          {slide === 2 && (
-            <div>
-              <div className="mb-7 flex size-20 items-center justify-center rounded-[26px] bg-[#e5ded2] text-[#554a3e]">
-                <WalletCards className="size-9" strokeWidth={1.3} />
-              </div>
-              <p className="mb-3 text-xs font-bold text-[#97846a]">
-                پرداخت با سرویس‌های اعتباری
-              </p>
-              <h2 className="text-[27px] font-bold leading-[1.6]">
-                انتخاب با شماست.
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-[#746c62]">
-                در مرحله پرداخت می‌توانید گزینه‌های موجود از جمله اسنپ‌پی و
-                دیجی‌پی را بررسی کنید.
-              </p>
-              <div className="mt-7 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-[#e5ddd3] bg-white/75 px-4 py-5 text-center">
-                  <span className="text-base font-bold">اسنپ‌پی</span>
-                </div>
-                <div className="rounded-2xl border border-[#e5ddd3] bg-white/75 px-4 py-5 text-center">
-                  <span className="text-base font-bold">دیجی‌پی</span>
-                </div>
-              </div>
-              <p className="mt-5 text-xs leading-6 text-[#81786d]">
-                مبلغ اقساط تقریبی است. امکان استفاده، مبلغ نهایی و شرایط هر
-                سرویس در مرحله پرداخت مشخص می‌شود.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="relative z-10 border-t border-[#e5ddd3] px-6 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setSlide(current => Math.max(current - 1, 0))}
-              disabled={slide === 0}
-              className="flex items-center gap-1 rounded-full px-3 py-2 text-xs text-[#756a5d] disabled:invisible focus-visible:outline-2 focus-visible:outline-[#766854]"
-            >
-              <ChevronRight className="size-4" /> قبلی
-            </button>
-            <span className="text-[11px] text-[#988d80]">
-              {(slide + 1).toLocaleString('fa-IR')} / ۳
-            </span>
-            {slide < SLIDE_COUNT - 1 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setSlide(current => Math.min(current + 1, SLIDE_COUNT - 1))
-                }
-                className="flex items-center gap-1 rounded-full bg-[#28231e] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#51483d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#766854]"
-              >
-                بعدی <ChevronLeft className="size-4" />
-              </button>
+          <div
+            className={cn(
+              'flex size-14 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg',
+              green ? 'bg-[#00965e]' : 'bg-[#0036e3]',
+            )}
+          >
+            {green ? (
+              <span className="text-xl font-black">S</span>
             ) : (
-              <DialogClose asChild>
-                <button
-                  type="button"
-                  className="rounded-full bg-[#28231e] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#51483d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#766854]"
-                >
-                  متوجه شدم
-                </button>
-              </DialogClose>
+              <span className="text-[38px] font-bold leading-none">⌃</span>
             )}
           </div>
+          <h2 className="mt-4 text-xl font-bold leading-8">
+            {current.title}
+            <br />
+            <span className="text-2xl">با {current.provider}</span>
+          </h2>
+          <p className="mt-2 max-w-[270px] text-xs font-medium leading-6 text-white/90">
+            {current.description}
+          </p>
+          <div className="relative mt-5 flex w-full flex-1 items-end justify-center overflow-hidden">
+            <div className="absolute bottom-4 size-64 rounded-full bg-white/20 blur-3xl" />
+            <div className="relative h-[min(330px,100%)] w-[170px] rounded-t-[29px] border-[5px] border-b-0 border-[#26292e] bg-[#f5f6f8] px-3 pt-5 text-right text-[#30373b] shadow-2xl">
+              <div className="absolute left-1/2 top-0 h-3 w-16 -translate-x-1/2 rounded-b-xl bg-[#26292e]" />
+              <div className="mt-2 flex items-center justify-between border-b border-gray-200 pb-3 text-[9px] font-bold">
+                <span>پرداخت</span>
+                <LockKeyhole className="size-3" />
+              </div>
+              <div className="mt-4 rounded-lg bg-white p-2.5 text-[9px] shadow-sm">
+                <div className="flex items-center gap-1.5">
+                  <ShoppingBag className="size-3" />
+                  <span>سفارش شما</span>
+                </div>
+                <div className="mt-3 h-1.5 w-3/4 rounded bg-gray-100" />
+                <div className="mt-2 h-1.5 w-1/2 rounded bg-gray-100" />
+              </div>
+              <div className="mt-3 rounded-lg bg-white p-2.5 text-[9px] shadow-sm">
+                <p className="font-bold">پرداخت اعتباری {current.provider}</p>
+                <div className="mt-2 flex gap-1">
+                  <span
+                    className={cn(
+                      'rounded border px-2 py-1',
+                      green
+                        ? 'border-[#00a968] text-[#008d58]'
+                        : 'border-[#063af2] text-[#063af2]',
+                    )}
+                  >
+                    ۴ قسط
+                  </span>
+                  <span className="rounded border border-gray-200 px-2 py-1 text-gray-400">
+                    اعتباری
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-14 w-[min(260px,100%)] rounded-xl bg-white px-4 py-3 text-right text-[#252a31] shadow-xl">
+              <p className="text-[11px] font-bold">سهم هر قسط از قیمت کالا</p>
+              <p
+                className={cn(
+                  'mt-1 text-lg font-black',
+                  green ? 'text-[#009b61]' : 'text-[#063af2]',
+                )}
+              >
+                {amount} <span className="text-[10px] font-medium">تومان</span>
+              </p>
+              <p className="mt-1 text-[9px] leading-4 text-gray-500">
+                برای یک محصول، بدون هزینه ارسال و تخفیف سبد
+              </p>
+            </div>
+          </div>
+          <p className="relative pt-2 text-[10px] leading-4 text-white/85">
+            امکان استفاده و شرایط نهایی در مرحله پرداخت مشخص می‌شود.
+          </p>
         </div>
-        <style>{`@keyframes installment-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
+        {/* A short tap navigates; holding pauses without navigating. */}
+        <div className="absolute inset-x-0 bottom-0 top-16 z-10 flex" dir="ltr">
+          {([-1, 1] as const).map(direction => (
+            <button
+              key={direction}
+              type="button"
+              aria-label={direction === 1 ? 'صفحه بعد' : 'صفحه قبل'}
+              className="h-full w-1/2 touch-manipulation focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white"
+              onPointerDown={event => {
+                if (event.button !== 0) return;
+                pointer.current = {
+                  time: performance.now(),
+                  x: event.clientX,
+                  id: event.pointerId,
+                };
+                event.currentTarget.setPointerCapture(event.pointerId);
+                setHolding(true);
+              }}
+              onPointerUp={event => {
+                const start = pointer.current;
+                pointer.current = null;
+                setHolding(false);
+                if (
+                  start &&
+                  start.id === event.pointerId &&
+                  performance.now() - start.time < 350 &&
+                  Math.abs(event.clientX - start.x) < 20
+                )
+                  go(direction);
+              }}
+              onPointerCancel={() => {
+                pointer.current = null;
+                setHolding(false);
+              }}
+              onLostPointerCapture={() => {
+                pointer.current = null;
+                setHolding(false);
+              }}
+              onClick={event => {
+                if (event.detail === 0) go(direction);
+              }}
+            />
+          ))}
+        </div>
       </DialogContent>
     </Dialog>
   );
