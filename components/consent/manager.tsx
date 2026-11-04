@@ -22,13 +22,6 @@ import {
 import { Consent, denied, Selection, toSelection } from '@/lib/consent/policy';
 import { captureTorobClick } from '@/lib/consent/torob-client';
 
-declare global {
-  interface Window {
-    dataLayer: unknown[];
-    gtag?: (...args: unknown[]) => void;
-  }
-}
-
 const all: Selection = {
   preferences: true,
   analytics: true,
@@ -56,7 +49,6 @@ export default function ConsentManager() {
   const [ready, setReady] = useState(false);
   const [pending, setPending] = useState<ConsentChoice | null>(null);
   const [error, setError] = useState('');
-  const loaded = useRef(false);
   const revision = useRef(0);
 
   useEffect(() => {
@@ -74,9 +66,6 @@ export default function ConsentManager() {
     if (channel)
       channel.onmessage = () => {
         setConsent(null);
-        (window as unknown as Record<string, unknown>)[
-          'ga-disable-G-9X59F9BJFQ'
-        ] = true;
         cleanOptionalStorage();
         location.reload();
       };
@@ -105,49 +94,6 @@ export default function ConsentManager() {
     };
   }, []);
 
-  useEffect(() => {
-    const load = () => {
-      const granted = getConsent()?.analytics;
-      (window as unknown as Record<string, unknown>)[
-        'ga-disable-G-9X59F9BJFQ'
-      ] = !granted;
-      if (
-        !granted ||
-        loaded.current ||
-        process.env.NEXT_PUBLIC_ENABLE_GOOGLE_ANALYTICS !== 'true'
-      )
-        return;
-      loaded.current = true;
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function (...args: unknown[]) {
-        window.dataLayer.push(args);
-      };
-      window.gtag('consent', 'default', {
-        analytics_storage: 'granted',
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-      });
-      window.gtag('js', new Date());
-      window.gtag('config', 'G-9X59F9BJFQ', {
-        send_page_view: false,
-        allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-        page_location: location.origin + '/',
-        page_referrer: document.referrer
-          ? new URL(document.referrer).hostname
-          : '',
-      });
-      const script = document.createElement('script');
-      script.id = 'consented-google-tag';
-      script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtag/js?id=G-9X59F9BJFQ';
-      document.head.appendChild(script);
-    };
-    window.addEventListener('privacy-changed', load);
-    return () => window.removeEventListener('privacy-changed', load);
-  }, []);
-
   async function save(value: Selection, choice: ConsentChoice) {
     revision.current++;
     setPending(choice);
@@ -155,8 +101,6 @@ export default function ConsentManager() {
     const previous = getConsent();
     // Stop local event dispatch immediately, including while withdrawal is being saved.
     setConsent(null);
-    (window as unknown as Record<string, unknown>)['ga-disable-G-9X59F9BJFQ'] =
-      true;
     try {
       const r = await fetch(privacyUrl('consent'), {
         method: 'POST',
@@ -184,7 +128,7 @@ export default function ConsentManager() {
       )
         location.reload();
     } catch {
-      setError('انتخاب ذخیره نشد. ردیابی متوقف است؛ دوباره تلاش کنید.');
+      setError('انتخاب ذخیره نشد. دوباره تلاش کنید.');
       showBanner(true);
     } finally {
       setPending(null);
