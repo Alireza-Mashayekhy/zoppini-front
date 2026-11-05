@@ -302,6 +302,6 @@ export const config = {
      * استاتیک در تابع shouldCheckRedirect فیلتر می‌شوند تا مسیرهای قدیمی
      * مثل /old-page.html هم قابلیت ریدایرکت داشته باشند.
      */
-    '/((?!api|_next).*)',
+    '/((?!api|_next|sw[.]js|offline[.]html|manifest[.]webmanifest|pwa/).*)',
   ],
 };

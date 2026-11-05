@@ -2,26 +2,35 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: '/',
     name: 'Zoppini',
     short_name: 'Zoppini',
-    description: 'Zoppini marketplace',
+    description:
+      'تجربه خرید پوشاک مردانه زوپینی | Zoppini premium menswear shopping experience',
     start_url: '/',
     scope: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#0d8cf4',
+    orientation: 'any',
+    background_color: '#f9f9f9',
+    theme_color: '#f9f9f9',
     icons: [
       {
-        src: '/logo/zoppini-favicon-32x32.png',
-        sizes: '32x32',
+        src: '/pwa/icon-192.png',
+        sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/logo/zoppini-favicon-16x16.png',
-        sizes: '16x16',
+        src: '/pwa/icon-512.png',
+        sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
+      },
+      {
+        src: '/pwa/icon-maskable-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };
