@@ -103,7 +103,7 @@ export function cleanOptionalStorage() {
   try {
     for (const k of Object.keys(sessionStorage))
       if (k.startsWith('visit_tracked_')) sessionStorage.removeItem(k);
-    for (const k of ['zoppini-compare-items', 'pwa-dismissed'])
+    for (const k of ['zoppini-compare-items', 'pwa-dismissed', 'pwa-installed'])
       if (!current?.preferences) localStorage.removeItem(k);
     for (const k of Object.keys(localStorage))
       if (k.startsWith('goftino_')) localStorage.removeItem(k);
