@@ -25,6 +25,7 @@ test('the estimate uses the selected variant and its discounted price', () => {
   assert.equal(selectedProductPrice(variants, 1, 2), 1200000);
   assert.equal(formatInstallment(1200000), '۳۰۰٬۰۰۰');
   assert.equal(formatInstallment(101), '۲۵٫۲۵');
+  assert.equal(formatInstallment(100.01), '۲۵٫۰۰۲۵');
 });
 
 test('missing, zero and invalid prices are not advertised', () => {

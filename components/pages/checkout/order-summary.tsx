@@ -1,5 +1,6 @@
 'use client';
 
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { CartItem, CartResponse } from '@/services/features/cart/types';
@@ -19,6 +20,14 @@ interface OrderSummaryProps {
   isPickup: boolean;
 
   pricing?: CartResponse['pricing'] | null;
+
+  /** کم و زیاد کردن تعداد؛ عدد کمتر از ۱ یعنی حذف آیتم (مثل سبد خرید) */
+  onQuantityChange: (itemId: number, quantity: number) => void;
+
+  onRemoveItem: (itemId: number) => void;
+
+  /** وقتی یک تغییر سبد در حال انجام است، کنترل‌ها غیرفعال می‌شوند */
+  isUpdatingCart?: boolean;
 }
 
 export default function OrderSummary({
@@ -29,6 +38,9 @@ export default function OrderSummary({
   isFreeShipping,
   hasSelectedAddress,
   isPickup,
+  onQuantityChange,
+  onRemoveItem,
+  isUpdatingCart = false,
 }: OrderSummaryProps) {
   return (
     <div dir="rtl" className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
@@ -63,7 +75,48 @@ export default function OrderSummary({
                 {item.variant.color?.name} / {item.variant.size?.name}
               </p>
 
-              <p className="text-xs text-gray-500">×{item.quantity}</p>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 rounded-md border">
+                  <button
+                    type="button"
+                    aria-label="کاهش تعداد"
+                    className="px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
+                    disabled={isUpdatingCart}
+                    onClick={() => onQuantityChange(item.id, item.quantity - 1)}
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+
+                  <span className="w-7 text-center text-sm">
+                    {item.quantity}
+                  </span>
+
+                  <button
+                    type="button"
+                    aria-label="افزایش تعداد"
+                    className="px-2 py-1 hover:bg-gray-100 disabled:opacity-40"
+                    disabled={
+                      isUpdatingCart ||
+                      (!!item.variant.stock &&
+                        item.quantity >= item.variant.stock)
+                    }
+                    onClick={() => onQuantityChange(item.id, item.quantity + 1)}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  aria-label="حذف از سبد خرید"
+                  title="حذف از سبد خرید"
+                  className="p-1.5 text-red-500 hover:text-red-700 disabled:opacity-40"
+                  disabled={isUpdatingCart}
+                  onClick={() => onRemoveItem(item.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col">

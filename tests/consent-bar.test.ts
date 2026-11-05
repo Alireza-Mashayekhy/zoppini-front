@@ -33,7 +33,7 @@ test('the bar uses the approved Persian copy verbatim', () => {
   );
   assert.equal(
     CONSENT_DESCRIPTION,
-    'برای اینکه سایت زوپینی بهتر کار کنه و تجربه خرید راحت‌تری داشته باشید، از کوکی‌ها استفاده می‌کنیم. کوکی‌ها فایل‌های کوچیکی هستن که به سایت کمک می‌کنن امکاناتی مثل ورود به حساب کاربری و سبد خرید درست کار کنن. همچنین برای بهبود سایت و نمایش محتوای مرتبط‌تر، از کوکی‌های آماری و تبلیغاتی استفاده می‌کنیم که فعال شدن اون‌ها به انتخاب شما بستگی داره.',
+    'برای اینکه سایت زوپینی بهتر کار کنه و تجربه خرید راحت‌تری داشته باشید، از کوکی‌ها استفاده می‌کنیم. کوکی‌ها فایل‌های کوچیکی هستن که به سایت کمک می‌کنن امکاناتی مثل ورود به حساب کاربری و سبد خرید درست کار کنن. گوگل آنالیتیکس برای آمار بازدید بدون نیاز به انتخاب شما فعال است. سایر ابزارهای آماری و تبلیغاتی به انتخاب شما بستگی دارند.',
   );
 });
 
@@ -51,7 +51,7 @@ test('the bar is a fixed, right-to-left bottom notification', () => {
 test('exactly two consent actions remain and the old controls are gone', () => {
   const html = render();
   assert.equal(html.split('پذیرش همه').length - 1, 1);
-  assert.equal(html.split('فقط کوکی‌های ضروری').length - 1, 1);
+  assert.equal(html.split('رد سایر کوکی‌های اختیاری').length - 1, 1);
 
   // Removed by request: temporary close label, settings entry point, category
   // switches and the oversized modal chrome.

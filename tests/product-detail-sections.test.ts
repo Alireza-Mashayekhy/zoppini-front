@@ -70,12 +70,13 @@ test('نوار اقساط اسنپپی دیگر در هیچ کارت محصول�
   assert.doesNotMatch(cardSource, /InstallmentBadge|installment-badge/);
 });
 
-test('بنر اقساط مبلغ تقریبی و راهنمای قابل باز کردن دارد', () => {
+test('بنر اقساط مبلغ هر قسط و راهنمای قابل باز کردن دارد', () => {
   const html = normalize(
     renderToStaticMarkup(createElement(InstallmentInfo, { price: 800000 })),
   );
   assert.match(html, /خرید اقساطی در ۴ قسط/);
-  assert.match(html, /هر قسط تقریبا/);
+  assert.match(html, /هر قسط/);
+  assert.doesNotMatch(html, /تقریب/);
   assert.match(html, /۲۰۰٬۰۰۰/);
   assert.match(html, /تومان/);
   assert.match(html, /<button/);

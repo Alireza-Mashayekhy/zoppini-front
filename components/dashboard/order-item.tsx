@@ -17,6 +17,8 @@ import {
   ShippingMethod,
 } from '@/services/features/orders/type';
 
+import OrderPayment, { canPayOrderOnline } from './order-payment';
+
 const statusMap: Record<OrderStatus, { label: string; color: string }> = {
   pending: {
     label: 'در انتظار پرداخت',
@@ -160,6 +162,12 @@ export default function OrderItem({ order }: OrderItemProps) {
               >
                 تأیید مجدد با کیف پول
               </Button>
+            </div>
+          )}
+
+          {canPayOrderOnline(order) && (
+            <div className="flex justify-end">
+              <OrderPayment order={order} />
             </div>
           )}
 

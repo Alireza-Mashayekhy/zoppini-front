@@ -27,6 +27,10 @@ interface ProductProps {
   showActions?: boolean;
 }
 
+/** نمایش دکمه‌ها: روی دسکتاپ با hover/focus، روی لمسی همیشه */
+const actionsRevealClass =
+  'transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto';
+
 export default function ProductCard({
   id,
   image,
@@ -126,29 +130,45 @@ export default function ProductCard({
         </div>
       </Link>
 
-      {/* دکمه‌های فعلی بدون تغییر شکل/جایگاه: بالا-چپ؛ hover دسکتاپ و نمایش دائمی لمسی. */}
+      {/* دکمه‌ها: سبد خرید بالا-راست، مقایسه بالا-چپ؛ hover دسکتاپ و نمایش دائمی لمسی. */}
       {showCardActions && (
-        <div className="absolute top-3 right-3 flex z-20 gap-1.5 transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => setQuickAddOpen(true)}
-            aria-label="افزودن به سبد خرید"
-            title="افزودن به سبد خرید"
-            className={cardActionButtonClass}
+        <>
+          <div
+            className={cn(
+              'absolute right-1.5 top-1.5 z-20 flex gap-1.5 sm:right-3 sm:top-3',
+              actionsRevealClass,
+            )}
           >
-            <ShoppingCart className="size-4" />
-          </button>
+            <button
+              type="button"
+              onClick={() => setQuickAddOpen(true)}
+              aria-label="افزودن به سبد خرید"
+              title="افزودن به سبد خرید"
+              className={cardActionButtonClass}
+            >
+              <ShoppingCart className="size-4" />
+            </button>
+          </div>
 
-          <CompareToggle
-            product={{
-              id,
-              title,
-              slug,
-              image: imageUrl,
-              price,
-            }}
-          />
-        </div>
+          {/* زیر برچسب تخفیف قرار می‌گیرد تا روی آن نیفتد */}
+          <div
+            className={cn(
+              'absolute left-1.5 z-20 sm:left-3',
+              hasDiscount ? 'top-[4.25rem]' : 'top-1.5 sm:top-3',
+              actionsRevealClass,
+            )}
+          >
+            <CompareToggle
+              product={{
+                id,
+                title,
+                slug,
+                image: imageUrl,
+                price,
+              }}
+            />
+          </div>
+        </>
       )}
 
       {/* دیالوگ فقط هنگام باز شدن mount می‌شود تا درخواستی ارسال نشود */}

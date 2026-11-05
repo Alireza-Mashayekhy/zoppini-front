@@ -271,7 +271,7 @@ export default function ProductList({
       {/* نوار بالایی */}
       <div
         className={cn(
-          'sticky z-10 flex h-20 items-center justify-between gap-4 border-t bg-background/80 px-6 backdrop-blur-xl transition-[top] duration-300',
+          'sticky z-30 flex h-20 items-center justify-between gap-4 border-t bg-background/80 px-6 backdrop-blur-xl transition-[top] duration-300',
           isScrollingDown ? 'top-0' : 'top-[52px]',
         )}
       >

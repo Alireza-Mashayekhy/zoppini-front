@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { createElement } from 'react';
@@ -32,12 +34,17 @@ test('product card has full-bleed image and top-attached ribbon without moving e
   );
   assert.match(html, /aspect-\[4\/5\]/);
   assert.match(html, /object-cover/);
-  assert.match(html, /right-3 top-0/);
+  assert.match(html, /left-3 top-0/);
   assert.match(html, /clip-path:polygon/);
   assert.match(html, /۲۰٪/);
   assert.match(html, /<del/);
   assert.match(html, /۸۰۰٬۰۰۰/);
-  assert.match(html, /top-3 left-3/);
+  // مقایسه بالا-چپ، زیر برچسب تخفیف؛ سبد خرید بالا-راست
+  assert.match(html, /left-1\.5 z-20 sm:left-3 top-\[4\.25rem\]/);
+  assert.match(
+    html,
+    /right-1\.5 top-1\.5 z-20 flex gap-1\.5 sm:right-3 sm:top-3/,
+  );
   assert.match(html, /افزودن به سبد خرید/);
   assert.match(html, /افزودن به مقایسه/);
   assert.match(html, /href="\/product\/example"/);
@@ -61,7 +68,36 @@ test('slider retains flexible image height and optional subtitle is escaped', ()
     }),
   );
   assert.match(html, /min-h-0 flex-1/);
-  assert.match(html, /right-3 top-0/);
+  assert.match(html, /left-3 top-0/);
   assert.match(html, /Regular Fit &lt;test&gt;/);
   assert.doesNotMatch(html, /افزودن به سبد خرید|افزودن به مقایسه/);
+});
+
+test('regular card puts compare top-left and cart top-right, closer to corners on mobile', () => {
+  const html = renderToStaticMarkup(createElement(ProductCard, props));
+  assert.match(html, /absolute left-1\.5 z-20 sm:left-3 top-1\.5 sm:top-3/);
+  assert.match(
+    html,
+    /absolute right-1\.5 top-1\.5 z-20 flex gap-1\.5 sm:right-3 sm:top-3/,
+  );
+  assert.doesNotMatch(html, /top-\[4\.25rem\]/);
+});
+
+test('sticky products toolbar stays above card action buttons', () => {
+  const list = readFileSync(
+    resolve(__dirname, '../components/pages/products/product-list.tsx'),
+    'utf8',
+  );
+  const card = readFileSync(
+    resolve(__dirname, '../components/shared/product-card.tsx'),
+    'utf8',
+  );
+  const toolbarZ = Number(list.match(/sticky z-(\d+)/)?.[1]);
+  const actionZ = Math.max(
+    ...Array.from(card.matchAll(/absolute [^']*z-(\d+)/g), m => Number(m[1])),
+  );
+  assert.ok(
+    toolbarZ > actionZ,
+    `toolbar z-${toolbarZ} must exceed z-${actionZ}`,
+  );
 });

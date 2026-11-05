@@ -111,8 +111,7 @@ export function cleanOptionalStorage() {
   for (const item of document.cookie.split(';')) {
     const name = item.split('=')[0].trim();
     if (
-      (!current?.analytics && /^(_ga|_gid|_gat)/.test(name)) ||
-      (!current?.preferences && name === 'sidebar_state')
+      !current?.preferences && name === 'sidebar_state'
     ) {
       const domains = [
         '',
