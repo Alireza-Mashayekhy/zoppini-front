@@ -13,7 +13,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { careInstructionsLabel } from '@/lib/care-instructions';
+import {
+  careInstructionsLabel,
+  resolveCareSource,
+} from '@/lib/care-instructions';
 import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
@@ -181,7 +184,12 @@ export default function ProductGuidesSheet({
 }) {
   const hasSizeTable = Boolean(guides?.sizeTable);
   const hasMeasurement = Boolean(guides?.measurementGuide?.images.length);
-  const hasCare = Boolean(guides?.careGuide || product?.careInstructionsHtml);
+  // اولویت با راهنمای محصول است؛ متن ویرایش محصول فقط در نبود آن نمایش داده می‌شود
+  const care = resolveCareSource(
+    guides?.careGuide,
+    product?.careInstructionsHtml,
+  );
+  const hasCare = Boolean(care.careGuide || care.careInstructionsHtml);
 
   if (!hasSizeTable && !hasMeasurement && !hasCare) return null;
 
@@ -242,66 +250,59 @@ export default function ProductGuidesSheet({
               </TabsContent>
             )}
 
-            {hasCare &&
-              (guides?.careGuide || product?.careInstructionsHtml) && (
-                <TabsContent value="careInstructions">
-                  <div className="space-y-5">
-                    <div className="space-y-1.5">
+            {hasCare && (
+              <TabsContent value="careInstructions">
+                <div className="space-y-5">
+                  <div className="space-y-1.5">
+                    {care.careGuide && (
                       <h2 className="text-base font-semibold">
-                        {guides?.careGuide?.name || ''}
+                        {care.careGuide.name}
                       </h2>
+                    )}
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      برای حفظ کیفیت و دوام محصول، دستورهای زیر را رعایت کنید.
+                    </p>
+                  </div>
+                  {/* دستورالعمل‌ها */}
+                  {care.careGuide && care.careGuide.instructions.length > 0 && (
+                    <div className="space-y-2.5">
+                      {care.careGuide.instructions.map((item, idx) => (
+                        <div
+                          key={item.id}
+                          className="flex items-start gap-3 rounded-xl border bg-background p-3.5"
+                        >
+                          {/* شماره */}
+                          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                            {toPersianNum(idx + 1)}
+                          </div>
+                          {/* متن */}
+                          <p className="pt-0.5 text-sm leading-7 text-foreground">
+                            {item.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* نکات */}
+                  {care.careGuide?.notes && (
+                    <div className="rounded-xl bg-muted/50 p-3.5">
                       <p className="text-xs leading-6 text-muted-foreground">
-                        برای حفظ کیفیت و دوام محصول، دستورهای زیر را رعایت کنید.
+                        {care.careGuide.notes}
                       </p>
                     </div>
-                    {/* دستورالعمل‌ها */}
-                    {guides?.careGuide?.instructions &&
-                      guides?.careGuide?.instructions?.length > 0 && (
-                        <div className="space-y-2.5">
-                          {guides.careGuide.instructions.map((item, idx) => (
-                            <div
-                              key={item.id}
-                              className="flex items-start gap-3 rounded-xl border bg-background p-3.5"
-                            >
-                              {/* شماره */}
-                              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
-                                {toPersianNum(idx + 1)}
-                              </div>
-                              {/* متن */}
-                              <p className="pt-0.5 text-sm leading-7 text-foreground">
-                                {item.text}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    {/* نکات */}
-                    {guides?.careGuide && guides?.careGuide.notes && (
-                      <div className="rounded-xl bg-muted/50 p-3.5">
-                        <p className="text-xs leading-6 text-muted-foreground">
-                          {guides.careGuide.notes}
-                        </p>
-                      </div>
-                    )}
-                    {product?.careInstructionsHtml && (
-                      <div
-                        className={
-                          guides?.careGuide ? 'border-t pt-4' : undefined
-                        }
-                      >
-                        <span
-                          className="zp-prose block text-sm"
-                          dangerouslySetInnerHTML={{
-                            __html: resolveHtmlMedia(
-                              product.careInstructionsHtml,
-                            ),
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              )}
+                  )}
+                  {/* متن ویرایش محصول؛ فقط وقتی راهنمای محصول محتوا ندارد */}
+                  {care.careInstructionsHtml && (
+                    <span
+                      className="zp-prose block text-sm"
+                      dangerouslySetInnerHTML={{
+                        __html: resolveHtmlMedia(care.careInstructionsHtml),
+                      }}
+                    />
+                  )}
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
 
           <p className="mt-6 flex items-center gap-2 rounded-lg bg-muted/60 p-3 text-[11px] leading-6 text-muted-foreground">

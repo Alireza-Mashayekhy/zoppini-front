@@ -11,7 +11,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { careInstructionsLabel } from '@/lib/care-instructions';
+import {
+  careInstructionsLabel,
+  resolveCareSource,
+} from '@/lib/care-instructions';
 import { resolveHtmlMedia } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
@@ -44,28 +47,21 @@ const SheetContentBody = memo(
       );
     }
     if (content === 'careInstructions') {
-      if (guides?.careGuide?.instructions?.length) {
-        return (
-          <div className="space-y-4">
-            <CareGuideView careGuide={guides.careGuide} />
+      // اولویت با راهنمای محصول است؛ متن ویرایش محصول فقط در نبود آن نمایش داده می‌شود
+      const care = resolveCareSource(
+        guides?.careGuide,
+        product.careInstructionsHtml,
+      );
 
-            {product.careInstructionsHtml && (
-              <div
-                className="zp-prose max-w-none border-t pt-4 text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: resolveHtmlMedia(product.careInstructionsHtml),
-                }}
-              />
-            )}
-          </div>
-        );
+      if (care.careGuide) {
+        return <CareGuideView careGuide={care.careGuide} />;
       }
 
       return (
         <div
           className="zp-prose text-sm leading-relaxed max-w-none"
           dangerouslySetInnerHTML={{
-            __html: resolveHtmlMedia(product.careInstructionsHtml),
+            __html: resolveHtmlMedia(care.careInstructionsHtml ?? ''),
           }}
         />
       );
