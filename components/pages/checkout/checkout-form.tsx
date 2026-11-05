@@ -16,7 +16,11 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/lib/utils';
 import { useAddresses } from '@/services/features/addresses/hooks';
-import { useCartList } from '@/services/features/cart/hooks';
+import {
+  useCartList,
+  useDeleteCartItem,
+  useUpdateCartItem,
+} from '@/services/features/cart/hooks';
 import { useApplyDiscount } from '@/services/features/discounts/hooks';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
 import { confirmOrderFromWallet } from '@/services/features/orders/api';
@@ -33,7 +37,7 @@ import {
 import { PaymentGateway } from '@/services/features/payment/type';
 import { useWallet } from '@/services/features/wallet/hooks';
 
-import { CheckoutFormValues,checkoutSchema } from './checkout-schema';
+import { CheckoutFormValues, checkoutSchema } from './checkout-schema';
 import {
   DEFAULT_DELIVERY_METHOD,
   getDeliveryMethods,
@@ -83,6 +87,15 @@ export default function CheckoutForm() {
   const [useWalletPayment, setUseWalletPayment] = useState(false);
 
   const cartItems = cartData?.data?.items ?? [];
+
+  const updateCartItem = useUpdateCartItem();
+
+  const deleteCartItem = useDeleteCartItem();
+
+  const isUpdatingCart =
+    updateCartItem.isPending ||
+    deleteCartItem.isPending ||
+    applyDiscountMutation.isPending;
 
   const methods = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -256,6 +269,74 @@ export default function CheckoutForm() {
     setValue('discountCode', '');
 
     toast.success('کد تخفیف حذف شد');
+  };
+
+  /**
+   * ==========================================
+   * تغییر سبد خرید از صفحه تسویه
+   * ==========================================
+   */
+
+  /**
+   * مبلغ تخفیف ذخیره‌شده در فرانت بر اساس سبد قبلی محاسبه شده است. بعد از هر
+   * تغییر تعداد یا حذف آیتم، کد تخفیف دوباره روی سبد جدید اعمال می‌شود تا
+   * مبلغ نهایی و نمایش خلاصه سفارش با سرور هم‌خوان بماند.
+   */
+  const reapplyDiscount = async () => {
+    const code = appliedDiscount?.discount?.code;
+
+    if (!code) return;
+
+    try {
+      const response = await applyDiscountMutation.mutateAsync({ code });
+
+      setAppliedDiscount(response.data);
+    } catch (error: any) {
+      setAppliedDiscount(null);
+
+      toast.error(`کد تخفیف «${code}» با سبد جدید دیگر معتبر نیست؛ کد حذف شد`);
+
+      console.error(error);
+    }
+  };
+
+  const handleCartItemError = (error: any) => {
+    toast.error(
+      error?.response?.data?.message ||
+        error?.message ||
+        'خطا در به‌روزرسانی سبد خرید',
+    );
+  };
+
+  const handleQuantityChange = async (itemId: number, quantity: number) => {
+    try {
+      if (quantity < 1) {
+        await deleteCartItem.mutateAsync({ id: itemId });
+      } else {
+        await updateCartItem.mutateAsync({
+          id: itemId,
+          data: { quantity },
+        });
+      }
+    } catch (error: any) {
+      handleCartItemError(error);
+
+      return;
+    }
+
+    await reapplyDiscount();
+  };
+
+  const handleRemoveCartItem = async (itemId: number) => {
+    try {
+      await deleteCartItem.mutateAsync({ id: itemId });
+    } catch (error: any) {
+      handleCartItemError(error);
+
+      return;
+    }
+
+    await reapplyDiscount();
   };
 
   /**
@@ -905,6 +986,9 @@ export default function CheckoutForm() {
           isFreeShipping={isFreeShipping}
           hasSelectedAddress={!!selectedAddressId}
           isPickup={isPickup}
+          onQuantityChange={handleQuantityChange}
+          onRemoveItem={handleRemoveCartItem}
+          isUpdatingCart={isUpdatingCart}
         />
       </div>
     </div>
