@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import ProductList from '@/components/pages/products/product-list';
 import CategoryDescription from '@/components/shared/category-description';
 import CategoryViewTracker from '@/components/shared/category-view-tracker';
+import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { mergePageSeo } from '@/lib/seo';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
@@ -106,7 +107,8 @@ export default async function ProductsCategoryPage({
     page: search.page ? Number(search.page) : 1,
     limit: search.limit ? Number(search.limit) : 24,
     search: search.search || '',
-    sort: search.sort || '',
+    // پیش‌فرض «جدیدترین»؛ همان چیزی که در منوی مرتب‌سازی انتخاب‌شده است
+    sort: search.sort || DEFAULT_PRODUCT_SORT,
     categoryIds: category?.data ? [category?.data.id] : [],
     colorIds: search.colorIds?.split(',').map(Number).filter(Boolean) || [],
     sizeIds: search.sizeIds?.split(',').map(Number).filter(Boolean) || [],

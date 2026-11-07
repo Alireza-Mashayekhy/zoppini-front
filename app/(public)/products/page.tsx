@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { buildPageMetadata } from '@/lib/seo';
 import { getProducts } from '@/services/features/products/server.api';
 
@@ -41,7 +42,8 @@ export default async function ProductsPage({
     page: params.page ? Number(params.page) : 1,
     limit: params.limit ? Number(params.limit) : 10,
     search: params.search || '',
-    sort: params.sort || '',
+    // پیش‌فرض «جدیدترین»؛ همان چیزی که در منوی مرتب‌سازی انتخاب‌شده است
+    sort: params.sort || DEFAULT_PRODUCT_SORT,
     categoryIds:
       params.categoryIds?.split(',').map(Number).filter(Boolean) || [],
     colorIds: params.colorIds?.split(',').map(Number).filter(Boolean) || [],
