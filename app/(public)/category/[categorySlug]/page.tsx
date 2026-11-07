@@ -4,10 +4,7 @@ import { cache } from 'react';
 import sanitizeHtml from 'sanitize-html';
 
 import CategoryLanding from '@/components/pages/category/category-landing';
-import {
-  activeCategoryChildren,
-  cleanCategoryDescription,
-} from '@/lib/category-landing';
+import { activeCategoryChildren } from '@/lib/category-landing';
 import { mergePageSeo } from '@/lib/seo';
 import { ApiError } from '@/services/api/server';
 import {
@@ -129,7 +126,7 @@ export default async function CategoryPage({ params }: Props) {
         products: childProducts[index].data,
       }))}
       directProducts={direct.data}
-      seoHtml={cleanCategoryDescription(category.description)}
+      description={category.description}
     />
   );
 }

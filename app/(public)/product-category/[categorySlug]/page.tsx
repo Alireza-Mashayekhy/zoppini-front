@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import CategoryDescription from '@/components/shared/category-description';
 import CategoryViewTracker from '@/components/shared/category-view-tracker';
 import { mergePageSeo } from '@/lib/seo';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
@@ -126,6 +127,14 @@ export default async function ProductsCategoryPage({
       </h1>
 
       <ProductList initialData={productsData} initialParams={queryParams} />
+
+      {/* توضیحات دسته‌بندی؛ همان متنی که در /category/[slug] هم نمایش داده می‌شود */}
+      {category?.data && (
+        <CategoryDescription
+          name={category.data.name}
+          html={category.data.description}
+        />
+      )}
     </div>
   );
 }

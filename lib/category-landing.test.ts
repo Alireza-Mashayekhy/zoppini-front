@@ -3,9 +3,10 @@ import { test } from 'node:test';
 
 import type { CategoriesResponse } from '../services/features/categories/types';
 import {
-  activeCategoryChildren,
+  categoryDescriptionHtml,
   cleanCategoryDescription,
-} from './category-landing';
+} from './category-description';
+import { activeCategoryChildren } from './category-landing';
 
 function category(
   id: number,
@@ -41,5 +42,21 @@ test('sanitizes rich category text without dropping safe structure', () => {
   assert.equal(
     result,
     '<h2>عنوان</h2><p>متن <strong>واقعی</strong><a>لینک</a></p>',
+  );
+});
+
+test('a missing or visually empty description is treated as empty', () => {
+  assert.equal(cleanCategoryDescription(undefined), '');
+  assert.equal(cleanCategoryDescription(null), '');
+  assert.equal(cleanCategoryDescription('   '), '');
+  assert.equal(categoryDescriptionHtml(undefined), null);
+  assert.equal(categoryDescriptionHtml(''), null);
+  assert.equal(categoryDescriptionHtml('   '), null);
+  assert.equal(categoryDescriptionHtml('<p></p>'), null);
+  assert.equal(categoryDescriptionHtml('<p> &nbsp; </p>'), null);
+  assert.equal(categoryDescriptionHtml('<p>متن</p>'), '<p>متن</p>');
+  assert.equal(
+    categoryDescriptionHtml('<h2>عنوان</h2><p>متن</p>'),
+    '<h2>عنوان</h2><p>متن</p>',
   );
 });
