@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
+import { DEFAULT_PRODUCT_SORT, PRODUCT_SORT_OPTIONS } from '@/lib/product-sort';
 import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
 import { ProductsResponse } from '@/services/features/products/type';
@@ -102,7 +103,7 @@ export default function ProductList({
   const isScrollingDown = useScrollDirection();
 
   // State برای فیلترها
-  const [sort, setSort] = useState(initialParams.sort || 'createdAt:asc');
+  const [sort, setSort] = useState(initialParams.sort || DEFAULT_PRODUCT_SORT);
   const [colorIds, setColorIds] = useState<number[]>(
     initialParams.colorIds || [],
   );
@@ -148,8 +149,7 @@ export default function ProductList({
       queryParams.append('page', String(params.page));
       queryParams.append('limit', String(params.limit));
       if (params.search) queryParams.append('search', params.search);
-      if (params.sort)
-        queryParams.append('sort', params.sort || 'createdAt:asc');
+      queryParams.append('sort', params.sort || DEFAULT_PRODUCT_SORT);
       if (params.categoryIds?.length) {
         queryParams.append('categoryIds', params.categoryIds.join(','));
       }
@@ -303,9 +303,11 @@ export default function ProductList({
                 <ChevronDown />
               </SelectTrigger>
               <SelectContent position="popper">
-                <SelectItem value="createdAt:asc">جدیدترین</SelectItem>
-                <SelectItem value="price:asc">ارزان ترین</SelectItem>
-                <SelectItem value="price:desc">گران ترین</SelectItem>
+                {PRODUCT_SORT_OPTIONS.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

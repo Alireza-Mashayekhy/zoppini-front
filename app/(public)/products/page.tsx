@@ -41,7 +41,8 @@ export default async function ProductsPage({
     page: params.page ? Number(params.page) : 1,
     limit: params.limit ? Number(params.limit) : 10,
     search: params.search || '',
-    sort: params.sort || '',
+    // پیش‌فرض «جدیدترین»؛ همان چیزی که در منوی مرتب‌سازی انتخاب‌شده است
+    sort: params.sort || DEFAULT_PRODUCT_SORT,
     categoryIds:
       params.categoryIds?.split(',').map(Number).filter(Boolean) || [],
     colorIds: params.colorIds?.split(',').map(Number).filter(Boolean) || [],

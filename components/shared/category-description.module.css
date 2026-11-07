@@ -1,0 +1,49 @@
+.wrapper {
+  width: min(100% - 32px, 1360px);
+  margin-inline: auto;
+}
+
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-block: 32px 56px;
+  color: #77736e;
+  font-size: 14px;
+  line-height: 2;
+  overflow-wrap: anywhere;
+}
+
+.content h2,
+.content h3,
+.content h4 {
+  margin-block: 20px 8px;
+  color: #262626;
+  font-weight: 700;
+}
+.content h2 {
+  font-size: 22px;
+}
+.content h3 {
+  font-size: 17px;
+}
+.content p {
+  margin-bottom: 10px;
+}
+.content ul,
+.content ol {
+  padding-inline-start: 24px;
+  list-style: revert;
+}
+.content a {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .wrapper {
+    width: min(100% - 24px, 1360px);
+  }
+  .content {
+    padding-block: 26px 40px;
+    font-size: 13px;
+  }
+}

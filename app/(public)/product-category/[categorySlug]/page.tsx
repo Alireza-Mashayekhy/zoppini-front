@@ -105,7 +105,8 @@ export default async function ProductsCategoryPage({
     page: search.page ? Number(search.page) : 1,
     limit: search.limit ? Number(search.limit) : 24,
     search: search.search || '',
-    sort: search.sort || '',
+    // پیش‌فرض «جدیدترین»؛ همان چیزی که در منوی مرتب‌سازی انتخاب‌شده است
+    sort: search.sort || DEFAULT_PRODUCT_SORT,
     categoryIds: category?.data ? [category?.data.id] : [],
     colorIds: search.colorIds?.split(',').map(Number).filter(Boolean) || [],
     sizeIds: search.sizeIds?.split(',').map(Number).filter(Boolean) || [],
@@ -126,6 +127,14 @@ export default async function ProductsCategoryPage({
       </h1>
 
       <ProductList initialData={productsData} initialParams={queryParams} />
+
+      {/* توضیحات دسته‌بندی؛ همان متنی که در /category/[slug] هم نمایش داده می‌شود */}
+      {category?.data && (
+        <CategoryDescription
+          name={category.data.name}
+          html={category.data.description}
+        />
+      )}
     </div>
   );
 }
