@@ -2,9 +2,7 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
-import CategoryDescription from '@/components/shared/category-description';
 import CategoryViewTracker from '@/components/shared/category-view-tracker';
-import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { mergePageSeo } from '@/lib/seo';
 import { getCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';

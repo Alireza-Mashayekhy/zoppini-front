@@ -2,7 +2,6 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
-import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { buildPageMetadata } from '@/lib/seo';
 import { getProducts } from '@/services/features/products/server.api';
 

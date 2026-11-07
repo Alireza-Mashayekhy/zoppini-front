@@ -1,8 +1,7 @@
 import Link from 'next/link';
 
-import CategoryDescription from '@/components/shared/category-description';
-import CategoryViewTracker from '@/components/shared/category-view-tracker';
 import ProductCard from '@/components/shared/product-card';
+import CategoryViewTracker from '@/components/shared/category-view-tracker';
 import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 
@@ -15,8 +14,7 @@ type Props = {
   ancestors: CategoriesResponse[];
   subcategories: Child[];
   directProducts: ProductsResponse[];
-  /** توضیحات خام دسته‌بندی؛ پاک‌سازی HTML داخل CategoryDescription انجام می‌شود */
-  description: string;
+  seoHtml: string;
 };
 
 function ProductSection({
@@ -59,7 +57,7 @@ export default function CategoryLanding({
   ancestors,
   subcategories,
   directProducts,
-  description,
+  seoHtml,
 }: Props) {
   const listHref = `/product-category/${category.slug}`;
   return (
@@ -110,8 +108,14 @@ export default function CategoryLanding({
             products={child.products}
           />
         ))}
+        {seoHtml && (
+          <section
+            className={styles.seo}
+            aria-label={`توضیحات ${category.name}`}
+            dangerouslySetInnerHTML={{ __html: seoHtml }}
+          />
+        )}
       </div>
-      <CategoryDescription name={category.name} html={description} />
     </main>
   );
 }
