@@ -117,7 +117,7 @@ export default function Menu({
 
               <Link
                 href={`/category/${category.slug}`}
-                className="block rounded-none border border-transparent px-4 py-2 text-sm hover:border-black"
+                className="block no-underline! rounded-none border border-transparent px-4 py-2 text-sm hover:border-black"
                 onClick={() => setIsMobileOpen(false)}
               >
                 دسته‌بندی {category.name}

@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import ProductList from '@/components/pages/products/product-list';
 import { buildPageMetadata } from '@/lib/seo';
 import { getProducts } from '@/services/features/products/server.api';
+import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 
 interface ProductsPageProps {
   searchParams: Promise<{
