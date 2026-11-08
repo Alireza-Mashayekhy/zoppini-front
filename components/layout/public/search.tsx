@@ -78,11 +78,10 @@ export default function Search({ variant }: SearchProps) {
   }, [suggestions]);
 
   useEffect(() => {
-    if (isOpen && variant === 'desktop') {
-      const timer = window.setTimeout(() => inputRef.current?.focus(), 30);
-      return () => window.clearTimeout(timer);
-    }
-  }, [isOpen, variant]);
+    if (!panelOpen) return;
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 30);
+    return () => window.clearTimeout(timer);
+  }, [panelOpen]);
 
   useEffect(() => {
     if (!panelOpen) return;
@@ -134,20 +133,22 @@ export default function Search({ variant }: SearchProps) {
         <section
           dir="rtl"
           aria-label="جستجوی محصولات و دسته‌بندی‌ها"
-          className="absolute inset-x-0 top-0 bottom-[calc(68px+env(safe-area-inset-bottom))] overflow-y-auto border-t border-gray-100 bg-white shadow-xl md:bottom-auto md:max-h-[min(74vh,720px)] md:border-t-0"
+          className="absolute inset-x-0 top-0 flex max-h-[min(74dvh,720px)] flex-col overflow-hidden border-t border-gray-100 bg-white shadow-xl lg:border-t-0"
         >
-          {variant === 'desktop' && (
-            <form
-              onSubmit={submitSearch}
-              className="mx-auto flex max-w-5xl items-center gap-3 border-b border-gray-100 px-5 py-4"
-            >
+          <form
+            onSubmit={submitSearch}
+            role="search"
+            className="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-3 sm:px-5 lg:py-4"
+          >
+            <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
               <SearchIcon className="size-5 shrink-0 text-gray-400" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={event => setQuery(event.target.value)}
                 placeholder="جستجوی محصول یا دسته‌بندی..."
-                className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+                aria-label="جستجوی محصول و دسته‌بندی"
+                className="h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-gray-400 lg:text-sm"
                 autoComplete="off"
               />
               {query && (
@@ -163,15 +164,15 @@ export default function Search({ variant }: SearchProps) {
               <button
                 type="button"
                 onClick={closeSearch}
-                className="rounded-full p-2 text-gray-500 hover:bg-gray-100"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
                 aria-label="بستن جستجو"
               >
                 <X className="size-5" />
               </button>
-            </form>
-          )}
+            </div>
+          </form>
 
-          <div className="mx-auto max-w-5xl px-4 py-4 sm:px-5">
+          <div className="mx-auto min-h-0 w-full max-w-5xl flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5">
             {!debouncedQuery ? (
               <p className="py-8 text-center text-sm text-gray-400">
                 برای دیدن محصولات و دسته‌بندی‌های مرتبط جستجو کنید
@@ -247,53 +248,21 @@ export default function Search({ variant }: SearchProps) {
       </div>
     ) : null;
 
-  const mobileControl = (
-    <form
-      onSubmit={submitSearch}
-      className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 focus-within:border-gray-400 focus-within:bg-white"
-      role="search"
-    >
-      <SearchIcon className="size-4 shrink-0 text-gray-400" />
-      <input
-        value={query}
-        onFocus={openSearch}
-        onChange={event => {
-          setQuery(event.target.value);
-          openSearch();
-        }}
-        placeholder="جستجوی محصول و دسته‌بندی"
-        className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-xs placeholder:text-gray-400"
-        aria-label="جستجوی محصول و دسته‌بندی"
-        autoComplete="off"
-      />
-      {query && (
-        <button
-          type="button"
-          onClick={() => setQuery('')}
-          className="shrink-0 text-gray-400"
-          aria-label="پاک کردن جستجو"
-        >
-          <X className="size-4" />
-        </button>
-      )}
-    </form>
-  );
-
   return (
     <>
-      {variant === 'desktop' ? (
-        <button
-          type="button"
-          onClick={openSearch}
-          className="inline-flex size-9 items-center justify-center rounded-md text-gray-800 transition-colors hover:bg-gray-100"
-          aria-label="جستجو"
-          aria-expanded={isOpen}
-        >
-          <SearchIcon className="size-4 md:size-5" />
-        </button>
-      ) : (
-        mobileControl
-      )}
+      <button
+        type="button"
+        onClick={() => (panelOpen ? closeSearch() : openSearch())}
+        className={
+          variant === 'mobile'
+            ? 'inline-flex size-11 items-center justify-center rounded-md text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-gray-800'
+            : 'inline-flex size-9 items-center justify-center rounded-md text-gray-800 transition-colors hover:bg-gray-100'
+        }
+        aria-label="جستجو"
+        aria-expanded={panelOpen}
+      >
+        <SearchIcon className="size-5" />
+      </button>
       {panel && createPortal(panel, document.body)}
     </>
   );
