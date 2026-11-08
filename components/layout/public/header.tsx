@@ -7,81 +7,73 @@ import AuthButton from './auth-button';
 import Cart from './cart';
 import HeaderScroll from './header-scroll';
 import Menu from './menu';
+import MobileBottomNavigation from './mobile-bottom-navigation';
 import Search from './search';
 
 export default async function Header() {
   const categories = await getAllCategories();
+  const categoryList = categories?.data ?? [];
 
   return (
-    <HeaderScroll>
-      <header className="w-full bg-background backdrop-blur-2xl">
-        <div className="px-6 grid h-13 grid-cols-3 items-center lg:flex lg:justify-between">
-          {/* RIGHT */}
-          <div className="flex items-center">
-            <Logo className="ml-5 hidden h-6.5 w-30 md:h-8.25 md:w-35 lg:block" />
+    <>
+      <HeaderScroll>
+        <header className="w-full bg-background backdrop-blur-2xl">
+          {/* Desktop header intentionally retains its existing layout. */}
+          <div className="hidden h-13 items-center justify-between px-6 lg:flex">
+            <div className="flex items-center">
+              <Logo className="ml-5 hidden h-6.5 w-30 md:h-8.25 md:w-35 lg:block" />
+              <Menu categories={categoryList} />
 
-            <Menu categories={categories?.data ?? []} />
+              <nav className="hidden items-center gap-5 lg:flex">
+                <Link
+                  href="/blog"
+                  className="text-sm transition-colors hover:text-black/50"
+                >
+                  مقالات
+                </Link>
+                <Link
+                  href="/about-us"
+                  className="text-sm transition-colors hover:text-black/50"
+                >
+                  درباره‌ما
+                </Link>
+                <Link
+                  href="/contact"
+                  className="text-sm transition-colors hover:text-black/50"
+                >
+                  تماس‌با‌ما
+                </Link>
+                <Link
+                  href="/b2bsale"
+                  className="text-sm transition-colors hover:text-black/50"
+                >
+                  فروش سازمانی
+                </Link>
+                <Link
+                  href="https://zoppinico.com/dashboard/club"
+                  className="text-sm transition-colors hover:text-black/50"
+                >
+                  باشگاه مشتریان
+                </Link>
+              </nav>
+            </div>
 
-            <nav className="hidden items-center gap-5 lg:flex">
-              <Link
-                href="/blog"
-                className="text-sm transition-colors hover:text-black/50"
-              >
-                مقالات
-              </Link>
-
-              <Link
-                href="/about-us"
-                className="text-sm transition-colors hover:text-black/50"
-              >
-                درباره‌ما
-              </Link>
-
-              <Link
-                href="/contact"
-                className="text-sm transition-colors hover:text-black/50"
-              >
-                تماس‌با‌ما
-              </Link>
-
-              <Link
-                href="/b2bsale"
-                className="text-sm transition-colors hover:text-black/50"
-              >
-                فروش سازمانی
-              </Link>
-
-              <Link
-                href="https://zoppinico.com/dashboard/club"
-                className="text-sm transition-colors hover:text-black/50"
-              >
-                باشگاه مشتریان{' '}
-              </Link>
-
-              {/* <span className="h-5 w-px bg-black" />
-
-              <Link
-                href="/landing/opening"
-                className="text-sm transition-colors text-red-600 hover:text-red-800"
-              >
-                افتتاحیه{' '}
-              </Link> */}
-            </nav>
+            <div className="flex items-center justify-end gap-1 md:gap-2">
+              <Search variant="desktop" />
+              <Cart />
+              <AuthButton />
+            </div>
           </div>
 
-          {/* MOBILE LOGO */}
-          <div className="flex justify-center lg:hidden">
-            <Logo className="h-6.5 w-30 md:h-8.25 md:w-35" />
+          {/* Mobile header: logo + a full-width, always-visible search field. */}
+          <div className="flex h-13 items-center gap-2 px-3 lg:hidden">
+            <Logo className="h-[27px] w-[112px] shrink-0" />
+            <Search variant="mobile" />
           </div>
+        </header>
+      </HeaderScroll>
 
-          {/* LEFT */}
-          <div className="flex items-center justify-end gap-1 md:gap-2">
-            <Search />
-            <Cart />
-            <AuthButton />
-          </div>
-        </div>
-      </header>
-    </HeaderScroll>
+      <MobileBottomNavigation categories={categoryList} />
+    </>
   );
 }

@@ -13,6 +13,7 @@ import {
   ProductResponse,
   ProductsResponse,
   RahkaranProductsResponse,
+  SearchSuggestionsResponse,
   SizeResponse,
 } from './type';
 
@@ -42,6 +43,15 @@ export async function productsList(query: {
     {
       params: query,
     },
+  );
+
+  return data;
+}
+
+export async function getSearchSuggestions(search: string, limit = 6) {
+  const { data } = await api.get<ApiSingleResponse<SearchSuggestionsResponse>>(
+    endpoints.products.searchSuggestions,
+    { params: { search, limit } },
   );
 
   return data;
