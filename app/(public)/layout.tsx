@@ -35,9 +35,10 @@ export default function PublicLayout({
 
       <Header />
 
-      {children}
-
-      <Footer />
+      <div className="flex-1 pb-16 lg:pb-0">
+        {children}
+        <Footer />
+      </div>
 
       {/* نوار شناور لیست مقایسه */}
       <CompareBar />

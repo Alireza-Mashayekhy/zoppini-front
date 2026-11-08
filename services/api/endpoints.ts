@@ -68,6 +68,7 @@ export const endpoints = {
     colorList: '/products/color',
     sizeList: '/products/size',
     list: '/products',
+    searchSuggestions: '/products/search-suggestions',
 
     adminColorList: '/admin/products/color',
     createColor: '/admin/products/color',
