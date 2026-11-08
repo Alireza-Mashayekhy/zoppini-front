@@ -22,6 +22,7 @@ import {
   getFeaturedProducts,
   getProductById,
   getProductBySlug,
+  getSearchSuggestions,
   getStyleProducts,
   productByVariantSku,
   productsList,
@@ -72,6 +73,17 @@ export const useProducsList = (
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 1,
+  });
+};
+
+export const useSearchSuggestions = (search: string, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['product-search-suggestions', search],
+    queryFn: () => getSearchSuggestions(search),
+    enabled: enabled && search.trim().length >= 2,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 };
 
