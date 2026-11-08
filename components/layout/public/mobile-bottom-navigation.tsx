@@ -1,96 +1,37 @@
 'use client';
 
-import { Home, LayoutGrid, ShoppingCart, UserRound } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  LayoutGrid,
+  ShoppingCart,
+  UserRound,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import type { TouchEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useMe } from '@/services/features/auth/hooks';
-import { CategoriesResponse } from '@/services/features/categories/types';
+import type { CategoriesResponse } from '@/services/features/categories/types';
 import { useCartStore } from '@/store/cart.store';
 
-interface CategoryNode extends CategoriesResponse {
-  children: CategoryNode[];
-}
+import { type CategoryNode, makeCategoryTree } from './category-navigation';
 
-function makeCategoryTree(categories: CategoriesResponse[]): CategoryNode[] {
-  const byParent = new Map<number | null, CategoriesResponse[]>();
-  for (const category of categories) {
-    const parentId =
-      category.parentId === category.id ? null : (category.parentId ?? null);
-    byParent.set(parentId, [...(byParent.get(parentId) ?? []), category]);
-  }
-
-  const build = (
-    parentId: number | null,
-    ancestors: Set<number>,
-  ): CategoryNode[] =>
-    (byParent.get(parentId) ?? [])
-      .filter(category => !ancestors.has(category.id))
-      .map(category => {
-        const nextAncestors = new Set(ancestors).add(category.id);
-        return {
-          ...category,
-          children: build(category.id, nextAncestors),
-        };
-      });
-
-  return build(null, new Set());
-}
-
-function CategoryLinks({
-  categories,
-  level = 0,
-  onSelect,
-}: {
-  categories: CategoryNode[];
-  level?: number;
-  onSelect: () => void;
-}) {
-  return (
-    <div
-      className={cn(
-        'space-y-1',
-        level > 0 && 'mr-4 border-r border-gray-100 pr-3',
-      )}
-    >
-      {categories.map(category => (
-        <div key={category.id}>
-          <Link
-            href={
-              category.children.length
-                ? `/category/${category.slug}`
-                : `/product-category/${category.slug}`
-            }
-            onClick={onSelect}
-            className="flex min-h-11 items-center justify-between rounded-md px-3 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-black"
-          >
-            <span>{category.name}</span>
-            {category.children.length > 0 && (
-              <span className="text-xs text-gray-400">
-                {category.children.length} دسته
-              </span>
-            )}
-          </Link>
-          {category.children.length > 0 && (
-            <CategoryLinks
-              categories={category.children}
-              level={level + 1}
-              onSelect={onSelect}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+const categoryItemClass =
+  'flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-right text-sm text-gray-800 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gray-800';
 
 export default function MobileBottomNavigation({
   categories,
@@ -99,13 +40,68 @@ export default function MobileBottomNavigation({
 }) {
   const pathname = usePathname();
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [categoryPath, setCategoryPath] = useState<CategoryNode[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositions = useRef(new Map<number | 'root', number>());
+  const headerTouchStart = useRef<number | null>(null);
   const { openCart } = useCartStore();
   const { data: user } = useMe();
   const categoryTree = useMemo(
     () => makeCategoryTree(categories),
     [categories],
   );
+  const currentCategory = categoryPath.at(-1);
+  const visibleCategories = currentCategory?.children ?? categoryTree;
   const profileHref = user?.data ? '/dashboard' : '/login';
+
+  const setOpen = (open: boolean) => {
+    setCategoriesOpen(open);
+    if (!open) {
+      setCategoryPath([]);
+      scrollPositions.current.clear();
+    }
+  };
+
+  const openCategory = (category: CategoryNode) => {
+    scrollPositions.current.set(
+      currentCategory?.id ?? 'root',
+      scrollRef.current?.scrollTop ?? 0,
+    );
+    setCategoryPath(path => [...path, category]);
+  };
+
+  const finishHeaderSwipe = (event: TouchEvent<HTMLDivElement>) => {
+    if (
+      headerTouchStart.current !== null &&
+      event.changedTouches[0].clientY - headerTouchStart.current > 80
+    ) {
+      setOpen(false);
+    }
+    headerTouchStart.current = null;
+  };
+
+  // Keep the previous level's position when returning from a subcategory.
+  useLayoutEffect(() => {
+    if (categoriesOpen && scrollRef.current) {
+      scrollRef.current.scrollTop =
+        scrollPositions.current.get(currentCategory?.id ?? 'root') ?? 0;
+    }
+  }, [categoriesOpen, currentCategory?.id]);
+
+  // The sheet is mobile-only; don't leave its modal overlay/focus trap behind
+  // if the viewport changes to desktop while it is open.
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const closeOnDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setCategoriesOpen(false);
+        setCategoryPath([]);
+        scrollPositions.current.clear();
+      }
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
 
   const itemClass = (active: boolean) =>
     cn(
@@ -132,7 +128,7 @@ export default function MobileBottomNavigation({
 
           <button
             type="button"
-            onClick={() => setCategoriesOpen(true)}
+            onClick={() => setOpen(true)}
             className={itemClass(
               categoriesOpen ||
                 pathname.startsWith('/category') ||
@@ -168,26 +164,129 @@ export default function MobileBottomNavigation({
         </div>
       </nav>
 
-      <Sheet open={categoriesOpen} onOpenChange={setCategoriesOpen}>
+      <Sheet open={categoriesOpen} onOpenChange={setOpen}>
         <SheetContent
+          dir="rtl"
           side="bottom"
-          showCloseButton
-          className="h-[min(78dvh,680px)] rounded-t-xl p-0 lg:hidden"
+          showCloseButton={false}
+          // The sheet's default bottom-side h-auto must be overridden at the
+          // same specificity; a plain h-* class lets a long list fill the screen.
+          className="min-h-0 max-h-[calc(100dvh-16px)] gap-0 rounded-t-2xl bg-white p-0 shadow-2xl data-[side=bottom]:h-[min(72dvh,600px)] lg:hidden"
         >
-          <SheetHeader className="shrink-0 border-b border-gray-100 px-5 py-4">
-            <SheetTitle>دسته‌بندی محصولات</SheetTitle>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 pb-8">
-            {categoryTree.length ? (
-              <CategoryLinks
-                categories={categoryTree}
-                onSelect={() => setCategoriesOpen(false)}
-              />
-            ) : (
-              <p className="py-8 text-center text-sm text-gray-400">
-                دسته‌بندی‌ای برای نمایش وجود ندارد
-              </p>
-            )}
+          <div
+            className="shrink-0 border-b border-gray-100"
+            onTouchStart={event => {
+              headerTouchStart.current = event.touches[0].clientY;
+            }}
+            onTouchEnd={finishHeaderSwipe}
+            onTouchCancel={() => {
+              headerTouchStart.current = null;
+            }}
+          >
+            <div
+              className="mx-auto mt-2 h-1 w-10 rounded-full bg-gray-300"
+              aria-hidden="true"
+            />
+            <SheetHeader className="mx-auto flex w-full max-w-xl flex-row items-center gap-2 px-3 py-2">
+              {currentCategory ? (
+                <button
+                  type="button"
+                  onClick={() => setCategoryPath(path => path.slice(0, -1))}
+                  aria-label="بازگشت به دسته‌بندی قبلی"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-gray-800"
+                >
+                  <ChevronRight className="size-5" />
+                </button>
+              ) : (
+                <span className="size-10 shrink-0" aria-hidden="true" />
+              )}
+              <div className="min-w-0 flex-1 text-center">
+                <SheetTitle className="truncate font-semibold">
+                  {currentCategory?.name ?? 'دسته‌بندی محصولات'}
+                </SheetTitle>
+                <SheetDescription className="sr-only">
+                  برای دیدن زیر‌دسته‌ها یک دسته‌بندی را انتخاب کنید.
+                </SheetDescription>
+              </div>
+              <SheetClose asChild>
+                <button
+                  type="button"
+                  aria-label="بستن دسته‌بندی‌ها"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-gray-800"
+                >
+                  <X className="size-5" />
+                </button>
+              </SheetClose>
+            </SheetHeader>
+          </div>
+
+          <div
+            key={currentCategory?.id ?? 'root'}
+            ref={scrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(20px+env(safe-area-inset-bottom))] pt-3"
+          >
+            <div className="mx-auto w-full max-w-xl px-3">
+              {currentCategory && (
+                <div className="mb-3 space-y-2">
+                  <Link
+                    href={`/product-category/${currentCategory.slug}`}
+                    onClick={() => setOpen(false)}
+                    className="flex min-h-12 items-center justify-between gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700"
+                  >
+                    <span>مشاهده همه محصولات {currentCategory.name}</span>
+                    <ArrowLeft className="size-4 shrink-0" />
+                  </Link>
+                  <Link
+                    href={`/category/${currentCategory.slug}`}
+                    onClick={() => setOpen(false)}
+                    className="inline-flex min-h-9 items-center gap-1 px-2 text-xs text-gray-600 underline-offset-4 hover:underline"
+                  >
+                    مرور صفحه دسته‌بندی
+                    <ArrowLeft className="size-3.5" />
+                  </Link>
+                </div>
+              )}
+
+              {visibleCategories.length ? (
+                <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                  {visibleCategories.map(category =>
+                    category.children.length ? (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => openCategory(category)}
+                        className={categoryItemClass}
+                        aria-label={`نمایش زیر‌دسته‌های ${category.name}`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block font-medium">
+                            {category.name}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-gray-500">
+                            {category.children.length} زیر‌دسته
+                          </span>
+                        </span>
+                        <ChevronLeft className="size-4 shrink-0 text-gray-400" />
+                      </button>
+                    ) : (
+                      <Link
+                        key={category.id}
+                        href={`/product-category/${category.slug}`}
+                        onClick={() => setOpen(false)}
+                        className={categoryItemClass}
+                      >
+                        <span>{category.name}</span>
+                        <ArrowLeft className="size-4 shrink-0 text-gray-400" />
+                      </Link>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p className="py-8 text-center text-sm text-gray-500">
+                  دسته‌بندی‌ای برای نمایش وجود ندارد
+                </p>
+              )}
+            </div>
           </div>
         </SheetContent>
       </Sheet>
