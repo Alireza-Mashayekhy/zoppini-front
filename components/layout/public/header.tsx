@@ -65,8 +65,8 @@ export default async function Header() {
             </div>
           </div>
 
-          {/* Mobile header: logo + a full-width, always-visible search field. */}
-          <div className="flex h-13 items-center gap-2 px-3 lg:hidden">
+          {/* Keep the mobile header compact; search opens from its icon. */}
+          <div className="flex h-13 items-center justify-between px-3 lg:hidden">
             <Logo className="h-[27px] w-[112px] shrink-0" />
             <Search variant="mobile" />
           </div>
