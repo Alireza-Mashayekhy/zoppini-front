@@ -79,10 +79,33 @@ test('mobile category sheet stays bounded and lets users scroll, go back and clo
   assert.doesNotMatch(sheet, /function CategoryLinks/);
 });
 
+test('mobile header centers the logo with an empty right slot and search on the left', () => {
+  const header = source('components/layout/public/header.tsx');
+
+  // سه ستون 1fr auto 1fr: ستون وسط (لوگو) همیشه دقیقاً در مرکز می‌ماند،
+  // حتی اگر عرض ستون‌های راست/چپ برابر نباشد.
+  assert.match(
+    header,
+    /grid h-13 grid-cols-\[1fr_auto_1fr\] items-center px-3 lg:hidden/,
+  );
+  assert.match(header, /<span aria-hidden="true" \/>\s*<Logo[^>]*\/>\s*<div/);
+
+  // در RTL ستون اول سمت راست است: باید خالی بماند (بدون لوگو/دکمه).
+  const mobileHeader = header.slice(header.indexOf('grid-cols-[1fr_auto_1fr]'));
+  const firstColumn = mobileHeader.slice(0, mobileHeader.indexOf('<Logo'));
+  assert.doesNotMatch(firstColumn, /<Search|<Cart|<AuthButton/);
+
+  // سرچ در ستون سوم (سمت چپ در RTL) است.
+  assert.match(
+    mobileHeader,
+    /<div className="flex items-center justify-end">\s*<Search variant="mobile" \/>/,
+  );
+});
+
 test('mobile search is an icon that opens the same focused search form as desktop', () => {
   const search = source('components/layout/public/search.tsx');
   const header = source('components/layout/public/header.tsx');
-  assert.match(header, /justify-between px-3 lg:hidden/);
+  assert.match(header, /lg:hidden/);
   assert.match(header, /<Search variant="mobile" \/>/);
   assert.match(search, /variant === 'mobile'\s*\? 'inline-flex size-11/);
   assert.match(
