@@ -258,13 +258,8 @@ export default function MobileBottomNavigation({
                         className={categoryItemClass}
                         aria-label={`نمایش زیر‌دسته‌های ${category.name}`}
                       >
-                        <span className="min-w-0">
-                          <span className="block font-medium">
-                            {category.name}
-                          </span>
-                          <span className="mt-0.5 block text-xs text-gray-500">
-                            {category.children.length} زیر‌دسته
-                          </span>
+                        <span className="min-w-0 truncate font-medium">
+                          {category.name}
                         </span>
                         <ChevronLeft className="size-4 shrink-0 text-gray-400" />
                       </button>

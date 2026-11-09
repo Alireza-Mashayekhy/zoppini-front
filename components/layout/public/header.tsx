@@ -66,9 +66,21 @@ export default async function Header() {
           </div>
 
           {/* Keep the mobile header compact; search opens from its icon. */}
-          <div className="flex h-13 items-center justify-between px-3 lg:hidden">
-            <Logo className="h-[27px] w-[112px] shrink-0" />
-            <Search variant="mobile" />
+          {/*
+            Mobile header: logo is dead-center regardless of the right-side
+            slot's content. Three equal columns (1fr auto 1fr) inside a
+            grid keep the middle column centered even when the left/right
+            columns have different widths — flex justify-between would only
+            center the logo when both sides are exactly the same width.
+            In RTL the first column sits on the right (empty spacer, as
+            requested) and the third column on the left (search icon).
+          */}
+          <div className="grid h-13 grid-cols-[1fr_auto_1fr] items-center px-3 lg:hidden">
+            <span aria-hidden="true" />
+            <Logo className="h-[27px] w-[112px]" />
+            <div className="flex items-center justify-end">
+              <Search variant="mobile" />
+            </div>
           </div>
         </header>
       </HeaderScroll>
