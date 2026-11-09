@@ -18,6 +18,11 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
+import {
+  buildNextPageQuery,
+  buildProductListQuery,
+  productQueriesEqual,
+} from '@/lib/product-list-params';
 import { DEFAULT_PRODUCT_SORT, PRODUCT_SORT_OPTIONS } from '@/lib/product-sort';
 import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
@@ -237,27 +242,40 @@ export default function ProductList({
     router.refresh();
   };
 
-  // به‌روزرسانی URL برای فیلترها
+  // به‌روزرسانی URL برای فیلترها و مرتب‌سازی.
+  //
+  // این افکت فقط همان پارامترهایی را که خودش مدیریت می‌کند (sort/colorIds/
+  // sizeIds) بازنویسی می‌کند و بقیه‌ی آدرس — مهم‌تر از همه `search` — را
+  // دست‌نخورده نگه می‌دارد. پیش‌تر آدرس از صفر ساخته می‌شد و `search` در آن
+  // نبود؛ نتیجه این بود که بعد از «مشاهده همه نتایج»، جستجو چند لحظه نمایش
+  // داده می‌شد و بعد آدرس به `?sort=createdAt:desc` می‌پرید.
+  //
+  // آدرس جاری را از window می‌خوانیم و به searchParams وابسته نمی‌شویم؛
+  // وگرنه با هر back/forward کاربر، state قدیمی دوباره روی آدرس نوشته می‌شد
+  // و دکمه‌ی بازگشت مرورگر بی‌اثر می‌شد.
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (sort) params.append('sort', sort);
-    if (colorIds.length) params.append('colorIds', colorIds.join(','));
-    if (sizeIds.length) params.append('sizeIds', sizeIds.join(','));
-    if (initialParams.page > 1)
-      params.append('page', String(initialParams.page));
-    if (initialParams.limit !== 10)
-      params.append('limit', String(initialParams.limit));
-    const url = `${pathname}?${params.toString()}`;
-    router.replace(url, { scroll: false });
-  }, [
+    const query = buildProductListQuery(window.location.search, {
+      sort,
+      colorIds,
+      sizeIds,
+    });
+
+    // اگر آدرس همین حالا همان چیزی است که می‌خواهیم، replace نکن.
+    if (productQueriesEqual(window.location.search, query)) return;
+
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [sort, colorIds, sizeIds, router, pathname]);
+
+  // لینک «محصولات بیشتر» هم باید search و بقیه فیلترها را با خود ببرد
+  const nextPageQuery = buildNextPageQuery({
+    ...initialParams,
     sort,
     colorIds,
     sizeIds,
-    router,
-    pathname,
-    initialParams.page,
-    initialParams.limit,
-  ]);
+    page: page + 1,
+  });
 
   const gridClass =
     rows === 3
@@ -376,7 +394,10 @@ export default function ProductList({
 
         {!loading && hasMore && (
           <div className="mt-10 flex justify-center">
-            <Link href={`?page=${page + 1}`} className="text-sm underline">
+            <Link
+              href={nextPageQuery ? `?${nextPageQuery}` : '?'}
+              className="text-sm underline"
+            >
               محصولات بیشتر
             </Link>
           </div>
