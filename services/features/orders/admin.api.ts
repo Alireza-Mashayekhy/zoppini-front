@@ -79,6 +79,13 @@ export interface AdminOrder {
       gateway: string;
       gatewayLabel?: string;
       amount: number;
+      /** ابزار پرداخت دیجی‌پی: کیف پول / اعتبار (قسطی) / خرید اعتباری (BNPL) */
+      digipayInstrument?: string | null;
+      /** تعداد اقساط (1 = یک‌جا، 4 = چهار قسط) */
+      digipayInstallments?: number | null;
+      digipayCreditProvider?: string | null;
+      /** زمان اعلام تحویل خرید اعتباری به دیجی‌پی */
+      digipayDeliveredAt?: string | null;
     }[];
   };
 
