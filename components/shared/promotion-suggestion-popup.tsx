@@ -24,7 +24,6 @@ import {
   useSelectPromotionReward,
 } from '@/services/features/promotions/hooks';
 import { PromotionSuggestionView } from '@/services/features/promotions/types';
-import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 
 import {
@@ -47,9 +46,12 @@ import PromotionVariantPicker from './promotion-variant-picker';
  */
 export default function PromotionSuggestionPopup() {
   const { openCart, isOpen } = useCartStore();
-  const user = useAuthStore(state => state.user);
 
-  const { data } = useCartPromotionSuggestions({ enabled: !!user });
+  /*
+   * پیشنهادها سرور-محور هستند و برای سبد مهمان هم کار می‌کنند (سرور با
+   * guestId همان سبد را می‌شناسد)؛ پس نمایش را به ورود مشتری گره نمی‌زنیم.
+   */
+  const { data } = useCartPromotionSuggestions();
 
   const addReward = useAddPromotionReward();
   const addPaidItem = useAddToCart();

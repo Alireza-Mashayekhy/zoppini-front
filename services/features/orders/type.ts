@@ -36,6 +36,14 @@ export interface OrderItem {
   quantity: number;
   price: number;
   totalPrice: number;
+  /** تخفیف پروموشن روی این ردیف (تومان) */
+  promotionDiscount?: number;
+  /** آیا این ردیف کالای رایگان پروموشن است */
+  isPromotionReward?: boolean;
+  /** پروموشنی که این ردیف را رایگان کرده */
+  promotionRewardId?: number | null;
+  /** متن قابل نمایش به پشتیبانی */
+  promotionLabel?: string | null;
   variant: {
     id: number;
     price: number;
@@ -44,6 +52,25 @@ export interface OrderItem {
     size: SizeResponse;
     product: ProductsResponse;
   };
+}
+
+/**
+ * اسنپ‌شات پروموشن که روی سفارش ذخیره شده است.
+ *
+ * چرا مهم است: پشتیبانی و فاکتور باید بتوانند بگویند «این سفارش با کدام
+ * قاعده و چه مبلغی تخفیف خورد» حتی اگر پروموشن بعداً ویرایش یا حذف شود.
+ */
+export interface OrderPromotionSnapshotEntry {
+  promotionId: number;
+  name: string;
+  type: string;
+  discountAmount: number;
+  freeItemValue: number;
+  grantsFreeShipping: boolean;
+  qualifyingVariantIds: number[];
+  rewardVariantIds: number[];
+  rewardProductIds: number[];
+  lines: unknown[];
 }
 
 export interface OrderResponse {
@@ -62,6 +89,14 @@ export interface OrderResponse {
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
+  /** جمع تخفیف پروموشن‌ها (جدا از فروش ویژه و کد تخفیف) */
+  promotionDiscount?: number;
+  /** ارزش کالاهای رایگان */
+  promotionFreeItemValue?: number;
+  /** آیا ارسال رایگان از پروموشن گرفته شده */
+  promotionFreeShipping?: boolean;
+  /** قاعده‌های اعمال‌شده در لحظهٔ ثبت سفارش */
+  promotionSnapshot?: OrderPromotionSnapshotEntry[] | null;
   user?: {
     id: number;
     fullName: string;
