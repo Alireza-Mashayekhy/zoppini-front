@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import ProductCard from '@/components/shared/product-card';
-import CategoryViewTracker from '@/components/shared/category-view-tracker';
+import { categorySlugSegment } from '@/lib/category-slug';
 import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 
@@ -60,7 +60,7 @@ export default function CategoryLanding({
   directProducts,
   seoHtml,
 }: Props) {
-  const listHref = `/product-category/${category.slug}`;
+  const listHref = `/product-category/${categorySlugSegment(category.slug)}`;
   return (
     <main className={styles.page} dir="rtl">
       <CategoryViewTracker id={category.id} />
@@ -72,7 +72,9 @@ export default function CategoryLanding({
             </li>
             {ancestors.map(parent => (
               <li key={parent.id}>
-                <Link href={`/category/${parent.slug}`}>{parent.name}</Link>
+                <Link href={`/category/${categorySlugSegment(parent.slug)}`}>
+                  {parent.name}
+                </Link>
               </li>
             ))}
             <li aria-current="page">{category.name}</li>
@@ -89,7 +91,10 @@ export default function CategoryLanding({
           aria-label={`زیر دسته‌های ${category.name}`}
         >
           {subcategories.map(child => (
-            <Link key={child.id} href={`/product-category/${child.slug}`}>
+            <Link
+              key={child.id}
+              href={`/product-category/${categorySlugSegment(child.slug)}`}
+            >
               {child.name}
             </Link>
           ))}
@@ -105,7 +110,7 @@ export default function CategoryLanding({
             key={child.id}
             id={`category-${child.id}-products`}
             title={child.name}
-            href={`/product-category/${child.slug}`}
+            href={`/product-category/${categorySlugSegment(child.slug)}`}
             products={child.products}
           />
         ))}
