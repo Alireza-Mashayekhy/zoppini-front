@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 
+import { normalizeApiBaseUrl } from '@/services/api/base-url';
+
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface ServerRequestOptions {
@@ -20,10 +22,11 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL =
+const BASE_URL = normalizeApiBaseUrl(
   process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3000/api/';
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:3000/api/',
+);
 
 async function refreshToken() {
   const cookieStore = await cookies();

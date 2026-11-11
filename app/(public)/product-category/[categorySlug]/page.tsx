@@ -1,25 +1,26 @@
 // app/products/[categorySlug]/page.tsx
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 import ProductList from '@/components/pages/products/product-list';
 import CategoryDescription from '@/components/shared/category-description';
 import CategoryViewTracker from '@/components/shared/category-view-tracker';
-import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
+import {
+  categorySlugSegment,
+  normalizeCategorySlug,
+} from '@/lib/category-slug';
+import {
+  productCategoryParams,
+  ProductCategorySearchParams,
+} from '@/lib/product-category-params';
 import { mergePageSeo } from '@/lib/seo';
-import { getCategoryBySlug } from '@/services/features/categories/server.api';
+import { getPublicCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
 import { getPageSeo } from '@/services/features/seo/server.api';
 
 interface ProductsCategoryPageProps {
   params: Promise<{ categorySlug: string }>;
-  searchParams: Promise<{
-    page?: string;
-    limit?: string;
-    search?: string;
-    sort?: string;
-    colorIds?: string;
-    sizeIds?: string;
-  }>;
+  searchParams: Promise<ProductCategorySearchParams>;
 }
 
 /**
@@ -35,7 +36,9 @@ export async function generateMetadata({
 
   const metadata = await buildCategoryMetadata(categorySlug);
 
-  const seo = await getPageSeo(`/product-category/${categorySlug}`);
+  const seo = await getPageSeo(
+    `/product-category/${normalizeCategorySlug(categorySlug)}`,
+  );
 
   return mergePageSeo(metadata, seo);
 }
@@ -43,12 +46,13 @@ export async function generateMetadata({
 // تولید متا دیتا بر اساس اطلاعات دسته‌بندی
 async function buildCategoryMetadata(categorySlug: string): Promise<Metadata> {
   try {
-    const category = await getCategoryBySlug(categorySlug);
+    const category = await getPublicCategoryBySlug(categorySlug);
     const categoryData = category?.data;
 
     if (!categoryData) {
       return {
         title: 'دسته‌بندی یافت نشد - زوپینی',
+        robots: { index: false, follow: false },
         description: 'دسته‌بندی مورد نظر شما یافت نشد.',
       };
     }
@@ -80,7 +84,7 @@ async function buildCategoryMetadata(categorySlug: string): Promise<Metadata> {
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
-        canonical: `https://zoppinico.com/product-category/${categoryData.slug}`,
+        canonical: `https://zoppinico.com/product-category/${categorySlugSegment(categoryData.slug)}`,
       },
     };
   } catch (error) {
@@ -100,19 +104,11 @@ export default async function ProductsCategoryPage({
   const search = await searchParams;
 
   // ۱. دریافت اطلاعات دسته‌بندی
-  const category = await getCategoryBySlug(categorySlug);
+  const category = await getPublicCategoryBySlug(categorySlug);
+  if (!category) notFound();
 
   // ۲. ساخت پارامترهای query برای دریافت محصولات
-  const queryParams = {
-    page: search.page ? Number(search.page) : 1,
-    limit: search.limit ? Number(search.limit) : 24,
-    search: search.search || '',
-    // پیش‌فرض «جدیدترین»؛ همان چیزی که در منوی مرتب‌سازی انتخاب‌شده است
-    sort: search.sort || DEFAULT_PRODUCT_SORT,
-    categoryIds: category?.data ? [category?.data.id] : [],
-    colorIds: search.colorIds?.split(',').map(Number).filter(Boolean) || [],
-    sizeIds: search.sizeIds?.split(',').map(Number).filter(Boolean) || [],
-  };
+  const queryParams = productCategoryParams(search, category.data.id);
 
   // ۳. دریافت محصولات
   const productsData = await getProducts(queryParams);

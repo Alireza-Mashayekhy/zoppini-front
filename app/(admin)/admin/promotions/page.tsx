@@ -138,11 +138,10 @@ export default function PromotionsPage() {
           <h1 className="text-2xl font-bold">پیشنهادهای ویژه</h1>
 
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            ساخت و مدیریت پیشنهادهای فروش: خرید تعداد و تخفیف روی ارزان‌تر،
-            خرید X دریافت Y، دریافت هدیه، تخفیف پله‌ای و ارسال رایگان. نشان
-            پیشنهاد روی صفحهٔ محصول نمایش داده می‌شود اما قیمت کارت را تغییر
-            نمی‌دهد؛ قیمت قابل پرداخت فقط در سبد و پس از احراز شرط محاسبه
-            می‌شود.
+            ساخت و مدیریت پیشنهادهای فروش: خرید تعداد و تخفیف روی ارزان‌تر، خرید
+            X دریافت Y، دریافت هدیه، تخفیف پله‌ای و ارسال رایگان. نشان پیشنهاد
+            روی صفحهٔ محصول نمایش داده می‌شود اما قیمت کارت را تغییر نمی‌دهد؛
+            قیمت قابل پرداخت فقط در سبد و پس از احراز شرط محاسبه می‌شود.
           </p>
         </div>
 
@@ -190,6 +189,19 @@ export default function PromotionsPage() {
             <Skeleton key={index} className="h-10 w-full" />
           ))}
         </div>
+      ) : list.isError ? (
+        <div role="alert" className="space-y-3 rounded-xl border bg-white p-4">
+          <p className="text-sm text-destructive">
+            دریافت فهرست پروموشن‌ها انجام نشد. لطفاً دوباره تلاش کنید.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => list.refetch()}
+            disabled={list.isFetching}
+          >
+            تلاش مجدد
+          </Button>
+        </div>
       ) : (
         <PromotionTable
           promotions={promotions}
@@ -198,7 +210,9 @@ export default function PromotionsPage() {
           onDelete={handleDelete}
           onPreview={promotion => setPreviewId(promotion.id)}
           onRedemptions={promotion => setRedemptionsFor(promotion)}
-          busyId={setStatus.isPending ? (setStatus.variables?.id ?? null) : null}
+          busyId={
+            setStatus.isPending ? (setStatus.variables?.id ?? null) : null
+          }
         />
       )}
 
@@ -215,10 +229,7 @@ export default function PromotionsPage() {
             <DialogTitle>ایجاد پروموشن</DialogTitle>
           </DialogHeader>
 
-          <PromotionForm
-            onSubmit={handleSubmit}
-            isPending={create.isPending}
-          />
+          <PromotionForm onSubmit={handleSubmit} isPending={create.isPending} />
         </DialogContent>
       </Dialog>
 
