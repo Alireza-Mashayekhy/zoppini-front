@@ -37,10 +37,18 @@ export const useClubWalletTransactions = (
   customerWalletId: number | null,
   enabled = true,
 ) => {
+  // شناسه‌ی نامعتبر (0/null) نباید درخواست شبکه‌ای بسازد؛ وگرنه تقاضای
+  // `/club/wallets/0/transactions` همیشه 403 برمی‌گرداند و بخش تراکنش‌ها
+  // به‌جای «لیست خالی» پیام خطا نشان می‌دهد.
+  const hasValidId =
+    typeof customerWalletId === 'number' &&
+    Number.isFinite(customerWalletId) &&
+    customerWalletId > 0;
+
   return useQuery({
     queryKey: ['club', 'wallets', customerWalletId, 'transactions'],
     queryFn: () => getClubWalletTransactions(customerWalletId as number),
-    enabled: enabled && customerWalletId != null,
+    enabled: enabled && hasValidId,
   });
 };
 

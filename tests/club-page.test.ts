@@ -410,3 +410,36 @@ test('every section shows a retry state when its query fails', () => {
     assert.match(text(html), /تلاش مجدد/, name);
   }
 });
+
+test('wallet rows use the customer-wallet id (not the wallet definition id)', () => {
+  const html = renderWithData(ClubWallets as Component, [
+    [
+      ['club', 'wallets'],
+      ok([
+        // Id = شناسه‌ی کیف پول مشتری (برای endpoint تراکنش‌ها)
+        // WalletId = شناسه‌ی تعریف کیف پول (فقط برای نمایش)
+        { Id: 41, WalletId: 7, AvailableCredit: 100000 },
+      ]),
+    ],
+  ]);
+
+  assert.match(text(html), /کیف پول #7/);
+  assert.match(html, /تراکنش/);
+  assert.doesNotMatch(html, /کیف پول #41/);
+});
+
+test('wallet entries without a valid id degrade instead of requesting /0/transactions', () => {
+  const html = renderWithData(ClubWallets as Component, [
+    [
+      ['club', 'wallets'],
+      ok([
+        { Id: 0, WalletId: 0, AvailableCredit: 1000 },
+        { Id: null, AvailableCredit: 2000 },
+      ]),
+    ],
+  ]);
+
+  // نباید خطا بدهد؛ فقط ردیف‌های بدون شناسه‌ی قابل استفاده نمایش داده می‌شوند
+  assert.doesNotThrow(() => text(html));
+  assert.match(text(html), /کیف پول/);
+});

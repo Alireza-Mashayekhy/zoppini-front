@@ -200,11 +200,16 @@ export default function ClubWallets() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {wallets.map((wallet: ClubWallet) => {
+            {wallets.map((wallet: ClubWallet, index) => {
+              // `Id` شناسه‌ی کیف پول مشتری است (همان چیزی که endpoint
+              // تراکنش‌ها می‌خواهد)؛ `WalletId` شناسه‌ی تعریف کیف پول است.
               const walletId = toWalletId(wallet.Id);
+              const displayId = toWalletId(wallet.WalletId) || walletId;
 
               return (
-                <Fragment key={wallet.Id}>
+                <Fragment
+                  key={wallet.Id ?? wallet.WalletId ?? `wallet-${index}`}
+                >
                   <TableRow
                     className="cursor-pointer"
                     onClick={() =>
@@ -214,7 +219,7 @@ export default function ClubWallets() {
                     }
                   >
                     <TableCell className="text-sm">
-                      کیف پول #{wallet.WalletId ?? wallet.Id}
+                      کیف پول #{displayId || '—'}
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {wallet.OfficeId != null
