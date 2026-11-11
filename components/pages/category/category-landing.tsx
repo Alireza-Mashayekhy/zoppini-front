@@ -6,6 +6,7 @@ import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 
 import styles from './category-landing.module.css';
+import CategoryViewTracker from '@/components/shared/category-view-tracker';
 
 type Child = CategoriesResponse & { products: ProductsResponse[] };
 
