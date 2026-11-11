@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
   addToCart,
@@ -8,6 +13,21 @@ import {
   updateCartItem,
 } from './api';
 import { AddToCartDto, UpdateCartItemDto } from './types';
+
+/**
+ * پس از هر تغییر سبد، این کلیدها باید تازه شوند:
+ * - `cart`: خود سبد
+ * - `promotion-suggestions`: پاپ‌آپ پیشنهاد (شرط‌ها با تعداد کالا عوض می‌شود)
+ * - `checkout-preview`: مبالغ معتبر چک‌اوت
+ *
+ * اگر یکی جا بیفتد، مشتری می‌تواند کالای رایگان یا تخفیفی را ببیند که دیگر
+ * معتبر نیست.
+ */
+function invalidateCartDependents(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: ['cart'] });
+  queryClient.invalidateQueries({ queryKey: ['promotion-suggestions'] });
+  queryClient.invalidateQueries({ queryKey: ['checkout-preview'] });
+}
 
 export const useCartList = (options?: { enabled?: boolean }) => {
   return useQuery({
@@ -25,7 +45,7 @@ export function useAddToCart() {
   return useMutation({
     mutationFn: (data: AddToCartDto) => addToCart(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      invalidateCartDependents(queryClient);
     },
   });
 }
@@ -36,7 +56,7 @@ export function useUpdateCartItem() {
     mutationFn: ({ id, data }: { id: number; data: UpdateCartItemDto }) =>
       updateCartItem(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      invalidateCartDependents(queryClient);
     },
   });
 }
@@ -46,9 +66,7 @@ export function useDeleteCartItem() {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => deleteItem(id),
     onSuccess: (response: any) => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      queryClient.invalidateQueries({ queryKey: ['promotion-suggestions'] });
-      queryClient.invalidateQueries({ queryKey: ['checkout-preview'] });
+      invalidateCartDependents(queryClient);
 
       // پیام شفاف وقتی حذف یک کالا باعث از بین رفتن هدیه/تخفیف می‌شود
       if (response?.message) {
@@ -69,7 +87,7 @@ export function useClearCart() {
   return useMutation({
     mutationFn: () => clearCart(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      invalidateCartDependents(queryClient);
     },
   });
 }

@@ -3,6 +3,7 @@
 import { Loader2, Save, Wand2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { PersianDatePicker } from '@/components/form/persian-date-picker';
 import { Button } from '@/components/ui/button';
@@ -254,7 +255,100 @@ export default function PromotionForm({
     }
   };
 
+  /*
+   * اعتبارسنجی تاریخ‌ها دستی است، چون انتخابگر تاریخ مقدار را با setValue
+   * می‌نشاند و قاعدهٔ `required` روی آن اجرا نمی‌شود. بدون این بررسی، سرور
+   * خطای عمومی DateString می‌داد و مدیر نمی‌فهمید چه چیزی کم است.
+   */
+  const validateDates = (data: PromotionFormValues) => {
+    if (!data.startsAt || !data.expiresAt) {
+      toast.error('تاریخ شروع و پایان پروموشن را انتخاب کنید.');
+
+      return false;
+    }
+
+    const startsAt = helpers.persianToIso(data.startsAt, data.startsAtTime);
+    const expiresAt = helpers.persianToIso(data.expiresAt, data.expiresAtTime);
+
+    if (!startsAt || !expiresAt) {
+      toast.error('تاریخ واردشده معتبر نیست.');
+
+      return false;
+    }
+
+    if (new Date(startsAt) >= new Date(expiresAt)) {
+      toast.error('زمان پایان باید بعد از زمان شروع باشد.');
+
+      return false;
+    }
+
+    if (!data.name.trim()) {
+      toast.error('نام پروموشن را وارد کنید.');
+
+      return false;
+    }
+
+    if (data.name.trim().length < 3) {
+      toast.error('نام پروموشن باید حداقل ۳ کاراکتر باشد.');
+
+      return false;
+    }
+
+    switch (data.type) {
+      case PromotionType.BUY_X_GET_Y_SAME_GROUP:
+        if (data.requiredQuantity < 1 || data.freeQuantity < 1) {
+          toast.error('تعداد کالای پرداختی و رایگان باید حداقل ۱ باشد.');
+
+          return false;
+        }
+
+        break;
+
+      case PromotionType.FIXED_PRICE_BUNDLE:
+        if (Number(data.minQuantity ?? 0) < 2 || !data.rewardValue) {
+          toast.error('قیمت ثابت باندل و تعداد اقلام (حداقل ۲) لازم است.');
+
+          return false;
+        }
+
+        break;
+
+      case PromotionType.BUY_TRIGGER_GET_REWARD:
+        if (
+          data.rewardScope !== PromotionScope.ALL &&
+          !data.rewardProductIds.length &&
+          !data.rewardCategoryIds.length
+        ) {
+          toast.error('کالا یا دستهٔ هدیه را انتخاب کنید.');
+
+          return false;
+        }
+
+        break;
+
+      default:
+        break;
+    }
+
+    if (
+      (data.rewardType === PromotionRewardType.PERCENTAGE ||
+        data.rewardType === PromotionRewardType.FIXED ||
+        data.rewardType === PromotionRewardType.FIXED_BUNDLE_PRICE) &&
+      !data.rewardValue
+    ) {
+      toast.error('مقدار تخفیف را وارد کنید.');
+
+      return false;
+    }
+
+    return true;
+  };
+
   const submit = handleSubmit(data => {
+    if (!validateDates(data)) {
+      return;
+    }
+
     onSubmit(toPromotionDto(data, helpers));
   });
 

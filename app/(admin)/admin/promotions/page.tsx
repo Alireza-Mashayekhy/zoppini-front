@@ -71,10 +71,13 @@ export default function PromotionsPage() {
 
   const handleSubmit = (dto: Parameters<typeof create.mutate>[0]) => {
     if (mode === 'edit' && selected) {
-      const { type: _type, ...rest } = dto as typeof dto & { type?: unknown };
-
+      /*
+       * نوع پروموشن هم ارسال می‌شود: سرور تغییر نوع را می‌پذیرد و پیکربندی
+       * را دوباره اعتبارسنجی می‌کند. اگر آن را حذف کنیم، تغییر نوع در فرم
+       * بی‌صدا نادیده گرفته می‌شد و مدیر فکر می‌کرد ذخیره شده است.
+       */
       update.mutate(
-        { id: selected.id, dto: rest },
+        { id: selected.id, dto },
         {
           onSuccess: () => {
             toast.success('پروموشن ویرایش شد.');

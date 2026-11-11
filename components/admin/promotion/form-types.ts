@@ -146,8 +146,20 @@ export function toPromotionDto(
     persianToIso: (persianDate: string, time: string) => string;
   },
 ): CreatePromotionDto {
-  const toNumber = (value: number | '') =>
-    value === '' || value == null ? undefined : Number(value);
+  /**
+   * ورودی‌های عددی خالی با `valueAsNumber` مقدار NaN می‌دهند؛ NaN در JSON به
+   * null تبدیل می‌شود و پیام خطای سرور گیج‌کننده می‌شود. اینجا صریحاً آن را
+   * «تعیین‌نشده» می‌کنیم تا فیلد اختیاری واقعاً خالی بماند.
+   */
+  const toNumber = (value: number | '') => {
+    if (value === '' || value == null) {
+      return undefined;
+    }
+
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : undefined;
+  };
 
   return {
     name: values.name.trim(),
@@ -185,6 +197,11 @@ export function toPromotionDto(
     removeRewardWhenTriggerRemoved: values.removeRewardWhenTriggerRemoved,
 
     isActive: values.isActive,
+    /*
+     * تاریخ‌ها برای «ایجاد» الزامی‌اند (DTO سرور هم DateString می‌خواهد).
+     * فرم با `required` جلوی ارسال خالی را می‌گیرد؛ در ویرایش مقدار فعلی
+     * پروموشن از قبل در فرم نشسته است.
+     */
     startsAt: helpers.persianToIso(values.startsAt, values.startsAtTime),
     expiresAt: helpers.persianToIso(values.expiresAt, values.expiresAtTime),
 
