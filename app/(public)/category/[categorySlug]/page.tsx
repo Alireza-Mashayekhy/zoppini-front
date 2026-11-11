@@ -12,6 +12,7 @@ import {
 } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
 import { getPageSeo } from '@/services/features/seo/server.api';
+import { cleanCategoryDescription } from '@/lib/category-description';
 
 type Props = { params: Promise<{ categorySlug: string }> };
 
