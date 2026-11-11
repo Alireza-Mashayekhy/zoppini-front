@@ -3,6 +3,7 @@ import Script from 'next/script';
 import Footer from '@/components/layout/public/footer';
 import Header from '@/components/layout/public/header';
 import CompareBar from '@/components/shared/compare-bar';
+import PromotionSuggestionPopup from '@/components/shared/promotion-suggestion-popup';
 import SupportWidget from '@/components/shared/support-widget';
 
 export default function PublicLayout({
@@ -42,6 +43,14 @@ export default function PublicLayout({
 
       {/* نوار شناور لیست مقایسه */}
       <CompareBar />
+
+      {/*
+        پاپ‌آپ پیشنهاد پیش از سبد.
+        فقط در بخش عمومی سایت رندر می‌شود (نه پنل مدیریت) و اگر سبد واجد
+        شرایط نباشد یا مشتری برای این وضعیت سبد پیشنهاد را رد کرده باشد،
+        چیزی نمایش نمی‌دهد.
+      */}
+      <PromotionSuggestionPopup />
     </>
   );
 }

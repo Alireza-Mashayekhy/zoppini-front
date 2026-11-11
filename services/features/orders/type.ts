@@ -3,6 +3,10 @@ import {
   ProductsResponse,
   SizeResponse,
 } from '../products/type';
+import {
+  PromotionEvaluationView,
+  PromotionSuggestionView,
+} from '../promotions/types';
 
 export enum ShippingMethod {
   POST = 'post',
@@ -62,5 +66,51 @@ export interface OrderResponse {
     id: number;
     fullName: string;
     phone: string;
+  };
+}
+
+/** یک ردیف سبد در پیش‌نمایش چک‌اوت (مبالغ پس از فروش ویژه و پروموشن) */
+export interface CheckoutPreviewLine {
+  lineId: number;
+  variantId: number;
+  productId: number;
+  title: string;
+  slug: string;
+  image: string | null;
+  colorName: string | null;
+  sizeName: string | null;
+  quantity: number;
+  originalPrice: number;
+  salePrice: number;
+  promotionDiscount: number;
+  isFreeReward: boolean;
+  promotionRewardId: number | null;
+  promotionLabel: string | null;
+  promotionIds: number[];
+}
+
+/**
+ * پاسخ پیش‌نمایش چک‌اوت.
+ * مجموع‌ها با همان موتور و همان قواعدی محاسبه می‌شوند که هنگام ثبت سفارش،
+ * بنابراین عددی که مشتری می‌بیند همان عددی است که پرداخت می‌کند.
+ */
+export interface CheckoutPreviewResponse {
+  data: {
+    lines: CheckoutPreviewLine[];
+    promotions: {
+      applied: PromotionEvaluationView[];
+      rejected: PromotionEvaluationView[];
+      notices: string[];
+      suggestions: PromotionSuggestionView[];
+    };
+    totals: {
+      originalPrice: number;
+      saleDiscount: number;
+      promotionDiscount: number;
+      freeItemValue: number;
+      shippingCost: number;
+      freeShipping: boolean;
+      finalPrice: number;
+    };
   };
 }

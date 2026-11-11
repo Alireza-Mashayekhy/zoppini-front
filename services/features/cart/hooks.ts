@@ -45,8 +45,21 @@ export function useDeleteCartItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id }: { id: number }) => deleteItem(id),
-    onSuccess: () => {
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['promotion-suggestions'] });
+      queryClient.invalidateQueries({ queryKey: ['checkout-preview'] });
+
+      // پیام شفاف وقتی حذف یک کالا باعث از بین رفتن هدیه/تخفیف می‌شود
+      if (response?.message) {
+        /*
+         * سرور پیام فارسی آماده می‌فرستد؛ در صورت وجود، به‌جای سکوت نشان
+         * داده می‌شود تا مشتری دلیل تغییر قیمت را بداند.
+         */
+        import('sonner').then(({ toast }) => {
+          toast.info(response.message);
+        });
+      }
     },
   });
 }
