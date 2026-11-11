@@ -1,19 +1,11 @@
 'use client';
 
-import { Gift, Loader2, ShoppingBag, Sparkles } from 'lucide-react';
+import { Gift, Loader2, ShoppingBag, Sparkles, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { formatPrice } from '@/lib/utils';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { markPopupShown } from '@/services/features/promotions/api';
@@ -33,16 +25,19 @@ import {
 import PromotionVariantPicker from './promotion-variant-picker';
 
 /**
- * پاپ‌آپ پیشنهاد «پیش از سبد».
+ * کارت پیشنهاد «پیش از سبد».
  *
- * رفتارها (عمداً محافظه‌کارانه):
- * - وقتی کشوی سبد باز است نمایش داده نمی‌شود (روی کشو می‌افتد)؛ پس از
- *   بستن کشو یا هنگام حضور در صفحهٔ تسویه فرصت نمایش دارد.
+ * چرا کارت و نه مودال: این پیشنهاد مزاحم نباید صفحه را قفل کند. مشتری باید
+ * بتواند به خرید ادامه دهد و در صورت تمایل هدیه را بگیرد. کارت پایین صفحه
+ * می‌نشیند، روی محتوای اصلی نمی‌افتد و با یک کلیک بسته می‌شود.
+ *
+ * رفتارها:
+ * - وقتی کشوی سبد باز است نمایش داده نمی‌شود (روی کشو می‌افتد).
  * - برای هر «وضعیت سبد» (stateKey) فقط یک‌بار؛ با تغییر تعداد کالاهای واجد
  *   شرط، stateKey عوض می‌شود و پیشنهاد تازه دوباره شانس نمایش دارد.
- * - «نه ممنون» پیشنهاد را برای همان پروموشن خاموش می‌کند.
- * - هیچ کالای پولی ساکت اضافه نمی‌شود: کالای هدیه با برچسب «رایگان» و
- *   مبلغ صفر پیش از تأیید نمایش داده می‌شود.
+ * - «نه ممنون» پروموشن را برای سبد جاری خاموش می‌کند.
+ * - هیچ کالای پولی ساکت اضافه نمی‌شود: اقدام از `action` سرور گرفته می‌شود
+ *   و کالای پولی هرگز از مسیر هدیهٔ رایگان اضافه نمی‌شود.
  */
 export default function PromotionSuggestionPopup() {
   const { openCart, isOpen } = useCartStore();
@@ -54,8 +49,8 @@ export default function PromotionSuggestionPopup() {
   const { data } = useCartPromotionSuggestions();
 
   const addReward = useAddPromotionReward();
-  const addPaidItem = useAddToCart();
   const selectReward = useSelectPromotionReward();
+  const addPaidItem = useAddToCart();
   const dismiss = useDismissPromotion();
 
   const suggestions = useMemo(
@@ -70,26 +65,14 @@ export default function PromotionSuggestionPopup() {
 
   /**
    * وضعیت‌هایی که در همین نشست بسته شده‌اند؛ تا پروموشن تازهٔ دیگری سر نرسد،
-   * جلوی باز شدن دوبارهٔ همان پاپ‌آپ را می‌گیرند.
+   * جلوی باز شدن دوبارهٔ همان کارت را می‌گیرند.
    */
   const [closedStateKey, setClosedStateKey] = useState<string | null>(null);
 
-  /**
-   * وقتی کشوی سبد باز است پاپ‌آپ را نشان نمی‌دهیم: روی کشو می‌افتد و
-   * مزاحم می‌شود. با بستن کشو یا رفتن به تسویه، فرصت نمایش فراهم است.
-   */
-  const cartDrawerOpen = isOpen;
-
   const first = suggestions[0] ?? null;
 
-  /*
-   * «قبلاً برای این وضعیت سبد نشان داده شد؟» از سرور خوانده می‌شود تا با
-   * رفرش صفحه هم پاپ‌آپ برنگردد. نمایش فعلی تا وقتی سبد تغییر نکند و
-   * suggestions دوباره واکشی نشود، پایدار می‌ماند؛ واکشی دوباره فقط با
-   * تغییر سبد رخ می‌دهد که همان لحظه، بسته شدن پاپ‌آپ رفتار درستی است.
-   */
   const active: PromotionSuggestionView | null =
-    !cartDrawerOpen &&
+    !isOpen &&
     !acceptedPromotions.includes(first?.promotionId ?? -1) &&
     shouldShowSuggestion(first, {
       popupShownFor,
@@ -100,10 +83,9 @@ export default function PromotionSuggestionPopup() {
       : null;
 
   const activeStateKey = active?.stateKey ?? null;
-  const activePromotionId = active?.promotionId ?? null;
 
   useEffect(() => {
-    // ثبت این‌که پاپ‌آپ برای این وضعیت سبد دیده شد (برای تکرارنشدن)
+    // ثبت این‌که پیشنهاد برای این وضعیت سبد دیده شد (برای تکرارنشدن)
     if (activeStateKey) {
       void markPopupShown(activeStateKey).catch(() => undefined);
     }
@@ -117,6 +99,8 @@ export default function PromotionSuggestionPopup() {
     setClosedStateKey(active.stateKey);
   };
 
+  const button = resolveSuggestionButton(active);
+
   const handleDismiss = () => {
     close();
 
@@ -126,15 +110,12 @@ export default function PromotionSuggestionPopup() {
   };
 
   /**
-   * اقدام اصلی پاپ‌آپ بر اساس `action` سرور تعیین می‌شود:
+   * اقدام اصلی بر اساس `action` سرور:
    *
    * - add_free_reward → هدیهٔ رایگان از مسیر پاداش (قیمت صفر)
    * - add_paid_item  → کالای پولی برای کامل شدن شرط، با قیمت عادی و از
    *   مسیر سبد معمولی؛ هرگز از مسیر پاداش (که کالا را رایگان می‌کند)
-   * - open_cart      → فقط سبد را باز می‌کنیم و مشتری خودش انتخاب می‌کند
-   *
-   * این تفکیک جلوی یک اشتباه پرهزینه را می‌گیرد: افزودن کالای پولی با
-   * endpoint پاداش باعث می‌شد کالا به‌عنوان «هدیه» ثبت و مبلغش صفر شود.
+   * - open_cart      → فقط سبد باز می‌شود و مشتری خودش انتخاب می‌کند
    */
   const handleAccept = () => {
     if (!button.addsItem) {
@@ -144,11 +125,11 @@ export default function PromotionSuggestionPopup() {
       return;
     }
 
-    if (!button.free && button.addsItem) {
+    if (!button.free) {
       const variantId = active.suggestedProduct?.variantId;
 
       if (!variantId) {
-        // باید از دسته انتخاب شود؛ انتخابگر قیمت واقعی را نشان می‌دهد
+        // انتخاب از دستهٔ پیشنهادی؛ قیمت واقعی همان‌جا نمایش داده می‌شود
         setPickerOpen(true);
 
         return;
@@ -169,7 +150,6 @@ export default function PromotionSuggestionPopup() {
       return;
     }
 
-    // مسیر پاداش رایگان: انتخاب واریانت در صورت نیاز
     if (active.requiresSelection || !active.suggestedProduct?.variantId) {
       // کالای هدیه باید انتخاب شود؛ انتخابگر واریانت باز می‌شود
       setPickerOpen(true);
@@ -196,140 +176,143 @@ export default function PromotionSuggestionPopup() {
     );
   };
 
-  const button = resolveSuggestionButton(active);
   const dismissLabel = active.dismissLabel?.trim() || 'نه ممنون';
+  const isPending =
+    addReward.isPending || selectReward.isPending || addPaidItem.isPending;
 
   return (
     <>
-      <Dialog open onOpenChange={value => !value && handleDismiss()}>
-        <DialogContent
-          className="max-w-md"
-          dir="rtl"
-          showCloseButton={false}
-          data-testid="promotion-suggestion-popup"
-          onEscapeKeyDown={event => {
-            event.preventDefault();
-            handleDismiss();
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <Sparkles className="size-5 shrink-0 text-[#ad2e38]" />
-              {active.title}
-            </DialogTitle>
+      <aside
+        dir="rtl"
+        role="complementary"
+        aria-label={active.title}
+        data-testid="promotion-suggestion-popup"
+        className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-md rounded-lg border bg-white shadow-xl sm:inset-x-auto sm:left-4 sm:bottom-4"
+      >
+        <div className="flex items-start gap-2 p-3">
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ad2e38]/10 text-[#ad2e38]">
+            <Sparkles className="size-4" />
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-gray-900">{active.title}</p>
 
             {active.description && (
-              <DialogDescription className="leading-6">
+              <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
                 {active.description}
-              </DialogDescription>
-            )}
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4">
-            {active.suggestedProduct && (
-              <div className="flex items-center gap-3 border bg-[#faf9f8] p-3">
-                <div className="relative size-16 shrink-0 overflow-hidden bg-white">
-                  {active.suggestedProduct.image ? (
-                    <Image
-                      src={
-                        process.env.NEXT_PUBLIC_IMAGE_URL +
-                        active.suggestedProduct.image
-                      }
-                      alt={active.suggestedProduct.title ?? 'کالای پیشنهادی'}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center text-muted-foreground">
-                      <ShoppingBag className="size-6" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {active.suggestedProduct.title ?? 'کالای پیشنهادی'}
-                  </p>
-
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                    {button.free && active.rewardIsFree ? (
-                      <>
-                        <span className="inline-flex items-center gap-1 bg-green-50 px-2 py-0.5 font-semibold text-green-700">
-                          <Gift className="size-3" />
-                          رایگان
-                        </span>
-
-                        {!!active.suggestedProduct.price && (
-                          <del className="text-muted-foreground">
-                            {formatPrice(active.suggestedProduct.price)}
-                          </del>
-                        )}
-                      </>
-                    ) : (
-                      active.suggestedProduct.price != null && (
-                        <span className="font-medium">
-                          {formatPrice(active.suggestedProduct.price)}
-                        </span>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <p className="bg-muted/50 p-3 text-xs leading-6 text-muted-foreground">
-              {active.hint}
-            </p>
-
-            {button.free && active.rewardIsFree && (
-              <p className="text-xs font-medium text-green-700">
-                این کالا با تأیید شما به سبد اضافه می‌شود و مبلغ آن{' '}
-                <strong>رایگان</strong> محاسبه می‌شود.
-              </p>
-            )}
-
-            {active.action === 'add_paid_item' && (
-              <p className="text-xs font-medium text-amber-700">
-                این کالا با قیمت عادی به سبد اضافه می‌شود و برای کامل شدن شرط
-                پیشنهاد لازم است؛ تخفیف پس از کامل شدن شرط در سبد اعمال می‌شود.
               </p>
             )}
           </div>
 
-          <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
-            <Button
-              variant="outline"
-              onClick={handleDismiss}
-              disabled={dismiss.isPending}
-              data-testid="promotion-popup-dismiss"
-            >
-              {dismissLabel}
-            </Button>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="بستن پیشنهاد"
+            className="shrink-0 text-muted-foreground hover:text-gray-900"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
 
-            <Button
-              onClick={handleAccept}
-              disabled={
-                addReward.isPending ||
-                selectReward.isPending ||
-                addPaidItem.isPending
-              }
-              data-testid="promotion-popup-accept"
-            >
-              {addReward.isPending ||
-              selectReward.isPending ||
-              addPaidItem.isPending ? (
-                <Loader2 className="ml-2 size-4 animate-spin" />
+        {active.suggestedProduct && (
+          <div className="mx-3 flex items-center gap-3 border bg-[#faf9f8] p-2">
+            <div className="relative size-12 shrink-0 overflow-hidden bg-white">
+              {active.suggestedProduct.image ? (
+                <Image
+                  src={
+                    process.env.NEXT_PUBLIC_IMAGE_URL +
+                    active.suggestedProduct.image
+                  }
+                  alt={active.suggestedProduct.title ?? 'کالای پیشنهادی'}
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
               ) : (
-                <Gift className="ml-2 size-4" />
+                <div className="flex size-full items-center justify-center text-muted-foreground">
+                  <ShoppingBag className="size-5" />
+                </div>
               )}
-              {button.label}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </div>
 
-      {pickerOpen && activePromotionId != null && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium">
+                {active.suggestedProduct.title ?? 'کالای پیشنهادی'}
+              </p>
+
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px]">
+                {button.free && active.rewardIsFree ? (
+                  <>
+                    <span className="inline-flex items-center gap-1 bg-green-50 px-1.5 py-0.5 font-semibold text-green-700">
+                      <Gift className="size-3" />
+                      رایگان
+                    </span>
+
+                    {!!active.suggestedProduct.price && (
+                      <del className="text-muted-foreground">
+                        {formatPrice(active.suggestedProduct.price)} تومان
+                      </del>
+                    )}
+                  </>
+                ) : (
+                  active.suggestedProduct.price != null && (
+                    <span className="font-medium">
+                      {formatPrice(active.suggestedProduct.price)} تومان
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <p className="px-3 pt-2 text-[11px] leading-5 text-muted-foreground">
+          {active.hint}
+        </p>
+
+        {button.free && active.rewardIsFree && (
+          <p className="px-3 pt-1 text-[11px] font-medium text-green-700">
+            با تأیید شما این کالا <strong>رایگان</strong> به سبد اضافه می‌شود.
+          </p>
+        )}
+
+        {!button.free && button.addsItem && (
+          <p className="px-3 pt-1 text-[11px] font-medium text-amber-700">
+            کالا با قیمت عادی اضافه می‌شود؛ تخفیف پس از کامل شدن شرط در سبد
+            اعمال می‌شود.
+          </p>
+        )}
+
+        <div className="flex items-center gap-2 p-3 pt-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleDismiss}
+            disabled={dismiss.isPending}
+            data-testid="promotion-popup-dismiss"
+            className="flex-1"
+          >
+            {dismissLabel}
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={handleAccept}
+            disabled={isPending}
+            data-testid="promotion-popup-accept"
+            className="flex-1"
+          >
+            {isPending ? (
+              <Loader2 className="ml-1.5 size-3.5 animate-spin" />
+            ) : (
+              <Gift className="ml-1.5 size-3.5" />
+            )}
+            {button.label}
+          </Button>
+        </div>
+      </aside>
+
+      {pickerOpen && (
         <PromotionVariantPicker
           open={pickerOpen}
           onOpenChange={open => {
@@ -339,8 +322,8 @@ export default function PromotionSuggestionPopup() {
               close();
             }
           }}
-          promotionId={activePromotionId}
-          mode={active.action === 'add_paid_item' ? 'paid' : 'reward'}
+          promotionId={active.promotionId}
+          mode={button.free ? 'reward' : 'paid'}
           productId={active.suggestedProduct?.productId ?? null}
           categoryId={active.suggestedCategoryId ?? null}
           title={active.title}

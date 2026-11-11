@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { test } from 'node:test';
 
 import { createElement } from 'react';
@@ -323,4 +325,19 @@ test('popup is shown once per cart state and never after dismissal', () => {
     }),
     false,
   );
+});
+
+test('the suggestion surfaces as a non-blocking card, never a modal dialog', () => {
+  const source = readFileSync(
+    resolve(__dirname, '../components/shared/promotion-suggestion-popup.tsx'),
+    'utf8',
+  );
+
+  // کارت کنار/پایین صفحه
+  assert.match(source, /<aside/);
+  assert.match(source, /fixed inset-x-3 bottom-3/);
+
+  // مودالی که صفحه را قفل می‌کند نباید وجود داشته باشد
+  assert.doesNotMatch(source, /<DialogContent/);
+  assert.doesNotMatch(source, /<Dialog open/);
 });
