@@ -6,10 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn, formatPrice } from '@/lib/utils';
 import { useClubLevels, useClubMe } from '@/services/features/club/hooks';
+import { asArray, toNumber } from '@/services/features/club/normalize';
 import { LoyaltyLevel } from '@/services/features/club/type';
 
+/**
+ * مرتب‌سازی سطوح بر اساس اولویت (`Prioprity` - غلط املایی مستند دایاتک).
+ * اگر اولویت‌ها برابر/خالی باشند، ترتیب از `FromPoint` تعیین می‌شود تا
+ * سطح فعلی و نوار پیشرفت همیشه منطقی نمایش داده شوند.
+ */
 const sortByPriority = (levels: LoyaltyLevel[]) =>
-  [...levels].sort((a, b) => (a.Prioprity ?? 0) - (b.Prioprity ?? 0));
+  [...levels].sort(
+    (a, b) =>
+      toNumber(a.Prioprity) - toNumber(b.Prioprity) ||
+      toNumber(a.FromPoint) - toNumber(b.FromPoint),
+  );
 
 /**
  * سطوح وفاداری باشگاه + سطح فعلی کاربر بر اساس امتیاز
@@ -46,34 +56,35 @@ export default function ClubLevels() {
     );
   }
 
-  const levels = sortByPriority(levelsData.data);
+  const levels = sortByPriority(asArray<LoyaltyLevel>(levelsData.data));
 
   if (levels.length === 0) {
     return null;
   }
 
-  const totalPoint = meData?.data?.TotalPoint ?? 0;
+  const totalPoint = toNumber(meData?.data?.TotalPoint);
 
   const currentLevel =
     levels.find(
       level =>
-        totalPoint >= (level.FromPoint ?? 0) &&
-        (level.ToPoint == null || totalPoint <= level.ToPoint),
+        totalPoint >= toNumber(level.FromPoint) &&
+        (level.ToPoint == null || totalPoint <= toNumber(level.ToPoint)),
     ) ?? null;
 
   const nextLevel =
-    levels.find(level => (level.FromPoint ?? 0) > totalPoint) ?? null;
+    levels.find(level => toNumber(level.FromPoint) > totalPoint) ?? null;
+
+  const currentFromPoint = toNumber(currentLevel?.FromPoint);
+  const nextFromPoint = toNumber(nextLevel?.FromPoint);
+  const levelSpan = nextFromPoint - currentFromPoint;
 
   const progress = nextLevel
-    ? Math.min(
-        100,
-        Math.max(
-          0,
-          ((totalPoint - (currentLevel?.FromPoint ?? 0)) /
-            ((nextLevel.FromPoint ?? 1) - (currentLevel?.FromPoint ?? 0))) *
-            100,
-        ),
-      )
+    ? levelSpan > 0
+      ? Math.min(
+          100,
+          Math.max(0, ((totalPoint - currentFromPoint) / levelSpan) * 100),
+        )
+      : 100
     : 100;
 
   return (
@@ -94,13 +105,15 @@ export default function ClubLevels() {
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>
             {formatPrice(totalPoint)} امتیاز
-            {nextLevel && ` از ${formatPrice(nextLevel.FromPoint ?? 0)}`}
+            {nextLevel && ` از ${formatPrice(toNumber(nextLevel.FromPoint))}`}
           </span>
           {nextLevel && (
             <span className="flex items-center gap-1">
               <TrendingUp className="h-3.5 w-3.5" strokeWidth={1.5} />
-              {formatPrice((nextLevel.FromPoint ?? 0) - totalPoint)} امتیاز تا{' '}
-              {nextLevel.Title}
+              {formatPrice(
+                Math.max(toNumber(nextLevel.FromPoint) - totalPoint, 0),
+              )}{' '}
+              امتیاز تا {nextLevel.Title}
             </span>
           )}
         </div>
@@ -115,12 +128,12 @@ export default function ClubLevels() {
 
       {/* لیست سطوح */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {levels.map(level => {
+        {levels.map((level, index) => {
           const isCurrent = currentLevel?.Id === level.Id;
 
           return (
             <div
-              key={level.Id}
+              key={level.Id ?? `level-${index}`}
               className={cn(
                 'rounded-lg border p-4 transition-colors',
                 isCurrent
@@ -138,12 +151,17 @@ export default function ClubLevels() {
               </div>
 
               <p className="mt-2 text-xs text-gray-500">
-                از {formatPrice(level.FromPoint ?? 0)} تا{' '}
-                {level.ToPoint != null ? formatPrice(level.ToPoint) : '∞'} امتیاز
+                از {formatPrice(toNumber(level.FromPoint))} تا{' '}
+                {level.ToPoint != null
+                  ? formatPrice(toNumber(level.ToPoint))
+                  : '∞'}{' '}
+                امتیاز
               </p>
 
               {level.Description && (
-                <p className="mt-2 text-xs text-gray-400">{level.Description}</p>
+                <p className="mt-2 text-xs text-gray-400">
+                  {level.Description}
+                </p>
               )}
             </div>
           );

@@ -19,7 +19,13 @@ import {
   useClubWalletTransactions,
 } from '@/services/features/club/hooks';
 import {
+  asArray,
+  toNumber,
+  toWalletId,
+} from '@/services/features/club/normalize';
+import {
   ClubWallet,
+  ClubWalletTransaction,
   pickField,
   rialToToman,
 } from '@/services/features/club/type';
@@ -59,7 +65,7 @@ function WalletTransactions({ walletId }: { walletId: number }) {
     );
   }
 
-  const transactions = data?.data ?? [];
+  const transactions = asArray<ClubWalletTransaction>(data?.data);
 
   if (transactions.length === 0) {
     return (
@@ -111,14 +117,14 @@ function WalletTransactions({ walletId }: { walletId: number }) {
             ]);
 
             return (
-              <TableRow key={transaction.Id}>
+              <TableRow key={toNumber(transaction.Id)}>
                 <TableCell className="text-xs text-gray-500">
                   {dateLabel}
                 </TableCell>
                 <TableCell className="text-sm">{description}</TableCell>
                 <TableCell className="text-left text-sm">
                   {amount != null
-                    ? `${formatPrice(rialToToman(Number(amount) || 0))} تومان`
+                    ? `${formatPrice(rialToToman(toNumber(amount)))} تومان`
                     : '—'}
                 </TableCell>
               </TableRow>
@@ -166,7 +172,7 @@ export default function ClubWallets() {
     );
   }
 
-  const wallets = data.data;
+  const wallets = asArray<ClubWallet>(data.data);
 
   if (wallets.length === 0) {
     return (
@@ -194,49 +200,60 @@ export default function ClubWallets() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {wallets.map((wallet: ClubWallet) => (
-              <Fragment key={wallet.Id}>
-                <TableRow
-                  className="cursor-pointer"
-                  onClick={() =>
-                    setOpenWalletId(openWalletId === wallet.Id ? null : wallet.Id)
-                  }
-                >
-                  <TableCell className="text-sm">
-                    کیف پول #{wallet.WalletId ?? wallet.Id}
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {wallet.OfficeId != null ? `شعبه ${wallet.OfficeId}` : '—'}
-                  </TableCell>
-                  <TableCell className="text-left text-sm font-medium">
-                    {formatPrice(rialToToman(wallet.AvailableCredit))} تومان
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 text-xs text-gray-500 transition-colors hover:text-gray-800"
-                    >
-                      تراکنش‌ها
-                      <ChevronDown
-                        className={cn(
-                          'h-3.5 w-3.5 transition-transform duration-200',
-                          openWalletId === wallet.Id && 'rotate-180',
-                        )}
-                        strokeWidth={1.5}
-                      />
-                    </button>
-                  </TableCell>
-                </TableRow>
+            {wallets.map((wallet: ClubWallet) => {
+              const walletId = toWalletId(wallet.Id);
 
-                {openWalletId === wallet.Id && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="p-0">
-                      <WalletTransactions walletId={wallet.Id} />
+              return (
+                <Fragment key={wallet.Id}>
+                  <TableRow
+                    className="cursor-pointer"
+                    onClick={() =>
+                      setOpenWalletId(
+                        openWalletId === wallet.Id ? null : wallet.Id,
+                      )
+                    }
+                  >
+                    <TableCell className="text-sm">
+                      کیف پول #{wallet.WalletId ?? wallet.Id}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {wallet.OfficeId != null
+                        ? `شعبه ${wallet.OfficeId}`
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-left text-sm font-medium">
+                      {formatPrice(
+                        rialToToman(toNumber(wallet.AvailableCredit)),
+                      )}{' '}
+                      تومان
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 text-xs text-gray-500 transition-colors hover:text-gray-800"
+                      >
+                        تراکنش‌ها
+                        <ChevronDown
+                          className={cn(
+                            'h-3.5 w-3.5 transition-transform duration-200',
+                            openWalletId === wallet.Id && 'rotate-180',
+                          )}
+                          strokeWidth={1.5}
+                        />
+                      </button>
                     </TableCell>
                   </TableRow>
-                )}
-              </Fragment>
-            ))}
+
+                  {openWalletId === wallet.Id && walletId > 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-0">
+                        <WalletTransactions walletId={walletId} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
