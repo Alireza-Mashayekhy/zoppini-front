@@ -30,6 +30,7 @@ import {
   useDeleteCartItem,
   useUpdateCartItem,
 } from '@/services/features/cart/hooks';
+import { CartItem } from '@/services/features/cart/types';
 import { useCartStore } from '@/store/cart.store';
 
 export default function Cart() {
@@ -152,28 +153,18 @@ export default function Cart() {
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          {item?.variant?.discount &&
-                            item?.variant?.discountedPrice && (
-                              <span className="text-sm font-medium">
-                                {(
-                                  item.variant.discountedPrice * item.quantity
-                                ).toLocaleString()}{' '}
-                                تومان
+                        <div className="flex flex-col items-end">
+                          <CartLinePrice item={item} />
+
+                          {!item.promotion?.isFreeReward &&
+                            item.promotion?.labels?.map(label => (
+                              <span
+                                key={label}
+                                className="mt-1 text-[10px] font-medium text-green-700"
+                              >
+                                {label}
                               </span>
-                            )}
-                          <span
-                            className={
-                              item?.variant?.discount
-                                ? 'text-xs font-medium line-through'
-                                : 'text-sm font-medium'
-                            }
-                          >
-                            {(
-                              item.variant.price * item.quantity
-                            ).toLocaleString()}{' '}
-                            تومان
-                          </span>
+                            ))}
                         </div>
                         <Button
                           variant="ghost"
@@ -203,15 +194,49 @@ export default function Cart() {
               <div className="flex justify-between text-sm">
                 <span>تخفیف</span>
                 <span className="font-semibold">
-                  {data?.data?.pricing?.discountPrice.toLocaleString()} تومان
+                  {(
+                    (data?.data?.pricing?.discountPrice ?? 0) +
+                    (data?.data?.pricing?.promotionDiscountPrice ?? 0)
+                  ).toLocaleString()}{' '}
+                  تومان
                 </span>
               </div>
+
+              {(data?.data?.pricing?.freeItemValue ?? 0) > 0 && (
+                <div className="flex justify-between text-sm text-green-700">
+                  <span>کالای رایگان</span>
+                  <span className="font-semibold">
+                    {data?.data?.pricing?.freeItemValue?.toLocaleString()} تومان
+                  </span>
+                </div>
+              )}
+
+              {!!data?.data?.pricing?.freeShipping && (
+                <div className="flex justify-between text-sm text-green-700">
+                  <span>ارسال</span>
+                  <span className="font-semibold">رایگان</span>
+                </div>
+              )}
+
               <div className="flex justify-between text-sm">
                 <span>جمع کل</span>
                 <span className="font-semibold">
                   {data?.data?.pricing?.finalPrice.toLocaleString()} تومان
                 </span>
               </div>
+
+              {!!data?.data?.promotions?.notices?.length && (
+                <ul className="space-y-1 border-t pt-3">
+                  {data.data.promotions.notices.map(notice => (
+                    <li
+                      key={notice}
+                      className="text-[11px] leading-5 text-amber-700"
+                    >
+                      {notice}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div className="flex gap-2">
                 <AlertDialog>
                   <AlertDialogTrigger>
@@ -255,5 +280,60 @@ export default function Cart() {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+/**
+ * قیمت یک ردیف سبد.
+ *
+ * منبع عدد، فیلد `payableTotal` سرور است (پس از فروش ویژه و سهم پروموشن)،
+ * نه محاسبهٔ دوباره در کلاینت؛ تا جمع ردیف‌ها همیشه با جمع کل سبد بخواند.
+ * برای ردیف هدیه، مبلغ صفر با برچسب «رایگان» و قیمت قبل از تخفیف خط‌خورده
+ * نمایش داده می‌شود.
+ */
+function CartLinePrice({ item }: { item: CartItem }) {
+  const listTotal = Number(item.variant.price) * item.quantity;
+
+  const payableTotal =
+    item.payableTotal ??
+    (item.promotion?.isFreeReward
+      ? 0
+      : item.payablePrice != null
+        ? Number(item.payablePrice) * item.quantity
+        : listTotal);
+
+  if (item.promotion?.isFreeReward) {
+    return (
+      <div className="flex flex-col items-end">
+        <span className="bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+          رایگان
+        </span>
+        <del className="text-[11px] text-gray-400">
+          {listTotal.toLocaleString()} تومان
+        </del>
+      </div>
+    );
+  }
+
+  const discounted = payableTotal !== listTotal;
+
+  return (
+    <div className="flex flex-col items-end">
+      {discounted && (
+        <span className="text-sm font-medium">
+          {payableTotal.toLocaleString()} تومان
+        </span>
+      )}
+
+      <span
+        className={
+          discounted
+            ? 'text-xs font-medium line-through'
+            : 'text-sm font-medium'
+        }
+      >
+        {listTotal.toLocaleString()} تومان
+      </span>
+    </div>
   );
 }

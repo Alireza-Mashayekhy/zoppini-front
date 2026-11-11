@@ -8,9 +8,14 @@ import { useState } from 'react';
 import CompareToggle, {
   cardActionButtonClass,
 } from '@/components/shared/compare-toggle';
+import PromotionBadge from '@/components/shared/promotion-badge';
 import QuickAddDialog from '@/components/shared/quick-add-dialog';
 import { cn } from '@/lib/utils';
 import { ProductDiscount } from '@/services/features/discounts/types';
+import {
+  PromotionProductBadge,
+  PromotionType,
+} from '@/services/features/promotions/types';
 
 interface ProductProps {
   /** شناسه محصول — برای دکمه‌های مقایسه و خرید سریع لازم است */
@@ -23,6 +28,11 @@ interface ProductProps {
   slug: string;
   slider?: boolean;
   discount?: ProductDiscount;
+  /**
+   * نشان پروموشن (متنی، بدون تغییر قیمت).
+   * قیمت کارت هرگز بر اساس این نشان عوض نمی‌شود.
+   */
+  promotionBadge?: PromotionProductBadge & { type?: PromotionType } | null;
   /** نمایش دکمه‌های کوچک روی کارت (پیش‌فرض روشن؛ بدون id پنهان است) */
   showActions?: boolean;
 }
@@ -40,6 +50,7 @@ export default function ProductCard({
   slug,
   slider,
   discount,
+  promotionBadge,
   showActions = true,
 }: ProductProps) {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -105,6 +116,10 @@ export default function ProductCard({
             <span className="line-clamp-1 text-[11px] leading-5 text-[#85817c] sm:text-xs">
               {subtitle}
             </span>
+          )}
+
+          {promotionBadge?.text && (
+            <PromotionBadge badge={promotionBadge} compact />
           )}
 
           {!!price && price !== 0 && (

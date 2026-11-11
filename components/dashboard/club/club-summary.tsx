@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice, toPersianDate } from '@/lib/utils';
 import { useClubMe } from '@/services/features/club/hooks';
-import { rialToToman } from '@/services/features/club/type';
+import { asArray, toNumber } from '@/services/features/club/normalize';
+import { ClubCoupon, rialToToman } from '@/services/features/club/type';
 
 /**
  * کارت خلاصه اطلاعات باشگاه مشتریان:
@@ -41,14 +42,15 @@ export default function ClubSummary() {
 
   const customer = data.data;
 
-  const activeCoupons = (customer.Coupons ?? []).filter(
+  // `Coupons` در بعضی نسخه‌های دایاتک آرایه، پوشش `{ Items }` یا حتی null است.
+  const activeCoupons = asArray<ClubCoupon>(customer.Coupons).filter(
     coupon => coupon.IsActive && !coupon.IsUsed,
   ).length;
 
   const stats = [
     {
       label: 'اعتبار قابل استفاده',
-      value: `${formatPrice(rialToToman(customer.AvailableCredit))} تومان`,
+      value: `${formatPrice(rialToToman(toNumber(customer.AvailableCredit)))} تومان`,
       icon: Wallet,
     },
     {
@@ -67,7 +69,7 @@ export default function ClubSummary() {
         </div>
 
         <p className="mt-3 text-4xl font-light tracking-wide">
-          {formatPrice(customer.TotalPoint ?? 0)}{' '}
+          {formatPrice(toNumber(customer.TotalPoint))}{' '}
           <span className="text-sm text-gray-300">امتیاز</span>
         </p>
       </div>

@@ -35,8 +35,10 @@ export async function siezList() {
 
 export async function productsList(query: {
   page?: number;
+  limit?: number;
   search?: string;
   all?: boolean;
+  categoryIds?: number[];
 }) {
   const { data } = await api.get<ApiListResponse<ProductsResponse>>(
     endpoints.products.list,

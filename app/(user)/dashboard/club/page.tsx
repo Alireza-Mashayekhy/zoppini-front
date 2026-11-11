@@ -5,6 +5,7 @@ import ClubHistory from '@/components/dashboard/club/club-history';
 import ClubLevels from '@/components/dashboard/club/club-levels';
 import ClubSummary from '@/components/dashboard/club/club-summary';
 import ClubWallets from '@/components/dashboard/club/club-wallets';
+import SectionErrorBoundary from '@/components/shared/section-error-boundary';
 
 export default function ClubPage() {
   return (
@@ -17,25 +18,35 @@ export default function ClubPage() {
       </div>
 
       {/* خلاصه امتیاز و اعتبار */}
-      <ClubSummary />
+      <SectionErrorBoundary title="خلاصه باشگاه">
+        <ClubSummary />
+      </SectionErrorBoundary>
 
       {/* سطوح وفاداری */}
-      <ClubLevels />
+      <SectionErrorBoundary title="سطوح وفاداری">
+        <ClubLevels />
+      </SectionErrorBoundary>
 
       {/* کیف پول‌های باشگاه */}
-      <ClubWallets />
+      <SectionErrorBoundary title="کیف پول‌های باشگاه">
+        <ClubWallets />
+      </SectionErrorBoundary>
 
       {/* بن‌های تخفیف */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-light tracking-wide">بن‌های تخفیف</h2>
-        <ClubCoupons />
-      </div>
+      <SectionErrorBoundary title="بن‌های تخفیف">
+        <div className="space-y-4">
+          <h2 className="text-xl font-light tracking-wide">بن‌های تخفیف</h2>
+          <ClubCoupons />
+        </div>
+      </SectionErrorBoundary>
 
       {/* تاریخچه وفاداری */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-light tracking-wide">تاریخچه وفاداری</h2>
-        <ClubHistory />
-      </div>
+      <SectionErrorBoundary title="تاریخچه وفاداری">
+        <div className="space-y-4">
+          <h2 className="text-xl font-light tracking-wide">تاریخچه وفاداری</h2>
+          <ClubHistory />
+        </div>
+      </SectionErrorBoundary>
     </div>
   );
 }

@@ -138,6 +138,16 @@ export default function OrderItem({ order }: OrderItemProps) {
               {order.discount > 0 && (
                 <p>تخفیف: {formatPrice(order.discount)} تومان</p>
               )}
+              {!!order.promotionDiscount && (
+                <p>تخفیف پیشنهاد ویژه: {formatPrice(order.promotionDiscount)} تومان</p>
+              )}
+              {!!order.promotionFreeItemValue && (
+                <p>
+                  کالای رایگان:{' '}
+                  {formatPrice(order.promotionFreeItemValue)} تومان
+                </p>
+              )}
+              {!!order.promotionFreeShipping && <p>ارسال رایگان (پیشنهاد ویژه)</p>}
               {walletPaymentAmount > 0 && (
                 <p>
                   پرداخت از کیف پول: {formatPrice(walletPaymentAmount)} تومان

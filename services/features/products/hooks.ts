@@ -76,6 +76,28 @@ export const useProducsList = (
   });
 };
 
+/**
+ * محصولات یک دسته‌بندی (برای انتخاب کالای هدیه توسط مشتری).
+ * فقط برای پیشنهادهای «انتخاب با مشتری» استفاده می‌شود.
+ */
+export const useCategoryProducts = (
+  categoryId: number | null,
+  limit = 12,
+) => {
+  return useQuery({
+    queryKey: ['category-products', categoryId, limit],
+    queryFn: () =>
+      productsList({
+        categoryIds: categoryId ? [categoryId] : undefined,
+        limit,
+        all: true,
+      }),
+    enabled: !!categoryId,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useSearchSuggestions = (search: string, enabled: boolean) => {
   return useQuery({
     queryKey: ['product-search-suggestions', search],

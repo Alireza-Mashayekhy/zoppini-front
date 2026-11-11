@@ -14,10 +14,11 @@ import {
 } from '@/components/ui/table';
 import { cn, formatPrice, toPersianDateTime } from '@/lib/utils';
 import { useClubLoyaltyHistories } from '@/services/features/club/hooks';
+import { asArray, toNumber } from '@/services/features/club/normalize';
 import { LoyaltyHistory, rialToToman } from '@/services/features/club/type';
 
 const dateLabel = (history: LoyaltyHistory) => {
-  if (history.Date) {
+  if (history?.Date) {
     const formatted = toPersianDateTime(history.Date);
 
     if (formatted) return formatted;
@@ -62,7 +63,7 @@ export default function ClubHistory() {
     );
   }
 
-  const histories = data?.data ?? [];
+  const histories = asArray<LoyaltyHistory>(data?.data);
 
   if (histories.length === 0) {
     return (
@@ -90,8 +91,8 @@ export default function ClubHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {histories.map((history: LoyaltyHistory) => (
-              <TableRow key={history.Id}>
+            {histories.map((history: LoyaltyHistory, index) => (
+              <TableRow key={history.Id ?? `history-${index}`}>
                 <TableCell className="whitespace-nowrap text-xs text-gray-500">
                   {dateLabel(history)}
                 </TableCell>
@@ -101,15 +102,17 @@ export default function ClubHistory() {
                 </TableCell>
 
                 <TableCell>
-                  {history.Point != null && history.Point !== 0 ? (
+                  {toNumber(history.Point) !== 0 ? (
                     <span
                       className={cn(
                         'text-sm font-medium',
-                        history.Point > 0 ? 'text-green-600' : 'text-red-600',
+                        toNumber(history.Point) > 0
+                          ? 'text-green-600'
+                          : 'text-red-600',
                       )}
                     >
-                      {history.Point > 0 ? '+' : ''}
-                      {formatPrice(history.Point)}
+                      {toNumber(history.Point) > 0 ? '+' : ''}
+                      {formatPrice(toNumber(history.Point))}
                     </span>
                   ) : (
                     <span className="text-sm text-gray-400">—</span>
@@ -117,15 +120,17 @@ export default function ClubHistory() {
                 </TableCell>
 
                 <TableCell>
-                  {history.Credit != null && history.Credit !== 0 ? (
+                  {toNumber(history.Credit) !== 0 ? (
                     <span
                       className={cn(
                         'text-sm font-medium',
-                        history.Credit > 0 ? 'text-green-600' : 'text-red-600',
+                        toNumber(history.Credit) > 0
+                          ? 'text-green-600'
+                          : 'text-red-600',
                       )}
                     >
-                      {history.Credit > 0 ? '+' : ''}
-                      {formatPrice(rialToToman(history.Credit))} تومان
+                      {toNumber(history.Credit) > 0 ? '+' : ''}
+                      {formatPrice(rialToToman(toNumber(history.Credit)))} تومان
                     </span>
                   ) : (
                     <span className="text-sm text-gray-400">—</span>
@@ -134,7 +139,9 @@ export default function ClubHistory() {
 
                 <TableCell className="text-sm">
                   {history.CustomerRemainingCredit != null
-                    ? `${formatPrice(rialToToman(history.CustomerRemainingCredit))} تومان`
+                    ? `${formatPrice(
+                        rialToToman(toNumber(history.CustomerRemainingCredit)),
+                      )} تومان`
                     : '—'}
                 </TableCell>
 

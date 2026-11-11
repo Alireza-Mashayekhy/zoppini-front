@@ -24,7 +24,10 @@ import {
 import { useApplyDiscount } from '@/services/features/discounts/hooks';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
 import { confirmOrderFromWallet } from '@/services/features/orders/api';
-import { useCreateOrder } from '@/services/features/orders/hooks';
+import {
+  useCheckoutPreview,
+  useCreateOrder,
+} from '@/services/features/orders/hooks';
 import {
   CreateOrderDto,
   OrderStatus,
@@ -52,6 +55,7 @@ export default function CheckoutForm() {
   const router = useRouter();
 
   const { data: cartData, isLoading: cartLoading } = useCartList();
+
 
   const { data: addresses, isLoading: addressesLoading } = useAddresses();
 
@@ -119,6 +123,13 @@ export default function CheckoutForm() {
   });
 
   const isPickup = getDeliveryType(selectedShipping) === 'pickup';
+
+  /**
+   * مبالغ معتبر سمت سرور: با هر تغییر سبد/روش ارسال دوباره محاسبه می‌شود تا
+   * تخفیف پروموشن، کالای رایگان و ارسال رایگان در چک‌اوت همان چیزی باشد که
+   * هنگام ثبت سفارش دوباره بررسی می‌شود.
+   */
+  const { data: checkoutPreviewData } = useCheckoutPreview(selectedShipping);
 
   const { isFreeShipping, shippingCost } = calculateCheckoutShipping(
     cartItems,
@@ -981,6 +992,7 @@ export default function CheckoutForm() {
         <OrderSummary
           items={cartItems}
           pricing={cartData?.data?.pricing || null}
+          checkoutPreview={checkoutPreviewData?.data ?? null}
           appliedDiscount={appliedDiscount}
           shippingCost={shippingCost}
           isFreeShipping={isFreeShipping}

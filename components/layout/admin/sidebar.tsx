@@ -16,6 +16,7 @@ import {
   Percent,
   Ruler,
   Search,
+  Sparkles,
   Star,
   User,
 } from 'lucide-react';
@@ -120,6 +121,11 @@ export default function AdminSidebar({
         link: '/admin/discounts',
         icon: Percent,
         name: 'تخفیفات',
+      },
+      {
+        link: '/admin/promotions',
+        icon: Sparkles,
+        name: 'پیشنهادهای ویژه',
       },
       {
         link: '/admin/gamification',

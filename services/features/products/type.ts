@@ -72,6 +72,16 @@ export interface ProductsResponse {
   /** false یعنی تگ nofollow روی صفحه‌ی محصول اعمال می‌شود */
   followable?: boolean;
   discount?: ProductDiscount;
+  /** نشان‌های پروموشن (بدون تغییر قیمت، فقط توضیح پیشنهاد) */
+  promotionBadges?: {
+    promotionId: number;
+    badgeText: string;
+    description: string | null;
+    type: string;
+    hint: string;
+  }[];
+  /** نشان پروموشن روی کارت محصول (در لیست‌ها) */
+  promotionBadge?: { promotionId: number; text: string } | null;
   careInstructionsHtml: string;
   careInstructionsTitle?: CareInstructionsTitle;
   createdAt: string;

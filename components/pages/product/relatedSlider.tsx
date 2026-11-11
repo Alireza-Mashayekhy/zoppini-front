@@ -98,6 +98,7 @@ export default function RelatedSlider({ products, label }: RelatedSliderProps) {
                 title={product.title}
                 price={product.variants?.[0]?.price || 0}
                 slug={product.slug}
+                promotionBadge={product.promotionBadge ?? null}
               />
             </div>
           ))}

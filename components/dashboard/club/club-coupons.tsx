@@ -7,18 +7,25 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice, toPersianDate } from '@/lib/utils';
 import { useClubMe } from '@/services/features/club/hooks';
+import { asArray, toNumber } from '@/services/features/club/normalize';
 import { ClubCoupon, rialToToman } from '@/services/features/club/type';
 
 const isExpired = (coupon: ClubCoupon) => {
-  if (coupon.ExpireTypeIndex !== 1 || !coupon.ExpireDate) return false;
+  if (toNumber(coupon.ExpireTypeIndex) !== 1 || !coupon.ExpireDate)
+    return false;
 
-  return new Date(coupon.ExpireDate).getTime() < Date.now();
+  const expireAt = new Date(coupon.ExpireDate).getTime();
+
+  // تاریخ نامعتبر نباید کوپن را «منقضی» نشان دهد
+  if (Number.isNaN(expireAt)) return false;
+
+  return expireAt < Date.now();
 };
 
 const discountLabel = (coupon: ClubCoupon) =>
-  coupon.DiscountTypeIndex === 1
-    ? `${formatPrice(coupon.DiscountValue)}٪ تخفیف`
-    : `${formatPrice(rialToToman(coupon.DiscountValue))} تومان تخفیف`;
+  toNumber(coupon.DiscountTypeIndex) === 1
+    ? `${formatPrice(toNumber(coupon.DiscountValue))}٪ تخفیف`
+    : `${formatPrice(rialToToman(toNumber(coupon.DiscountValue)))} تومان تخفیف`;
 
 /**
  * بن‌های تخفیف (کوپن‌های) کاربر در باشگاه مشتریان
@@ -54,7 +61,8 @@ export default function ClubCoupons() {
     );
   }
 
-  const coupons = data.data.Coupons ?? [];
+  // `Coupons` ممکن است آرایه، پوشش `{ Items }` یا null باشد.
+  const coupons = asArray<ClubCoupon>(data.data.Coupons);
 
   if (coupons.length === 0) {
     return (
@@ -69,14 +77,14 @@ export default function ClubCoupons() {
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {coupons.map((coupon: ClubCoupon) => {
+      {coupons.map((coupon: ClubCoupon, index) => {
         const expired = isExpired(coupon);
-        const used = coupon.IsUsed;
+        const used = Boolean(coupon.IsUsed);
         const disabled = !coupon.IsActive || expired || used;
 
         return (
           <div
-            key={coupon.Id}
+            key={coupon.Id ?? `coupon-${index}`}
             className={
               disabled
                 ? 'rounded-lg border border-border bg-gray-50 p-4 opacity-60'
@@ -86,7 +94,10 @@ export default function ClubCoupons() {
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-                  <Ticket className="h-4.5 w-4.5 text-gray-700" strokeWidth={1.5} />
+                  <Ticket
+                    className="h-4.5 w-4.5 text-gray-700"
+                    strokeWidth={1.5}
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{coupon.Title}</p>
@@ -115,29 +126,32 @@ export default function ClubCoupons() {
                 </span>
               </div>
 
-              {coupon.ExpireTypeIndex === 1 && coupon.ExpireDate && (
+              {toNumber(coupon.ExpireTypeIndex) === 1 && coupon.ExpireDate && (
                 <div className="flex items-center justify-between">
                   <span>تاریخ انقضا</span>
                   <span>{toPersianDate(coupon.ExpireDate)}</span>
                 </div>
               )}
 
-              {coupon.ExpireTypeIndex === 2 &&
-                coupon.ExpireDaysAfterAssignment != null && (
+              {toNumber(coupon.ExpireTypeIndex) === 2 &&
+                toNumber(coupon.ExpireDaysAfterAssignment) > 0 && (
                   <div className="flex items-center justify-between">
                     <span>اعتبار</span>
                     <span>
-                      {formatPrice(coupon.ExpireDaysAfterAssignment)} روز پس از
-                      تخصیص
+                      {formatPrice(toNumber(coupon.ExpireDaysAfterAssignment))}{' '}
+                      روز پس از تخصیص
                     </span>
                   </div>
                 )}
 
-              {coupon.MinimumOrderPrice != null && coupon.MinimumOrderPrice > 0 && (
+              {toNumber(coupon.MinimumOrderPrice) > 0 && (
                 <div className="flex items-center justify-between">
                   <span>حداقل مبلغ خرید</span>
                   <span>
-                    {formatPrice(rialToToman(coupon.MinimumOrderPrice))} تومان
+                    {formatPrice(
+                      rialToToman(toNumber(coupon.MinimumOrderPrice)),
+                    )}{' '}
+                    تومان
                   </span>
                 </div>
               )}
