@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
+import PromotionBadge from '@/components/shared/promotion-badge';
 import { track } from '@/lib/consent/client';
 import { resolveHtmlMedia } from '@/lib/media';
 import { useAddToCart } from '@/services/features/cart/hooks';
@@ -14,6 +15,7 @@ import {
   ColorResponse,
   ProductResponse,
 } from '@/services/features/products/type';
+import { PromotionType } from '@/services/features/promotions/types';
 import { useCartStore } from '@/store/cart.store';
 
 import InstallmentInfo from './installment-info';
@@ -167,6 +169,28 @@ export default function ProductContent({
               selectedSizeId={selectedSizeId}
               onSizeSelect={setSelectedSizeId}
             />
+
+            {!!product.promotionBadges?.length && (
+              <div className="mt-4 flex flex-col gap-2">
+                {product.promotionBadges.map(badge => (
+                  <div
+                    key={badge.promotionId}
+                    className="border border-[#ad2e38]/25 bg-[#ad2e38]/5 p-3"
+                  >
+                    <PromotionBadge
+                      badge={{
+                        promotionId: badge.promotionId,
+                        text: badge.badgeText,
+                        type: badge.type as PromotionType,
+                      }}
+                    />
+                    <p className="mt-2 text-xs leading-6 text-[#5c5852]">
+                      {badge.hint}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-1 mt-6">
               <button

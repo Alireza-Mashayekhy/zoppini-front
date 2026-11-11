@@ -4,6 +4,7 @@ import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { AddressResponse } from '../addresses/types';
 import { ColorResponse, SizeResponse } from '../products/type';
+import { OrderPromotionSnapshotEntry } from './type';
 
 export enum OrderStatus {
   PENDING = 'pending',
@@ -69,6 +70,18 @@ export interface AdminOrder {
   user?: OrderUser;
 
   items?: OrderItem[];
+
+  /** جمع تخفیف پروموشن‌ها (جدا از فروش ویژه و کد تخفیف) */
+  promotionDiscount?: number | string | null;
+  /** ارزش کالاهای رایگان پروموشن */
+  promotionFreeItemValue?: number | string | null;
+  /** آیا ارسال رایگان از پروموشن گرفته شده است */
+  promotionFreeShipping?: boolean | null;
+  /**
+   * اسنپ‌شات قاعده‌های اعمال‌شده در لحظهٔ ثبت سفارش.
+   * برای پشتیبانی و فاکتور: نشان می‌دهد چرا و چقدر تخفیف خورده است.
+   */
+  promotionSnapshot?: OrderPromotionSnapshotEntry[] | null;
 
   paymentBreakdown?: {
     walletAmount?: number;

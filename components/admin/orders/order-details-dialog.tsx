@@ -465,6 +465,29 @@ export default function OrderDetailsDialog({
                   negative
                 />
 
+                {!!currentOrder.promotionDiscount && (
+                  <PriceRow
+                    label="تخفیف پیشنهادهای ویژه"
+                    value={currentOrder.promotionDiscount}
+                    negative
+                  />
+                )}
+
+                {!!currentOrder.promotionFreeItemValue && (
+                  <PriceRow
+                    label="ارزش کالای رایگان"
+                    value={currentOrder.promotionFreeItemValue}
+                    negative
+                  />
+                )}
+
+                {!!currentOrder.promotionFreeShipping && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span>ارسال رایگان (پروموشن)</span>
+                    <span className="font-semibold text-green-700">فعال</span>
+                  </div>
+                )}
+
                 <div className="my-3 border-t" />
 
                 <div className="flex items-center justify-between">
@@ -476,6 +499,51 @@ export default function OrderDetailsDialog({
                 </div>
               </div>
             </div>
+
+            {/* ================================================= */}
+            {/* پروموشن‌های اعمال‌شده (اسنپ‌شات زمان ثبت سفارش) */}
+            {/* ================================================= */}
+
+            {!!currentOrder.promotionSnapshot?.length && (
+              <div className="rounded-xl border p-4">
+                <h3 className="mb-1 font-semibold">
+                  پیشنهادهای اعمال‌شده در این سفارش
+                </h3>
+
+                <p className="mb-4 text-xs leading-5 text-muted-foreground">
+                  این اطلاعات در لحظهٔ ثبت سفارش ذخیره شده است؛ ویرایش یا حذف
+                  پروموشن، تاریخچهٔ این سفارش را تغییر نمی‌دهد.
+                </p>
+
+                <div className="space-y-2">
+                  {currentOrder.promotionSnapshot.map(entry => (
+                    <div key={entry.promotionId} className="border p-3 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-medium">{entry.name}</span>
+
+                        <span className="text-[11px] text-muted-foreground">
+                          شناسه {entry.promotionId}
+                        </span>
+                      </div>
+
+                      <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                        <span>
+                          تخفیف: {formatPrice(entry.discountAmount)}
+                        </span>
+
+                        {!!entry.freeItemValue && (
+                          <span>
+                            کالای رایگان: {formatPrice(entry.freeItemValue)}
+                          </span>
+                        )}
+
+                        {entry.grantsFreeShipping && <span>ارسال رایگان</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ================================================= */}
             {/* پرداخت */}

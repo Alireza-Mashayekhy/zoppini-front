@@ -51,6 +51,7 @@ function SuggestionGroup({
             price={product.variants?.[0]?.price || 0}
             slug={product.slug}
             discount={product.discount}
+            promotionBadge={product.promotionBadge ?? null}
           />
         ))}
       </div>
