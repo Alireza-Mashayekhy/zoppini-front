@@ -21,11 +21,23 @@ export const createOrder = async (dto: CreateOrderDto) => {
  * برای بازه‌های زمانی و موجودی معتبر است؛ سبد محلی ممکن است قدیمی باشد.
  */
 export const previewCheckout = async (
-  shippingMethod?: string,
+  options: {
+    shippingMethod?: string;
+    discountCode?: string;
+    useFirstPurchaseGift?: boolean;
+  } = {},
 ): Promise<CheckoutPreviewResponse> => {
   const { data } = await api.get<CheckoutPreviewResponse>(
     endpoints.order.checkoutPreview,
-    { params: shippingMethod ? { shippingMethod } : undefined },
+    {
+      params: {
+        ...(options.shippingMethod ? { shippingMethod: options.shippingMethod } : {}),
+        ...(options.discountCode ? { discountCode: options.discountCode } : {}),
+        ...(options.useFirstPurchaseGift
+          ? { useFirstPurchaseGift: true }
+          : {}),
+      },
+    },
   );
 
   return data;
