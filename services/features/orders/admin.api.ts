@@ -73,6 +73,8 @@ export interface AdminOrder {
 
   /** جمع تخفیف پروموشن‌ها (جدا از فروش ویژه و کد تخفیف) */
   promotionDiscount?: number | string | null;
+  /** مبلغ هدیهٔ اختصاصی اولین خرید آنلاین */
+  firstPurchaseGiftDiscount?: number | string | null;
   /** ارزش کالاهای رایگان پروموشن */
   promotionFreeItemValue?: number | string | null;
   /** آیا ارسال رایگان از پروموشن گرفته شده است */
@@ -85,6 +87,7 @@ export interface AdminOrder {
 
   paymentBreakdown?: {
     walletAmount?: number;
+    clubCreditAmount?: number;
     gatewayAmount: number;
     gateways: {
       id?: string;
