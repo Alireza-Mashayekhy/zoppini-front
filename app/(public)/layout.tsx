@@ -3,6 +3,8 @@ import Script from 'next/script';
 import Footer from '@/components/layout/public/footer';
 import Header from '@/components/layout/public/header';
 import CompareBar from '@/components/shared/compare-bar';
+import FirstPurchaseGiftAnnouncement from '@/components/shared/first-purchase-gift-announcement';
+import FirstPurchaseGiftPopup from '@/components/shared/first-purchase-gift-popup';
 import PromotionSuggestionPopup from '@/components/shared/promotion-suggestion-popup';
 import SupportWidget from '@/components/shared/support-widget';
 
@@ -34,6 +36,7 @@ export default function PublicLayout({
 
       <SupportWidget />
 
+      <FirstPurchaseGiftAnnouncement />
       <Header />
 
       <div className="flex-1 pb-16 lg:pb-0">
@@ -51,6 +54,7 @@ export default function PublicLayout({
         چیزی نمایش نمی‌دهد.
       */}
       <PromotionSuggestionPopup />
+      <FirstPurchaseGiftPopup />
     </>
   );
 }

@@ -21,6 +21,8 @@ export interface CreateOrderDto {
   discountCode?: string;
   shippingMethod: ShippingMethod;
   useWallet?: boolean;
+  useClubCredit?: boolean;
+  useFirstPurchaseGift?: boolean;
 }
 
 export enum OrderStatus {
@@ -81,6 +83,7 @@ export interface OrderResponse {
   discount: number;
   finalPrice: number;
   walletPayment?: string;
+  clubCreditPayment?: string | number;
   status: OrderStatus;
   shippingAddress?: string;
   shippingMethod?: ShippingMethod | null;
@@ -91,6 +94,8 @@ export interface OrderResponse {
   items: OrderItem[];
   /** جمع تخفیف پروموشن‌ها (جدا از فروش ویژه و کد تخفیف) */
   promotionDiscount?: number;
+  /** تخفیف هدیهٔ اولین خرید آنلاین */
+  firstPurchaseGiftDiscount?: number | string;
   /** ارزش کالاهای رایگان */
   promotionFreeItemValue?: number;
   /** آیا ارسال رایگان از پروموشن گرفته شده */
@@ -142,6 +147,8 @@ export interface CheckoutPreviewResponse {
       originalPrice: number;
       saleDiscount: number;
       promotionDiscount: number;
+      discountCode?: number;
+      firstPurchaseGiftDiscount?: number;
       freeItemValue: number;
       shippingCost: number;
       freeShipping: boolean;

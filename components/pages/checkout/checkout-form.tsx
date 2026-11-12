@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { Wallet } from 'lucide-react';
+import { Gift, Wallet } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -21,8 +21,11 @@ import {
   useDeleteCartItem,
   useUpdateCartItem,
 } from '@/services/features/cart/hooks';
+import { useClubMe } from '@/services/features/club/hooks';
+import { rialToToman } from '@/services/features/club/type';
 import { useApplyDiscount } from '@/services/features/discounts/hooks';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
+import { useFirstPurchaseGiftEligibility } from '@/services/features/first-purchase-gift/hooks';
 import { confirmOrderFromWallet } from '@/services/features/orders/api';
 import {
   useCheckoutPreview,
@@ -39,6 +42,7 @@ import {
 } from '@/services/features/payment/hooks';
 import { PaymentGateway } from '@/services/features/payment/type';
 import { useWallet } from '@/services/features/wallet/hooks';
+import { useAuthStore } from '@/store/auth.store';
 
 import { CheckoutFormValues, checkoutSchema } from './checkout-schema';
 import {
@@ -53,6 +57,11 @@ import { calculateCheckoutShipping } from './shipping';
 
 export default function CheckoutForm() {
   const router = useRouter();
+  const user = useAuthStore(state => state.user);
+  const { data: giftEligibilityResponse } = useFirstPurchaseGiftEligibility(
+    Boolean(user),
+  );
+  const [useFirstPurchaseGift, setUseFirstPurchaseGift] = useState(false);
 
   const { data: cartData, isLoading: cartLoading } = useCartList();
 
@@ -69,9 +78,16 @@ export default function CheckoutForm() {
 
   const { data: walletData } = useWallet();
 
+  const { data: clubData, isLoading: clubLoading } = useClubMe();
+
   const walletInfo = walletData?.data ?? null;
 
   const walletBalance = Number(walletInfo?.balance ?? 0);
+
+  const clubCreditBalance = Math.max(
+    0,
+    rialToToman(Number(clubData?.data?.AvailableCredit ?? 0)),
+  );
 
   const [selectedAddressId, setSelectedAddressId] = useState<
     number | undefined
@@ -89,6 +105,8 @@ export default function CheckoutForm() {
     useState<ApplyDiscountResponse | null>(null);
 
   const [useWalletPayment, setUseWalletPayment] = useState(false);
+
+  const [useClubCreditPayment, setUseClubCreditPayment] = useState(false);
 
   const cartItems = cartData?.data?.items ?? [];
 
@@ -129,7 +147,11 @@ export default function CheckoutForm() {
    * تخفیف پروموشن، کالای رایگان و ارسال رایگان در چک‌اوت همان چیزی باشد که
    * هنگام ثبت سفارش دوباره بررسی می‌شود.
    */
-  const { data: checkoutPreviewData } = useCheckoutPreview(selectedShipping);
+  const { data: checkoutPreviewData } = useCheckoutPreview({
+    shippingMethod: selectedShipping,
+    discountCode: appliedDiscount?.discount?.code,
+    useFirstPurchaseGift,
+  });
 
   const { isFreeShipping, shippingCost } = calculateCheckoutShipping(
     cartItems,
@@ -137,35 +159,50 @@ export default function CheckoutForm() {
     !!selectedAddressId,
   );
 
+  const giftEligibility = giftEligibilityResponse?.data;
+  const giftCanStackWithCode =
+    giftEligibility?.config?.stackWithDiscountCodes ?? false;
+
   const baseFinalPrice = Number(
     appliedDiscount?.summary?.finalPrice ??
       cartData?.data?.pricing?.finalPrice ??
       0,
   );
 
-  const estimatedFinalPrice = baseFinalPrice + shippingCost;
+  const estimatedFinalPrice = Number(
+    checkoutPreviewData?.data?.totals.finalPrice ??
+      baseFinalPrice + shippingCost,
+  );
 
-  const walletFullyCovers =
-    useWalletPayment &&
+  const walletCreditUsed = useWalletPayment
+    ? Math.min(walletBalance, Math.max(0, estimatedFinalPrice))
+    : 0;
+  const clubCreditUsed = useClubCreditPayment
+    ? Math.min(
+        clubCreditBalance,
+        Math.max(0, estimatedFinalPrice - walletCreditUsed),
+      )
+    : 0;
+  const creditsFullyCover =
     estimatedFinalPrice > 0 &&
-    walletBalance >= estimatedFinalPrice;
+    walletCreditUsed + clubCreditUsed >= estimatedFinalPrice;
+  const gatewayPayable = Math.max(
+    0,
+    estimatedFinalPrice - walletCreditUsed - clubCreditUsed,
+  );
 
   /**
    * اسنپ‌پی: مبلغ قابل پرداخت با درگاه به ریال. با هر تغییر سبد/ارسال/
    * تخفیف/کیف پول دوباره از اسنپ‌پی استعلام می‌شود و فقط اگر مجاز باشد،
    * با همان عنوان و توضیح داینامیک اسنپ‌پی در پایین نمایش داده می‌شود.
    */
-  const snappayPayableToman =
-    estimatedFinalPrice -
-    (useWalletPayment
-      ? Math.min(walletBalance, Math.max(0, estimatedFinalPrice))
-      : 0);
+  const snappayPayableToman = gatewayPayable;
 
   const snappayAmountIrr = Math.round(Math.max(0, snappayPayableToman) * 10);
 
   const { data: snappayEligibilityData } = useSnappayEligibility(
     { amount: snappayAmountIrr },
-    snappayAmountIrr > 0 && !walletFullyCovers,
+    snappayAmountIrr > 0 && !creditsFullyCover,
   );
 
   const snappayEligibility = snappayEligibilityData?.data;
@@ -220,6 +257,11 @@ export default function CheckoutForm() {
 
   const handleApplyDiscount = async () => {
     const code = getValues('discountCode')?.trim().toUpperCase();
+
+    if (useFirstPurchaseGift && !giftCanStackWithCode) {
+      toast.error('هدیهٔ اولین خرید با کد تخفیف همزمان استفاده نمی‌شود.');
+      return;
+    }
 
     if (!code) {
       toast.error('لطفاً کد تخفیف را وارد کنید');
@@ -377,9 +419,18 @@ export default function CheckoutForm() {
       return;
     }
 
-    if (!selectedGateway && !walletFullyCovers) {
+    if (!selectedGateway && !creditsFullyCover) {
       toast.error('لطفاً یک درگاه پرداخت انتخاب کنید');
 
+      return;
+    }
+
+    if (
+      useFirstPurchaseGift &&
+      !giftCanStackWithCode &&
+      data.discountCode?.trim()
+    ) {
+      toast.error('هدیهٔ اولین خرید با کد تخفیف همزمان استفاده نمی‌شود.');
       return;
     }
 
@@ -399,6 +450,8 @@ export default function CheckoutForm() {
           : undefined,
 
         useWallet: useWalletPayment,
+        useClubCredit: useClubCreditPayment,
+        useFirstPurchaseGift,
       };
 
       /**
@@ -415,32 +468,35 @@ export default function CheckoutForm() {
         return;
       }
 
-      const fullyCoveredByWallet =
-        Number(order.walletPayment ?? 0) > 0 &&
-        Number(order.walletPayment) >= Number(order.finalPrice);
+      const fullyCoveredByCredits =
+        Number(order.walletPayment ?? 0) +
+          Number(order.clubCreditPayment ?? 0) >=
+        Number(order.finalPrice);
 
       if (order.status === OrderStatus.PAID) {
-        toast.success('پرداخت با کیف پول انجام شد');
+        toast.success('پرداخت با اعتبارهای انتخاب‌شده انجام شد');
 
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['wallet'] });
+        queryClient.invalidateQueries({ queryKey: ['club'] });
 
         router.push('/dashboard/orders');
 
         return;
       }
 
-      if (fullyCoveredByWallet && order.status === OrderStatus.PENDING) {
+      if (fullyCoveredByCredits && order.status === OrderStatus.PENDING) {
         try {
           await confirmOrderFromWallet(order.id);
 
-          toast.success('پرداخت با کیف پول انجام شد');
+          toast.success('پرداخت با اعتبارهای انتخاب‌شده انجام شد');
 
           queryClient.invalidateQueries({ queryKey: ['wallet'] });
+          queryClient.invalidateQueries({ queryKey: ['club'] });
         } catch (confirmError: any) {
           toast.error(
             confirmError?.response?.data?.message ||
-              'سفارش ثبت شد اما تأیید کیف پول کامل نشد؛ می‌توانید از صفحه سفارشات تلاش مجدد کنید',
+              'سفارش ثبت شد اما تأیید پرداخت کامل نشد؛ می‌توانید از صفحه سفارشات تلاش مجدد کنید',
           );
         }
 
@@ -765,6 +821,43 @@ export default function CheckoutForm() {
               </>
             )}
 
+            {user && giftEligibility?.eligible && giftEligibility.config && (
+              <section
+                className="rounded-xl border border-rose-200 bg-gradient-to-l from-rose-50 via-white to-amber-50 p-4"
+                aria-labelledby="first-purchase-gift-title"
+              >
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={useFirstPurchaseGift}
+                    disabled={Boolean(appliedDiscount && !giftCanStackWithCode)}
+                    onChange={event => setUseFirstPurchaseGift(event.target.checked)}
+                    className="mt-1 h-4 w-4 accent-rose-800"
+                    aria-describedby="first-purchase-gift-description"
+                  />
+                  <span className="flex-1">
+                    <span className="flex items-center gap-2 font-semibold text-rose-950" id="first-purchase-gift-title">
+                      <Gift className="h-4 w-4" aria-hidden="true" />
+                      {giftEligibility.config.title} — {giftEligibility.config.discountPercent}٪
+                    </span>
+                    <span id="first-purchase-gift-description" className="mt-1 block text-sm leading-6 text-stone-600">
+                      {giftEligibility.config.description} این هدیه روی محصولات با قیمت عادی اعمال می‌شود.
+                    </span>
+                    {useFirstPurchaseGift && (
+                      <span className="mt-2 block text-sm font-semibold text-rose-900">
+                        تخفیف هدیه در محاسبهٔ سفارش: {Number(checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0).toLocaleString('fa-IR')} تومان
+                      </span>
+                    )}
+                    {appliedDiscount && !giftCanStackWithCode && (
+                      <span className="mt-2 block text-xs text-amber-800">
+                        برای استفاده از هدیه، ابتدا کد تخفیف فعلی را حذف کنید.
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </section>
+            )}
+
             {/* ================================= */}
             {/* کد تخفیف */}
             {/* ================================= */}
@@ -852,7 +945,7 @@ export default function CheckoutForm() {
                 روش پرداخت
               </h2>
 
-              {walletInfo && (
+              {(walletInfo || clubData?.data) && (
                 <div className="space-y-3 mb-3">
                   <label
                     className={`flex items-center gap-3 border-2 p-4 transition-all ${
@@ -891,30 +984,71 @@ export default function CheckoutForm() {
                   )}
 
                   {useWalletPayment &&
-                    walletFullyCovers &&
+                    creditsFullyCover &&
                     estimatedFinalPrice > 0 && (
                       <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
                         کل مبلغ سفارش ({formatPrice(estimatedFinalPrice)} تومان)
-                        از کیف پول پرداخت می‌شود.
+                        از اعتبارهای انتخاب‌شده پرداخت می‌شود.
                       </p>
                     )}
 
                   {useWalletPayment &&
                     estimatedFinalPrice > 0 &&
-                    walletBalance > 0 &&
-                    walletBalance < estimatedFinalPrice && (
+                    walletCreditUsed > 0 &&
+                    !creditsFullyCover && (
                       <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
                         مبلغ باقی‌مانده (
-                        {formatPrice(estimatedFinalPrice - walletBalance)}{' '}
-                        تومان) با کارت بانکی پرداخت می‌شود.
+                        {formatPrice(gatewayPayable)}{' '}
+                        تومان) با درگاه پرداخت می‌شود.
                       </p>
                     )}
                 </div>
               )}
 
+              {clubData?.data && (
+                <div className="mb-3 space-y-2">
+                  <label
+                    className={`flex items-center gap-3 border-2 p-4 transition-all ${
+                      clubCreditBalance <= 0 || clubLoading
+                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
+                        : useClubCreditPayment
+                          ? 'cursor-pointer border-primary bg-primary/5'
+                          : 'cursor-pointer border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={useClubCreditPayment}
+                      onChange={e => setUseClubCreditPayment(e.target.checked)}
+                      disabled={clubCreditBalance <= 0 || clubLoading}
+                      className="h-4 w-4"
+                    />
+                    <div>
+                      <div className="font-medium">اعتبار باشگاه دایاتک</div>
+                      <div className="text-sm text-gray-500">
+                        اعتبار قابل استفاده: {formatPrice(clubCreditBalance)} تومان
+                      </div>
+                    </div>
+                  </label>
+                  {clubCreditBalance <= 0 && (
+                    <p className="text-xs text-gray-500">
+                      اعتبار قابل استفاده‌ای در باشگاه دایاتک ندارید.
+                    </p>
+                  )}
+                  {useClubCreditPayment && clubCreditUsed > 0 && (
+                    <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                      {formatPrice(clubCreditUsed)} تومان از اعتبار باشگاه کسر می‌شود
+                      {gatewayPayable > 0
+                        ? ` و ${formatPrice(gatewayPayable)} تومان با درگاه پرداخت می‌شود.`
+                        : ' و کل سفارش با اعتبار انتخاب‌شده پرداخت می‌شود.'}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div
                 className={`space-y-3 ${
-                  walletFullyCovers ? 'pointer-events-none opacity-50' : ''
+                  creditsFullyCover ? 'pointer-events-none opacity-50' : ''
                 }`}
               >
                 {' '}
@@ -972,12 +1106,12 @@ export default function CheckoutForm() {
                   isPickup,
                   hasSelectedAddress: !!selectedAddressId,
                   hasGateway: !!selectedGateway,
-                  walletFullyCovers,
+                  walletFullyCovers: creditsFullyCover,
                 })
               }
             >
-              {walletFullyCovers
-                ? 'ثبت سفارش با کیف پول'
+              {creditsFullyCover
+                ? 'ثبت سفارش با اعتبار'
                 : 'ثبت سفارش و پرداخت'}
             </Button>
           </div>
@@ -998,6 +1132,9 @@ export default function CheckoutForm() {
           isFreeShipping={isFreeShipping}
           hasSelectedAddress={!!selectedAddressId}
           isPickup={isPickup}
+          clubCreditUsed={clubCreditUsed}
+          walletCreditUsed={walletCreditUsed}
+          gatewayPayable={gatewayPayable}
           onQuantityChange={handleQuantityChange}
           onRemoveItem={handleRemoveCartItem}
           isUpdatingCart={isUpdatingCart}

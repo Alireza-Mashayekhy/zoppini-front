@@ -37,6 +37,11 @@ interface OrderSummaryProps {
 
   /** وقتی یک تغییر سبد در حال انجام است، کنترل‌ها غیرفعال می‌شوند */
   isUpdatingCart?: boolean;
+
+  /** مبالغی که از کیف پول داخلی و اعتبار دایاتک انتخاب شده‌اند */
+  walletCreditUsed?: number;
+  clubCreditUsed?: number;
+  gatewayPayable?: number;
 }
 
 export default function OrderSummary({
@@ -51,6 +56,9 @@ export default function OrderSummary({
   onQuantityChange,
   onRemoveItem,
   isUpdatingCart = false,
+  walletCreditUsed = 0,
+  clubCreditUsed = 0,
+  gatewayPayable,
 }: OrderSummaryProps) {
   const {
     promotionDiscount,
@@ -255,6 +263,17 @@ export default function OrderSummary({
           </div>
         )}
 
+        {/* هدیهٔ اولین خرید */}
+
+        {Number(checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0) > 0 && (
+          <div className="flex justify-between text-rose-800">
+            <span>هدیهٔ اولین خرید آنلاین</span>
+            <span>
+              - {Number(checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0).toLocaleString()} تومان
+            </span>
+          </div>
+        )}
+
         {/* کالای رایگان */}
 
         {freeItemTotal > 0 && (
@@ -283,10 +302,35 @@ export default function OrderSummary({
         {/* نهایی */}
 
         <div className="flex justify-between font-semibold text-base pt-3 border-t">
-          <span>قابل پرداخت</span>
+          <span>
+            {walletCreditUsed > 0 || clubCreditUsed > 0
+              ? 'جمع فاکتور'
+              : 'قابل پرداخت'}
+          </span>
 
           <span>{payableTotal.toLocaleString()} تومان</span>
         </div>
+
+        {walletCreditUsed > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>پرداخت از کیف پول</span>
+            <span>- {walletCreditUsed.toLocaleString()} تومان</span>
+          </div>
+        )}
+
+        {clubCreditUsed > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>اعتبار باشگاه دایاتک</span>
+            <span>- {clubCreditUsed.toLocaleString()} تومان</span>
+          </div>
+        )}
+
+        {gatewayPayable !== undefined && (walletCreditUsed > 0 || clubCreditUsed > 0) && (
+          <div className="flex justify-between border-t pt-3 font-semibold text-base">
+            <span>پرداخت از درگاه</span>
+            <span>{gatewayPayable.toLocaleString()} تومان</span>
+          </div>
+        )}
 
         {!!promotionNotices.length && (
           <ul className="space-y-1 border-t pt-3">

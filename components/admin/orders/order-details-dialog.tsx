@@ -389,6 +389,18 @@ export default function OrderDetailsDialog({
                     </div>
                   </div>
                 </div>
+                {!!currentOrder?.paymentBreakdown?.clubCreditAmount && (
+                  <div className="flex items-center justify-between gap-4 p-4">
+                    <div className="font-medium">اعتبار باشگاه دایاتک</div>
+                    <div className="shrink-0 text-left">
+                      <div className="font-medium">
+                        {formatPrice(
+                          currentOrder.paymentBreakdown.clubCreditAmount,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center justify-between gap-4 p-4">
                   <div className="font-medium">درگاه پرداخت</div>
 
@@ -464,6 +476,14 @@ export default function OrderDetailsDialog({
                   value={currentOrder.discount}
                   negative
                 />
+
+                {!!currentOrder.firstPurchaseGiftDiscount && (
+                  <PriceRow
+                    label="هدیهٔ اولین خرید آنلاین"
+                    value={currentOrder.firstPurchaseGiftDiscount}
+                    negative
+                  />
+                )}
 
                 {!!currentOrder.promotionDiscount && (
                   <PriceRow

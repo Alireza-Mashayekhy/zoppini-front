@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import DiscountCodeDialog from '@/components/admin/discount/code-dialog';
 import DiscountCodeTable from '@/components/admin/discount/code-table';
+import FirstPurchaseGiftSettingsPanel from '@/components/admin/discount/first-purchase-gift-settings';
 import SaleDialog from '@/components/admin/discount/sale-dialog';
 import SaleTable from '@/components/admin/discount/sale-table';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ const KIND_TEXT = {
 
 export default function DiscountsPage() {
   const [kind, setKind] = useState<DiscountKind>(DiscountKind.SALE);
+  const [giftTab, setGiftTab] = useState(false);
   const [search, setSearch] = useState('');
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -72,7 +74,8 @@ export default function DiscountsPage() {
   const deleteMutation = useDeleteDiscount();
 
   const handleKindChange = (value: string) => {
-    setKind(value as DiscountKind);
+    setGiftTab(value === 'first-purchase-gift');
+    if (value !== 'first-purchase-gift') setKind(value as DiscountKind);
     setSearch('');
     setDialogOpen(false);
     setSelectedDiscount(null);
@@ -180,24 +183,33 @@ export default function DiscountsPage() {
           <h1 className="text-2xl font-bold">تخفیفات</h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            {text.description}
+            {giftTab ? 'هدیهٔ اختصاصی اولین خرید آنلاین مشتریان را مدیریت کنید.' : text.description}
           </p>
         </div>
 
-        <Button onClick={handleCreate}>
-          <Plus className="ml-2 h-4 w-4" />
-          {text.create}
-        </Button>
+        {!giftTab && (
+          <Button onClick={handleCreate}>
+            <Plus className="ml-2 h-4 w-4" />
+            {text.create}
+          </Button>
+        )}
       </div>
 
-      <Tabs value={kind} onValueChange={handleKindChange}>
+      <Tabs
+        value={giftTab ? 'first-purchase-gift' : kind}
+        onValueChange={handleKindChange}
+      >
         <TabsList>
           <TabsTrigger value={DiscountKind.SALE}>فروش ویژه</TabsTrigger>
-
           <TabsTrigger value={DiscountKind.CODE}>کد تخفیف</TabsTrigger>
+          <TabsTrigger value="first-purchase-gift">هدیه اولین خرید</TabsTrigger>
         </TabsList>
       </Tabs>
 
+      {giftTab ? (
+        <FirstPurchaseGiftSettingsPanel />
+      ) : (
+      <>
       {/* =====================================================
           Search + Refresh
       ====================================================== */}
@@ -256,6 +268,8 @@ export default function DiscountsPage() {
         <SaleDialog {...dialogProps} />
       ) : (
         <DiscountCodeDialog {...dialogProps} />
+      )}
+      </>
       )}
     </div>
   );

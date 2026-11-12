@@ -81,10 +81,14 @@ export const useCreateOrder = () => {
  * همان لحظه تغییر کند؛ عددی که در چک‌اوت نمایش می‌دهیم باید با عدد لحظهٔ
  * ثبت سفارش یکی باشد.
  */
-export const useCheckoutPreview = (shippingMethod?: string) => {
+export const useCheckoutPreview = (options: {
+  shippingMethod?: string;
+  discountCode?: string;
+  useFirstPurchaseGift?: boolean;
+} = {}) => {
   return useQuery({
-    queryKey: ['checkout-preview', shippingMethod ?? 'default'],
-    queryFn: () => previewCheckout(shippingMethod),
+    queryKey: ['checkout-preview', options],
+    queryFn: () => previewCheckout(options),
     staleTime: 15 * 1000,
     refetchOnWindowFocus: false,
   });
