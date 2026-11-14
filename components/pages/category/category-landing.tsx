@@ -1,7 +1,8 @@
 import Link from 'next/link';
 
-import ProductCard from '@/components/shared/product-card';
 import CategoryViewTracker from '@/components/shared/category-view-tracker';
+import ProductCard from '@/components/shared/product-card';
+import { categorySlugSegment } from '@/lib/category-slug';
 import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 

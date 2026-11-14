@@ -7,6 +7,7 @@ import {
   activeCategoryChildren,
   cleanCategoryDescription,
 } from '@/lib/category-landing';
+import { categorySlugSegment } from '@/lib/category-slug';
 import { mergePageSeo } from '@/lib/seo';
 import {
   getAllCategories,
