@@ -60,6 +60,7 @@ export default function CheckoutForm() {
   const user = useAuthStore(state => state.user);
   const { data: giftEligibilityResponse } = useFirstPurchaseGiftEligibility(
     Boolean(user),
+    user?.id,
   );
   const [useFirstPurchaseGift, setUseFirstPurchaseGift] = useState(false);
 
@@ -1024,7 +1025,7 @@ export default function CheckoutForm() {
                       className="h-4 w-4"
                     />
                     <div>
-                      <div className="font-medium">اعتبار باشگاه دایاتک</div>
+                      <div className="font-medium">اعتبار باشگاه مشتریان</div>
                       <div className="text-sm text-gray-500">
                         اعتبار قابل استفاده: {formatPrice(clubCreditBalance)} تومان
                       </div>
@@ -1032,7 +1033,7 @@ export default function CheckoutForm() {
                   </label>
                   {clubCreditBalance <= 0 && (
                     <p className="text-xs text-gray-500">
-                      اعتبار قابل استفاده‌ای در باشگاه دایاتک ندارید.
+                      اعتبار قابل استفاده‌ای در باشگاه مشتریان ندارید.
                     </p>
                   )}
                   {useClubCreditPayment && clubCreditUsed > 0 && (
@@ -1080,15 +1081,14 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
-                {snappayAvailable && (
-                  <GatewayCard
-                    gateway={PaymentGateway.SNAPPAY}
-                    title={snappayEligibility?.title_message ?? ''}
-                    description={snappayEligibility?.description ?? ''}
-                    selectedGateway={selectedGateway}
-                    onSelect={setSelectedGateway}
-                  />
-                )}
+                <GatewayCard
+                  gateway={PaymentGateway.SNAPPAY}
+                  title={snappayEligibility?.title_message ?? ''}
+                  description={snappayEligibility?.description ?? ''}
+                  selectedGateway={selectedGateway}
+                  onSelect={setSelectedGateway}
+                  disabled={!snappayAvailable}
+                />
               </div>
             </section>
 
@@ -1154,6 +1154,7 @@ interface GatewayCardProps {
   description: string;
   selectedGateway: PaymentGateway | null;
   onSelect: (gateway: PaymentGateway) => void;
+  disabled?: boolean;
 }
 
 function GatewayCard({
@@ -1162,30 +1163,36 @@ function GatewayCard({
   description,
   selectedGateway,
   onSelect,
+  disabled = false,
 }: GatewayCardProps) {
   const selected = selectedGateway === gateway;
 
   return (
     <Card
-      className={`cursor-pointer border-2 transition-all ${
+      className={`border-2 transition-all ${
         selected
           ? 'border-primary bg-primary/5'
           : 'border-gray-200 hover:border-gray-300'
       }`}
-      onClick={() => onSelect(gateway)}
+      onClick={disabled ? undefined : () => onSelect(gateway)}
     >
       <CardContent className="flex items-center gap-3 p-4">
         <input
           type="radio"
           checked={selected}
-          onChange={() => onSelect(gateway)}
+          onChange={disabled ? undefined : () => onSelect(gateway)}
           className="w-4 h-4"
+          disabled={disabled}
         />
 
         <div>
-          <div className="font-medium">{title}</div>
+          <div className={`font-medium ${disabled ? 'text-gray-400' : 'text-stone-900'}`}>
+            {title}
+          </div>
 
-          <div className="text-sm text-gray-500">{description}</div>
+          <div className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
+            {description}
+          </div>
         </div>
       </CardContent>
     </Card>
