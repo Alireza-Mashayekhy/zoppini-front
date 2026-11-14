@@ -320,7 +320,7 @@ export default function OrderSummary({
 
         {clubCreditUsed > 0 && (
           <div className="flex justify-between text-green-700">
-            <span>اعتبار باشگاه دایاتک</span>
+            <span>اعتبار باشگاه مشتریان</span>
             <span>- {clubCreditUsed.toLocaleString()} تومان</span>
           </div>
         )}

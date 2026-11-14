@@ -140,11 +140,11 @@ export default function InstallmentInfo({
           type="button"
           dir="rtl"
           className={cn(
-            'group flex w-full items-center gap-3 border border-[#e8e6e3] bg-white px-4 py-3 text-right transition-colors hover:border-[#b9afa1] hover:bg-[#faf9f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2c2925]',
+            'group flex w-full items-center gap-3 rounded-xl border-0 bg-gradient-to-r from-[#063af2] to-[#00a968] px-4 py-3 text-right shadow-lg shadow-[#063af2]/25 transition-all hover:shadow-[#063af2]/35 hover:shadow-[#00a968]/35 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
             className,
           )}
         >
-          <span className="flex size-10 shrink-0 items-center justify-center border border-[#e8e6e3] bg-[#f7f7f7] text-[#1a1a1a]">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm text-white">
             <CreditCard
               className="size-4"
               strokeWidth={1.5}
@@ -152,17 +152,15 @@ export default function InstallmentInfo({
             />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className="text-xs font-semibold leading-5 text-[#1a1a1a] sm:text-sm">
+            <span className="text-xs font-semibold leading-5 text-white sm:text-sm">
               خرید اقساطی در ۴ قسط
             </span>
-            <span className="text-[11px] leading-5 text-[#77716a] sm:text-xs">
+            <span className="text-[11px] leading-5 text-[#dcfce8] sm:text-xs">
               هر قسط{' '}
-              <strong className="font-bold text-[#27231f]">
-                {amount} تومان
-              </strong>
+              <strong className="font-bold text-white">{amount} تومان</strong>
             </span>
           </span>
-          <span className="flex shrink-0 items-center gap-1 text-[11px] text-[#77716a] group-hover:text-black sm:text-xs">
+          <span className="flex shrink-0 items-center gap-1 text-[11px] text-[#dcfce8] group-hover:text-white sm:text-xs">
             جزئیات <ChevronLeft className="size-4" aria-hidden="true" />
           </span>
         </button>
