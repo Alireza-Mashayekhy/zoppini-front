@@ -3,10 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import sanitizeHtml from 'sanitize-html';
 
 import CategoryLanding from '@/components/pages/category/category-landing';
-import {
-  activeCategoryChildren,
-  cleanCategoryDescription,
-} from '@/lib/category-landing';
+import { cleanCategoryDescription } from '@/lib/category-description';
+import { activeCategoryChildren } from '@/lib/category-landing';
 import { categorySlugSegment } from '@/lib/category-slug';
 import { mergePageSeo } from '@/lib/seo';
 import {

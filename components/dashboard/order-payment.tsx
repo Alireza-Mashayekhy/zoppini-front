@@ -26,7 +26,7 @@ const ONLINE_GATEWAYS: {
   {
     gateway: PaymentGateway.DIGIPAY,
     title: 'دیجی پی',
-    description: 'پرداخت اینترنتی، کیف پول یا اقساطی',
+    description: 'درگاه اینترنتی',
   },
   {
     gateway: PaymentGateway.TARA,

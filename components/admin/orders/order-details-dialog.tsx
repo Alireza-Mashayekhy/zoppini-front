@@ -420,22 +420,6 @@ export default function OrderDetailsDialog({
                     >
                       <div className="font-medium">
                         {item?.gatewayLabel ?? item?.gateway}
-                        {item?.digipayInstrument && (
-                          <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                            {item.digipayInstrument}
-                            {item.digipayInstallments === 4
-                              ? ' — ۴ قسط'
-                              : item.digipayInstallments === 1
-                                ? ' — پرداخت یک‌جا'
-                                : ''}
-                            {item.digipayCreditProvider
-                              ? ` (${item.digipayCreditProvider})`
-                              : ''}
-                            {item.digipayDeliveredAt
-                              ? ' — تحویل به دیجی‌پی اعلام شده'
-                              : ''}
-                          </span>
-                        )}
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -563,9 +547,7 @@ export default function OrderDetailsDialog({
                       </div>
 
                       <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-                        <span>
-                          تخفیف: {formatPrice(entry.discountAmount)}
-                        </span>
+                        <span>تخفیف: {formatPrice(entry.discountAmount)}</span>
 
                         {!!entry.freeItemValue && (
                           <span>

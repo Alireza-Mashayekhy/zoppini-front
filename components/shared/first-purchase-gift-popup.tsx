@@ -2,7 +2,7 @@
 
 import { Gift, X } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { withCallbackUrl } from '@/lib/callback-url';

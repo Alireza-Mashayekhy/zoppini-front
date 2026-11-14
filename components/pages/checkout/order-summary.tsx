@@ -70,7 +70,7 @@ export default function OrderSummary({
 
   /* مبلغ قابل پرداخت: ارسال فقط وقتی اضافه می‌شود که خودمان حسابش می‌کنیم */
   const payableTotal = fromServer
-    ? checkoutPreview?.totals.finalPrice ?? 0
+    ? (checkoutPreview?.totals.finalPrice ?? 0)
     : (appliedDiscount?.summary?.finalPrice || pricing?.finalPrice || 0) +
       shippingCost;
 
@@ -169,7 +169,9 @@ export default function OrderSummary({
                   {!!item.promotion?.promotionDiscount && (
                     <span className="text-sm font-semibold whitespace-nowrap">
                       {(
-                        Number(item.variant.originalPrice ?? item.variant.price) *
+                        Number(
+                          item.variant.originalPrice ?? item.variant.price,
+                        ) *
                           item.quantity -
                         item.promotion.promotionDiscount
                       ).toLocaleString()}{' '}
@@ -269,7 +271,11 @@ export default function OrderSummary({
           <div className="flex justify-between text-rose-800">
             <span>هدیهٔ اولین خرید آنلاین</span>
             <span>
-              - {Number(checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0).toLocaleString()} تومان
+              -{' '}
+              {Number(
+                checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0,
+              ).toLocaleString()}{' '}
+              تومان
             </span>
           </div>
         )}
@@ -325,12 +331,13 @@ export default function OrderSummary({
           </div>
         )}
 
-        {gatewayPayable !== undefined && (walletCreditUsed > 0 || clubCreditUsed > 0) && (
-          <div className="flex justify-between border-t pt-3 font-semibold text-base">
-            <span>پرداخت از درگاه</span>
-            <span>{gatewayPayable.toLocaleString()} تومان</span>
-          </div>
-        )}
+        {gatewayPayable !== undefined &&
+          (walletCreditUsed > 0 || clubCreditUsed > 0) && (
+            <div className="flex justify-between border-t pt-3 font-semibold text-base">
+              <span>پرداخت از درگاه</span>
+              <span>{gatewayPayable.toLocaleString()} تومان</span>
+            </div>
+          )}
 
         {!!promotionNotices.length && (
           <ul className="space-y-1 border-t pt-3">
