@@ -5,39 +5,6 @@
 #EXT-X-PLAYLIST-TYPE:VOD
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXTINF:1.001000,
-<<<<<<< HEAD
-segment_55a6d6d9_00000.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00001.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00002.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00003.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00004.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00005.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00006.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00007.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00008.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00009.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00010.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00011.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00012.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00013.ts
-#EXTINF:1.001000,
-segment_55a6d6d9_00014.ts
-#EXTINF:0.033367,
-segment_55a6d6d9_00015.ts
-=======
 segment_b4f9f581_00000.ts
 #EXTINF:1.001000,
 segment_b4f9f581_00001.ts
@@ -57,5 +24,4 @@ segment_b4f9f581_00007.ts
 segment_b4f9f581_00008.ts
 #EXTINF:0.367033,
 segment_b4f9f581_00009.ts
->>>>>>> 925b0d6ca5b443e136abc9c36baf251db79e9396
 #EXT-X-ENDLIST
