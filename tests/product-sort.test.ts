@@ -75,8 +75,19 @@ test('لیست محصولات منوی مرتب‌سازی را از همین ث
 });
 
 test('صفحه‌های عمومی از همان مرتب‌سازی پیش‌فرض برای داده‌ی سرور استفاده می‌کنند', () => {
-  for (const path of [
+  const categoryPage = source(
     'app/(public)/product-category/[categorySlug]/page.tsx',
+  );
+  assert.match(
+    categoryPage,
+    /productCategoryParams\(search, category\.data\.id\)/,
+  );
+  assert.match(
+    source('lib/product-category-params.ts'),
+    /DEFAULT_PRODUCT_SORT/,
+  );
+
+  for (const path of [
     'app/(public)/products/page.tsx',
     'app/(public)/discounted-products/page.tsx',
   ]) {

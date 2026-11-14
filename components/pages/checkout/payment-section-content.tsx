@@ -156,7 +156,9 @@ export default function PaymentSelectionContent() {
               className="w-4 h-4"
             />
             <span className="font-medium">دیجی پی</span>
-            <span className="text-sm text-gray-500">(درگاه اینترنتی)</span>
+            <span className="text-sm text-gray-500">
+              (پرداخت اینترنتی، کیف پول یا اقساطی)
+            </span>
           </CardContent>
         </Card>
 

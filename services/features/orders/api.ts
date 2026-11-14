@@ -4,7 +4,7 @@ import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
-import { CreateOrderDto, OrderResponse } from './type';
+import { CheckoutPreviewResponse, CreateOrderDto, OrderResponse } from './type';
 
 export const createOrder = async (dto: CreateOrderDto) => {
   void track('checkout_started');
@@ -13,6 +13,33 @@ export const createOrder = async (dto: CreateOrderDto) => {
   const { data } = await api.post(endpoints.order.create, dto, {
     headers: { ...(attribution ? { 'X-Torob-Attribution': attribution } : {}), ...(context ? { 'X-Analytics-Context': context } : {}) },
   });
+  return data;
+};
+
+/**
+ * پیش‌نمایش سمت سرور مبالغ چک‌اوت با پروموشن‌های فعلی.
+ * برای بازه‌های زمانی و موجودی معتبر است؛ سبد محلی ممکن است قدیمی باشد.
+ */
+export const previewCheckout = async (
+  options: {
+    shippingMethod?: string;
+    discountCode?: string;
+    useFirstPurchaseGift?: boolean;
+  } = {},
+): Promise<CheckoutPreviewResponse> => {
+  const { data } = await api.get<CheckoutPreviewResponse>(
+    endpoints.order.checkoutPreview,
+    {
+      params: {
+        ...(options.shippingMethod ? { shippingMethod: options.shippingMethod } : {}),
+        ...(options.discountCode ? { discountCode: options.discountCode } : {}),
+        ...(options.useFirstPurchaseGift
+          ? { useFirstPurchaseGift: true }
+          : {}),
+      },
+    },
+  );
+
   return data;
 };
 

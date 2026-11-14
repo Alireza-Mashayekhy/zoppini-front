@@ -1,11 +1,13 @@
+import { normalizeApiBaseUrl } from '@/services/api/base-url';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { PageSeoResponse, SeoRedirectResponse } from './types';
 
-const BASE_URL =
+const BASE_URL = normalizeApiBaseUrl(
   process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3000/api/';
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:3000/api/',
+);
 
 /**
  * ثانیه‌هایی که متای صفحات کش می‌شود؛ بعد از آن تغییرات پنل روی سایت می‌آید.

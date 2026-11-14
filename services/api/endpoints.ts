@@ -132,6 +132,7 @@ export const endpoints = {
     cancel: (orderId: number) => `/orders/${orderId}/cancel`,
     confirmFromWallet: (orderId: number) =>
       `/orders/${orderId}/confirm-from-wallet`,
+    checkoutPreview: '/orders/checkout-preview',
 
     adminList: '/admin/orders',
     adminGet: (orderId: number) => `/admin/orders/${orderId}`,
@@ -179,6 +180,33 @@ export const endpoints = {
     loyaltyHistories: '/club/loyalty-histories',
     payments: '/club/payments',
     levels: '/club/levels',
+  },
+
+  promotions: {
+    /** عمومی */
+    productBadges: (slug: string) =>
+      `/promotions/product-badges?slug=${encodeURIComponent(slug)}`,
+    suggestions: '/promotions/suggestions',
+    simulate: '/promotions/simulate',
+
+    /** سبد: پذیرش/رد/افزودن هدیه */
+    accept: (promotionId: number) =>
+      `/cart/promotions/${promotionId}/accept`,
+    dismiss: (promotionId: number) => `/cart/promotions/${promotionId}/dismiss`,
+    addReward: '/cart/promotions/reward',
+    selectReward: '/cart/promotions/reward/select',
+    removeReward: '/cart/promotions/reward/remove',
+    popupShown: '/cart/promotions/popup-shown',
+
+    /** ادمین */
+    adminList: '/admin/promotions',
+    adminDetail: (id: number) => `/admin/promotions/${id}`,
+    adminCreate: '/admin/promotions',
+    adminUpdate: (id: number) => `/admin/promotions/${id}`,
+    adminDelete: (id: number) => `/admin/promotions/${id}`,
+    adminStatus: (id: number) => `/admin/promotions/${id}/status`,
+    adminPreview: (id: number) => `/admin/promotions/${id}/preview`,
+    adminRedemptions: (id: number) => `/admin/promotions/${id}/redemptions`,
   },
 
   discounts: {

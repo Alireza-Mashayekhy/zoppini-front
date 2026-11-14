@@ -7,6 +7,7 @@ import {
   confirmOrderFromWallet,
   getOrder,
   getOrders,
+  previewCheckout,
 } from './api';
 import { createOrder } from './api';
 import { CreateOrderDto } from './type';
@@ -70,5 +71,25 @@ export const useCreateOrder = () => {
     onError: (error: any) => {
       toast.error(error?.message || 'خطا در ثبت سفارش');
     },
+  });
+};
+
+/**
+ * پیش‌نمایش زندهٔ چک‌اوت (کالای رایگان، تخفیف پروموشن، ارسال رایگان).
+ *
+ * چرا از سرور می‌خوانیم و از سبد محلی نه: بازهٔ زمانی پروموشن و موجودی می‌تواند
+ * همان لحظه تغییر کند؛ عددی که در چک‌اوت نمایش می‌دهیم باید با عدد لحظهٔ
+ * ثبت سفارش یکی باشد.
+ */
+export const useCheckoutPreview = (options: {
+  shippingMethod?: string;
+  discountCode?: string;
+  useFirstPurchaseGift?: boolean;
+} = {}) => {
+  return useQuery({
+    queryKey: ['checkout-preview', options],
+    queryFn: () => previewCheckout(options),
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: false,
   });
 };
