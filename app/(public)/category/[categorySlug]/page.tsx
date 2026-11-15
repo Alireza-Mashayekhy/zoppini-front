@@ -5,7 +5,7 @@ import sanitizeHtml from 'sanitize-html';
 import CategoryLanding from '@/components/pages/category/category-landing';
 import { activeCategoryChildren } from '@/lib/category-landing';
 import { categorySlugSegment } from '@/lib/category-slug';
-import { mergePageSeo } from '@/lib/seo';
+import { meaningfulDescription, mergePageSeo } from '@/lib/seo';
 import {
   getAllCategories,
   getPublicCategoryBySlug,
@@ -26,8 +26,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     allowedAttributes: {},
   }).trim();
   const title = `قیمت و خرید انواع ${category.name} - زوپینی`;
-  const description =
-    text.slice(0, 160) || `مشاهده محصولات دسته ${category.name} در زوپینی`;
+  // توضیحاتِ بی‌محتوا (مثل یک نقطه) نادیده گرفته می‌شود.
+  const description = meaningfulDescription(
+    text,
+    `مشاهده محصولات دسته ${category.name} در زوپینی`,
+  );
   const url = `https://zoppinico.com/category/${categorySlugSegment(category.slug)}`;
   const image = category.image
     ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${category.image}`
@@ -56,7 +59,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     seo,
   );
-  // This is an additional browsing page, not an unplanned replacement of the indexed listing.
+  /**
+   * سیاستِ آدرس‌های دسته‌بندی (مستندسازیِ تصمیم موجود؛ تغییر داده نشده است):
+   *
+   * - `/product-category/{slug}` → آدرسِ اصلی و ایندکس‌شونده‌ی لیست محصولات
+   *   (همان که در `product-category-sitemap.xml` هم هست).
+   * - `/category/{slug}` → صفحه‌ی معرفی/لندینگِ دسته که فقط وقتی دسته
+   *   زیردسته دارد نمایش داده می‌شود و در غیر این صورت با `redirect` به
+   *   `/product-category/{slug}` می‌رود. این صفحه محتوای تکراریِ زیادی با
+   *   صفحه‌ی اصلیِ دسته دارد، برای همین `noindex, follow` است: ایندکس نمی‌شود
+   *   اما لینک‌های آن (به زیردسته‌ها و محصولات) دنبال می‌شوند تا ارزش منتقل
+   *   شود و خزش هدر نرود.
+   *
+   * چرا `noindex` اینجا «حذف نشد»؟ چون /category/* یک صفحه‌ی معرفی با محتوای
+   * عمدتاً تکراری است و ایندکس کردنِ آن ریسکِ رقابت با /product-category/*
+   * (کَنیبالیزیشن/ duplicate content) دارد. تغییر این سیاست یک تصمیمِ سئوی
+   * محتوایی است و نیازمند تأیید جداگانه است.
+   *
+   * نکته‌ی مهم: چون این صفحه `noindex` است اما در robots.txt مسدود نیست،
+   * خزنده آن را می‌خزد و متا را می‌خواند؛ ترکیبِ Disallow و noindex روی این
+   * مسیر عمداً انجام نشده است تا noindex واقعاً دیده شود.
+   *
+   * هیچ ریدایرکت جدیدی بین این دو الگوی آدرس اضافه نشده و تنظیمات Nginx
+   * (در صورت وجود) دست‌نخورده باقی مانده است.
+   */
   return {
     ...metadata,
     robots: { index: false, follow: seo?.followable !== false },

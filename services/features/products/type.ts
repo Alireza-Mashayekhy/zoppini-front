@@ -30,6 +30,14 @@ export interface VariantResponse {
   discountedPrice?: number;
   originalPrice?: number;
   discount?: number;
+  /**
+   * زمان انقضای تخفیفِ اعمال‌شده روی این variant (ISO 8601) یا `null`.
+   *
+   * فقط وقتی تخفیفِ فعالی وجود دارد توسط بک‌اند پر می‌شود و برای انتشارِ
+   * `priceValidUntil` در JSON-LD استفاده می‌شود. فیلدِ افزودنی است و
+   * معنای فیلدهای دیگر را تغییر نمی‌دهد.
+   */
+  discountExpiresAt?: string | null;
   color: ColorResponse;
   size: SizeResponse;
   product?: ProductsResponse;
