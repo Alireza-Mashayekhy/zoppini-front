@@ -13,7 +13,7 @@ import {
   productCategoryParams,
   ProductCategorySearchParams,
 } from '@/lib/product-category-params';
-import { mergePageSeo } from '@/lib/seo';
+import { mergePageSeo, metaDescriptionFromHtml } from '@/lib/seo';
 import { getPublicCategoryBySlug } from '@/services/features/categories/server.api';
 import { getProducts } from '@/services/features/products/server.api';
 import { getPageSeo } from '@/services/features/seo/server.api';
@@ -57,10 +57,13 @@ async function buildCategoryMetadata(categorySlug: string): Promise<Metadata> {
       };
     }
 
-    // حذف تگ‌های HTML از توضیحات (اگر داشته باشد)
-    const cleanDescription = categoryData.description
-      ? categoryData.description.replace(/<[^>]+>/g, '').slice(0, 160)
-      : `مشاهده محصولات دسته ${categoryData.name} در زوپینی`;
+    // حذف تگ‌های HTML از توضیحات (اگر داشته باشد).
+    // توضیحاتِ بی‌محتوا (مثل یک نقطه) نادیده گرفته می‌شود تا متا دیسکریپشن
+    // صفحه همان نقطه نباشد.
+    const cleanDescription = metaDescriptionFromHtml(
+      categoryData.description,
+      `مشاهده محصولات دسته ${categoryData.name} در زوپینی`,
+    );
 
     const imageUrl = categoryData.image
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL || ''}${categoryData.image}`

@@ -14,29 +14,21 @@ const MIN_CHARGE_AMOUNT = 1000;
 
 const QUICK_AMOUNTS = [50000, 100000, 500000, 1000000];
 
+/**
+ * درگاه‌های فعالِ **شارژ کیف پول**.
+ *
+ * فقط زرین‌پال می‌ماند؛ دیجی‌پی و تارا از این فهرست حذف شده‌اند و دیگر به
+ * مشتری نمایش داده نمی‌شوند. (فهرستِ درگاه‌های پرداختِ سفارش جدا است و
+ * تغییر نکرده است.)
+ */
 const GATEWAYS: {
   value: PaymentGateway;
   title: string;
   description: string;
 }[] = [
-  // {
-  //   value: PaymentGateway.MELLAT,
-  //   title: 'بانک ملت',
-  //   description: 'درگاه شتاب',
-  // },
   {
     value: PaymentGateway.ZARINPAL,
     title: 'زرین‌پال',
-    description: 'درگاه اینترنتی',
-  },
-  {
-    value: PaymentGateway.DIGIPAY,
-    title: 'دیجی‌پی',
-    description: 'درگاه اینترنتی',
-  },
-  {
-    value: PaymentGateway.TARA,
-    title: 'تارا',
     description: 'درگاه اینترنتی',
   },
 ];
@@ -46,9 +38,8 @@ const GATEWAYS: {
  */
 export default function WalletChargeForm() {
   const [amount, setAmount] = useState('');
-  const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(
-    null,
-  );
+  const [selectedGateway, setSelectedGateway] =
+    useState<PaymentGateway | null>(GATEWAYS[0]?.value ?? null);
 
   const charge = useStartWalletCharge();
 
@@ -146,13 +137,16 @@ export default function WalletChargeForm() {
         </div>
 
         {/* درگاه */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">درگاه پرداخت</label>
+        <fieldset>
+          <legend className="mb-2 block text-sm font-medium">
+            درگاه پرداخت
+          </legend>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3">
             {GATEWAYS.map(gateway => (
               <GatewayOption
                 key={gateway.value}
+                name="wallet-gateway"
                 title={gateway.title}
                 description={gateway.description}
                 selected={selectedGateway === gateway.value}
@@ -160,7 +154,7 @@ export default function WalletChargeForm() {
               />
             ))}
           </div>
-        </div>
+        </fieldset>
 
         <Button
           className="w-full"
@@ -180,13 +174,21 @@ export default function WalletChargeForm() {
 /* ========================================= */
 
 interface GatewayOptionProps {
+  name: string;
   title: string;
   description: string;
   selected: boolean;
   onSelect: () => void;
 }
 
+/**
+ * گزینه‌ی درگاه.
+ *
+ * کلِ کارت یک `<label>` است که رادیو را در بر می‌گیرد؛ بنابراین هم با کلیک و
+ * هم با کیبورد (فوکوسِ قابل‌دیدن روی رادیو) انتخاب می‌شود.
+ */
 function GatewayOption({
+  name,
   title,
   description,
   selected,
@@ -194,26 +196,28 @@ function GatewayOption({
 }: GatewayOptionProps) {
   return (
     <Card
-      className={`cursor-pointer border-2 transition-all ${
+      className={`border-2 transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gray-800 ${
         selected
           ? 'border-gray-800 bg-gray-50'
           : 'border-gray-200 hover:border-gray-300'
       }`}
-      onClick={onSelect}
     >
-      <CardContent className="flex items-center gap-3 p-3">
-        <input
-          type="radio"
-          checked={selected}
-          onChange={onSelect}
-          className="h-4 w-4"
-        />
+      <CardContent className="p-0">
+        <label className="flex cursor-pointer items-center gap-3 p-3">
+          <input
+            type="radio"
+            name={name}
+            checked={selected}
+            onChange={onSelect}
+            className="h-4 w-4 shrink-0 accent-gray-800"
+          />
 
-        <div>
-          <div className="text-sm font-medium">{title}</div>
+          <div>
+            <div className="text-sm font-medium">{title}</div>
 
-          <div className="text-xs text-gray-500">{description}</div>
-        </div>
+            <div className="text-xs text-gray-500">{description}</div>
+          </div>
+        </label>
       </CardContent>
     </Card>
   );

@@ -23,7 +23,7 @@ const menuItems = [
   { icon: Award, label: 'باشگاه مشتریان', href: '/dashboard/club' },
   { icon: User, label: 'پروفایل', href: '/dashboard/profile' },
   { icon: Heart, label: 'علاقه‌مندی‌ها', href: '/dashboard/wishlist' },
-  { icon: Flag, label: 'آدرس ها', href: '/dashboard/addresses' },
+  { icon: Flag, label: 'آدرس‌ها', href: '/dashboard/addresses' },
 ];
 
 interface SidebarContentProps {
@@ -41,38 +41,56 @@ export default function SidebarContent({ onItemClick }: SidebarContentProps) {
   };
 
   return (
-    <nav className="flex flex-col flex-1 justify-between space-y-1">
-      <div className="space-y-1">
+    <nav
+      aria-label="منوی حساب کاربری"
+      className="flex flex-1 flex-col justify-between gap-6"
+    >
+      <ul className="space-y-1">
         {menuItems.map(item => {
           const isActive = pathname === item.href;
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onItemClick}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 border border-transparent text-sm transition-all duration-200',
-                'hover:border-primary!',
-                isActive
-                  ? 'bg-primary text-background font-medium'
-                  : 'text-black',
-              )}
-            >
-              <item.icon className="w-5 h-5" strokeWidth={1.5} />
-              {item.label}
-            </Link>
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={onItemClick}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'relative flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-200',
+                  'focus-visible:ring-2 focus-visible:ring-[#1A1A1A] focus-visible:outline-none',
+                  isActive
+                    ? 'bg-neutral-900 font-medium text-white'
+                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900',
+                )}
+              >
+                {/* نشانگرِ انتخاب‌شده در سمتِ شروعِ متن (راست در RTL) */}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'absolute inset-y-0 start-0 w-0.5 transition-colors',
+                    isActive ? 'bg-neutral-900' : 'bg-transparent',
+                  )}
+                />
+                <item.icon
+                  className="h-[18px] w-[18px] shrink-0"
+                  strokeWidth={isActive ? 1.75 : 1.5}
+                />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </li>
           );
         })}
-      </div>
-      <div
+      </ul>
+
+      <button
+        type="button"
         onClick={handleLogout}
-        className={cn(
-          'flex items-center gap-3 px-4 py-3 border border-destructive bg-destructive/10 text-destructive text-sm cursor-pointer transition-all duration-200',
-        )}
+        disabled={logout.isPending}
+        className="flex w-full items-center gap-3 border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-destructive focus-visible:outline-none disabled:opacity-60"
       >
-        <LogOutIcon className="w-5 h-5" strokeWidth={1.5} />
-        خروج
-      </div>
+        <LogOutIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} />
+        {logout.isPending ? 'در حال خروج…' : 'خروج از حساب'}
+      </button>
     </nav>
   );
 }

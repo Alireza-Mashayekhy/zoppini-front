@@ -59,7 +59,17 @@ export function useCancelSnappayPayment() {
   });
 }
 
+/**
+ * شروع پرداخت سفارش.
+ *
+ * چرا در خطا هم `orders` تازه می‌شود: سرور ممکن است درخواست را به‌خاطرِ
+ * تغییرِ وضعیت سفارش رد کند (مثلاً «این سفارش قابل پرداخت نیست (وضعیت فعلی:
+ * paid)»). در آن صورت نمایشِ دکمه‌ی پرداخت بر اساس داده‌ی قدیمی گمراه‌کننده
+ * است؛ با تازه کردن، وضعیت و شمارش‌های داشبورد با واقعیت هماهنگ می‌مانند.
+ */
 export function useStartPayment() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       orderId,
@@ -69,6 +79,7 @@ export function useStartPayment() {
       gateway: PaymentGateway;
     }) => startPayment(orderId, gateway),
     onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast.error(error?.response?.data?.message || 'خطا در شروع پرداخت');
     },
   });

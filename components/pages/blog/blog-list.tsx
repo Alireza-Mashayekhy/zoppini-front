@@ -40,6 +40,25 @@ export default function BlogList({ initialData, initialParams }: BlogListProps) 
     router.replace(`/blog?${params.toString()}`);
   };
 
+  /**
+   * آدرسِ واقعیِ هر صفحه برای لینک‌های صفحه‌بندی.
+   *
+   * قبل از این تغییر، دکمه‌های صفحه‌بندی فقط `onClick` داشتند و هیچ `<a href>`
+   * تولید نمی‌کردند؛ بنابراین خزنده نمی‌توانست صفحات ۲ به بعد وبلاگ را کشف کند
+   * و مقالاتِ قدیمی‌تر فقط از طریق نقشه سایت پیدا می‌شدند. حالا هر دکمه یک لینک
+   * واقعی با پارامترهای جاری (page و search) است و در عین حال کلیکِ آن همچنان
+   * سمت کلاینت و بدون بارگذاری مجدد انجام می‌شود.
+   */
+  const hrefForPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newPage > 1) params.set('page', String(newPage));
+    else params.delete('page');
+
+    const query = params.toString();
+
+    return query ? `/blog?${query}` : '/blog';
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <Input
@@ -75,6 +94,7 @@ export default function BlogList({ initialData, initialParams }: BlogListProps) 
       <CustomPagination
         totalPages={pagination?.totalPages ?? 1}
         currentPage={page}
+        hrefForPage={hrefForPage}
         onPageChange={newPage => {
           setPage(newPage);
           updateUrl(newPage, debouncedSearch);

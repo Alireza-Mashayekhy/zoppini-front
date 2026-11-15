@@ -6,6 +6,7 @@ import GoogleAnalytics from '@/components/analytics/google-analytics';
 import YektanetAnalytics from '@/components/analytics/yektanet';
 import ConsentManager from '@/components/consent/manager';
 import { iranSans } from '@/components/font';
+import { SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 import AuthProvider from '@/providers/auth.provider';
 
@@ -19,12 +20,24 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  /**
+   * مبنای canonical سایت (باید **ویژگیِ شیءِ metadata** باشد؛ export جداگانه
+   * نادیده گرفته می‌شود و نکست همچنان از `http://localhost:3000` استفاده
+   * می‌کند).
+   *
+   * با تنظیم این مقدار، هر آدرس نسبی‌ای که در متادیتا استفاده شود (canonical،
+   * تصویر OG، آیکون‌ها و …) به این origin و نه به هاستِ درخواست (که می‌تواند
+   * `www` یا هر میزبان دیگری باشد) حل می‌شود. مقدار عمداً ثابت است: non-www و
+   * https.
+   */
+  metadataBase: new URL('https://zoppinico.com'),
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Zoppini' },
   icons: { icon: '/favicon.ico', apple: '/pwa/apple-touch-icon.png' },
-  title: 'فروشگاه پوشاک مردانه - زوپینی',
-  description:
-    'فروشگاه آنلاین پوشاک مردانه زوپینی | خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار- خرید حضوری و اینترنتی | پرداخت در محل✓ امکان بازگشت کالا✓',
+  /** منبعِ حقیقتِ این دو مقدار `lib/seo.ts` است (هم آن‌ها را برای لِی‌اوت
+   * می‌سازد و هم برای تشخیصِ «مقدارِ خالیِ پنل سئو» استفاده می‌کند). */
+  title: SITE_DEFAULT_TITLE,
+  description: SITE_DEFAULT_DESCRIPTION,
 };
 
 export default function RootLayout({

@@ -547,9 +547,7 @@ export default function OrderDetailsDialog({
                       </div>
 
                       <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
-                        <span>
-                          تخفیف: {formatPrice(entry.discountAmount)}
-                        </span>
+                        <span>تخفیف: {formatPrice(entry.discountAmount)}</span>
 
                         {!!entry.freeItemValue && (
                           <span>

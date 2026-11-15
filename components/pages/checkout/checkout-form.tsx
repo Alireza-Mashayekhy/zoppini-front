@@ -60,11 +60,11 @@ export default function CheckoutForm() {
   const user = useAuthStore(state => state.user);
   const { data: giftEligibilityResponse } = useFirstPurchaseGiftEligibility(
     Boolean(user),
+    user?.id,
   );
   const [useFirstPurchaseGift, setUseFirstPurchaseGift] = useState(false);
 
   const { data: cartData, isLoading: cartLoading } = useCartList();
-
 
   const { data: addresses, isLoading: addressesLoading } = useAddresses();
 
@@ -831,21 +831,36 @@ export default function CheckoutForm() {
                     type="checkbox"
                     checked={useFirstPurchaseGift}
                     disabled={Boolean(appliedDiscount && !giftCanStackWithCode)}
-                    onChange={event => setUseFirstPurchaseGift(event.target.checked)}
+                    onChange={event =>
+                      setUseFirstPurchaseGift(event.target.checked)
+                    }
                     className="mt-1 h-4 w-4 accent-rose-800"
                     aria-describedby="first-purchase-gift-description"
                   />
                   <span className="flex-1">
-                    <span className="flex items-center gap-2 font-semibold text-rose-950" id="first-purchase-gift-title">
+                    <span
+                      className="flex items-center gap-2 font-semibold text-rose-950"
+                      id="first-purchase-gift-title"
+                    >
                       <Gift className="h-4 w-4" aria-hidden="true" />
-                      {giftEligibility.config.title} — {giftEligibility.config.discountPercent}٪
+                      {giftEligibility.config.title} —{' '}
+                      {giftEligibility.config.discountPercent}٪
                     </span>
-                    <span id="first-purchase-gift-description" className="mt-1 block text-sm leading-6 text-stone-600">
-                      {giftEligibility.config.description} این هدیه روی محصولات با قیمت عادی اعمال می‌شود.
+                    <span
+                      id="first-purchase-gift-description"
+                      className="mt-1 block text-sm leading-6 text-stone-600"
+                    >
+                      {giftEligibility.config.description} این هدیه روی محصولات
+                      با قیمت عادی اعمال می‌شود.
                     </span>
                     {useFirstPurchaseGift && (
                       <span className="mt-2 block text-sm font-semibold text-rose-900">
-                        تخفیف هدیه در محاسبهٔ سفارش: {Number(checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0).toLocaleString('fa-IR')} تومان
+                        تخفیف هدیه در محاسبهٔ سفارش:{' '}
+                        {Number(
+                          checkoutPreviewData?.data?.totals
+                            .firstPurchaseGiftDiscount ?? 0,
+                        ).toLocaleString('fa-IR')}{' '}
+                        تومان
                       </span>
                     )}
                     {appliedDiscount && !giftCanStackWithCode && (
@@ -997,9 +1012,8 @@ export default function CheckoutForm() {
                     walletCreditUsed > 0 &&
                     !creditsFullyCover && (
                       <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                        مبلغ باقی‌مانده (
-                        {formatPrice(gatewayPayable)}{' '}
-                        تومان) با درگاه پرداخت می‌شود.
+                        مبلغ باقی‌مانده ({formatPrice(gatewayPayable)} تومان) با
+                        درگاه پرداخت می‌شود.
                       </p>
                     )}
                 </div>
@@ -1024,20 +1038,22 @@ export default function CheckoutForm() {
                       className="h-4 w-4"
                     />
                     <div>
-                      <div className="font-medium">اعتبار باشگاه دایاتک</div>
+                      <div className="font-medium">اعتبار باشگاه مشتریان</div>
                       <div className="text-sm text-gray-500">
-                        اعتبار قابل استفاده: {formatPrice(clubCreditBalance)} تومان
+                        اعتبار قابل استفاده: {formatPrice(clubCreditBalance)}{' '}
+                        تومان
                       </div>
                     </div>
                   </label>
                   {clubCreditBalance <= 0 && (
                     <p className="text-xs text-gray-500">
-                      اعتبار قابل استفاده‌ای در باشگاه دایاتک ندارید.
+                      اعتبار قابل استفاده‌ای در باشگاه مشتریان ندارید.
                     </p>
                   )}
                   {useClubCreditPayment && clubCreditUsed > 0 && (
                     <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                      {formatPrice(clubCreditUsed)} تومان از اعتبار باشگاه کسر می‌شود
+                      {formatPrice(clubCreditUsed)} تومان از اعتبار باشگاه کسر
+                      می‌شود
                       {gatewayPayable > 0
                         ? ` و ${formatPrice(gatewayPayable)} تومان با درگاه پرداخت می‌شود.`
                         : ' و کل سفارش با اعتبار انتخاب‌شده پرداخت می‌شود.'}
@@ -1080,15 +1096,14 @@ export default function CheckoutForm() {
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 />
-                {snappayAvailable && (
-                  <GatewayCard
-                    gateway={PaymentGateway.SNAPPAY}
-                    title={snappayEligibility?.title_message ?? ''}
-                    description={snappayEligibility?.description ?? ''}
-                    selectedGateway={selectedGateway}
-                    onSelect={setSelectedGateway}
-                  />
-                )}
+                <GatewayCard
+                  gateway={PaymentGateway.SNAPPAY}
+                  title={snappayEligibility?.title_message ?? ''}
+                  description={snappayEligibility?.description ?? ''}
+                  selectedGateway={selectedGateway}
+                  onSelect={setSelectedGateway}
+                  disabled={!snappayAvailable}
+                />
               </div>
             </section>
 
@@ -1110,9 +1125,7 @@ export default function CheckoutForm() {
                 })
               }
             >
-              {creditsFullyCover
-                ? 'ثبت سفارش با اعتبار'
-                : 'ثبت سفارش و پرداخت'}
+              {creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'}
             </Button>
           </div>
         </FormProvider>
@@ -1154,6 +1167,7 @@ interface GatewayCardProps {
   description: string;
   selectedGateway: PaymentGateway | null;
   onSelect: (gateway: PaymentGateway) => void;
+  disabled?: boolean;
 }
 
 function GatewayCard({
@@ -1162,30 +1176,40 @@ function GatewayCard({
   description,
   selectedGateway,
   onSelect,
+  disabled = false,
 }: GatewayCardProps) {
   const selected = selectedGateway === gateway;
 
   return (
     <Card
-      className={`cursor-pointer border-2 transition-all ${
+      className={`border-2 transition-all ${
         selected
           ? 'border-primary bg-primary/5'
           : 'border-gray-200 hover:border-gray-300'
       }`}
-      onClick={() => onSelect(gateway)}
+      onClick={disabled ? undefined : () => onSelect(gateway)}
     >
       <CardContent className="flex items-center gap-3 p-4">
         <input
           type="radio"
           checked={selected}
-          onChange={() => onSelect(gateway)}
+          onChange={disabled ? undefined : () => onSelect(gateway)}
           className="w-4 h-4"
+          disabled={disabled}
         />
 
         <div>
-          <div className="font-medium">{title}</div>
+          <div
+            className={`font-medium ${disabled ? 'text-gray-400' : 'text-stone-900'}`}
+          >
+            {title}
+          </div>
 
-          <div className="text-sm text-gray-500">{description}</div>
+          <div
+            className={`text-sm ${disabled ? 'text-gray-400' : 'text-gray-500'}`}
+          >
+            {description}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,8 +1,26 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 
 import Header from '@/components/layout/public/header';
 import InformationCard from '@/components/pages/information/card';
 import Items from '@/components/pages/information/items';
+
+/**
+ * این صفحه اطلاعات شعب (هدیش مال و کرمان) و راه‌های ارتباطی را نشان می‌دهد.
+ *
+ * تصمیم: صفحه ایندکس می‌ماند (قبلاً هم ایندکس می‌شد) اما متادیتای اختصاصی و
+ * canonical خودش را می‌گیرد تا با صفحه‌ی اصلی و `/branches` هم‌عنوان نباشد.
+ * جمع‌کردن این صفحه با `/branches` (یا noindex کردن آن) یک تصمیمِ محتوایی است
+ * که باید جداگانه تأیید شود.
+ */
+export const metadata: Metadata = {
+  title: 'اطلاعات شعب و راه‌های ارتباطی زوپینی',
+  description:
+    'آدرس و شماره تماس شعب هدیش مال و کرمان زوپینی همراه با راه‌های ارتباطی و شبکه‌های اجتماعی برند.',
+  alternates: {
+    canonical: 'https://zoppinico.com/informations',
+  },
+};
 
 export default function InformationPage() {
   return (

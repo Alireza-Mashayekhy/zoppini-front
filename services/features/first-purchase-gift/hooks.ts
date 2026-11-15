@@ -18,9 +18,12 @@ export function useFirstPurchaseGiftConfig() {
   });
 }
 
-export function useFirstPurchaseGiftEligibility(enabled = true) {
+export function useFirstPurchaseGiftEligibility(
+  enabled = true,
+  userId?: number | null,
+) {
   return useQuery({
-    queryKey: ['first-purchase-gift', 'eligibility'],
+    queryKey: ['first-purchase-gift', 'eligibility', userId ?? 'guest'],
     queryFn: getFirstPurchaseGiftEligibility,
     enabled,
     staleTime: 30_000,

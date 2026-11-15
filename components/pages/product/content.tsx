@@ -9,6 +9,10 @@ import ProductSizes from '@/components/pages/product/sizes';
 import PromotionBadge from '@/components/shared/promotion-badge';
 import { track } from '@/lib/consent/client';
 import { resolveHtmlMedia } from '@/lib/media';
+import {
+  findSelectedVariant,
+  resolveDisplayVariant,
+} from '@/lib/product-price';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import {
@@ -106,10 +110,23 @@ export default function ProductContent({
   );
 
   const activeColorId = selectedColorId || defaultColorId;
-  const selectedVariant = product.variants?.find(
-    v => v.color?.id === activeColorId && v.size?.id === selectedSizeId,
-  );
-  const displayVariant = selectedVariant ?? product.variants?.[0];
+  /**
+   * variantِ دقیقاً انتخاب‌شده (هم رنگ و هم سایز) — برای افزودن به سبد خرید
+   * لازم است و اگر نباشد یعنی کاربر هنوز سایز را انتخاب نکرده است.
+   */
+  const selectedVariant = findSelectedVariant(product.variants, {
+    colorId: activeColorId,
+    sizeId: selectedSizeId,
+  });
+  /**
+   * variantِ نمایش‌داده‌شده با همان تابعِ مشترکِ JSON-LD انتخاب می‌شود تا
+   * قیمتی که کاربر می‌بیند و قیمتی که در داده‌ی ساختاریافته منتشر می‌شود
+   * هیچ‌وقت از هم جدا نشوند (`lib/product-price.ts`).
+   */
+  const displayVariant = resolveDisplayVariant(product.variants, {
+    colorId: activeColorId,
+    sizeId: selectedSizeId,
+  });
   const price = displayVariant?.price || 0;
   const discountedPrice = displayVariant?.discountedPrice;
   const installmentPrice = selectedProductPrice(

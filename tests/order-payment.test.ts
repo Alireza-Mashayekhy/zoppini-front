@@ -63,10 +63,26 @@ test('سفارش غیر از «در انتظار پرداخت» قابل پرد�
 test('داشبورد دکمه پرداخت را فقط برای سفارش قابل پرداخت نشان می‌دهد و لغو باقی است', () => {
   const item = source('components/dashboard/order-item.tsx');
 
+  // پرداخت فقط وقتی که سرور هم آن را می‌پذیرد
   assert.match(item, /canPayOrderOnline\(order\)/);
-  assert.match(item, /<OrderPayment order=\{order\} \/>/);
+  assert.match(item, /canPay && <OrderPayment order=\{order\} \/>/);
+  // لغو فقط برای سفارش در انتظار پرداخت (سرور سفارش پرداخت‌شده را رد می‌کند)
+  assert.match(item, /canCancelOrder\(order\)/);
+  assert.match(item, /canCancel && \(/);
   assert.match(item, /لغو سفارش/);
-  assert.match(item, /cancelOrder\.mutate\(order\.id\)/);
+  // لغو از طریق دیالوگِ تأیید انجام می‌شود
+  assert.match(item, /<CancelOrderDialog/);
+});
+
+test('لغو سفارش پیش از اجرا تأیید می‌گیرد و ارسال تکراری ندارد', () => {
+  const dialog = source('components/dashboard/cancel-order-dialog.tsx');
+
+  assert.match(dialog, /AlertDialog/);
+  assert.match(dialog, /cancelOrder\.mutate\(order\.id/);
+  assert.match(dialog, /cancelOrder\.isPending/);
+  assert.match(dialog, /disabled=\{cancelOrder\.isPending\}/);
+  // بسته شدن فقط بعد از پاسخ سرور (موفق یا ناموفق)
+  assert.match(dialog, /onSuccess: \(\) => onOpenChange\(false\)/);
 });
 
 test('پنل پرداخت درگاه را انتخاب و با همان سفارش پرداخت را شروع می‌کند', () => {
