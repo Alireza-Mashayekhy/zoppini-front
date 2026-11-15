@@ -5,93 +5,120 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 
+import CancelOrderDialog from '@/components/dashboard/cancel-order-dialog';
+import OrderPayment, { canPayOrderOnline } from '@/components/dashboard/order-payment';
+import OrderStatusBadge from '@/components/dashboard/order-status-badge';
 import { Button } from '@/components/ui/button';
-import { cn, formatPrice } from '@/lib/utils';
 import {
-  useCancelOrder,
-  useConfirmOrderFromWallet,
-} from '@/services/features/orders/hooks';
+  canCancelOrder,
+  getOrderStatusMeta,
+  needsWalletConfirmation,
+} from '@/lib/order-status';
+import { cn, formatPrice, toPersianDate } from '@/lib/utils';
+import { useConfirmOrderFromWallet } from '@/services/features/orders/hooks';
 import {
   OrderResponse,
-  OrderStatus,
   ShippingMethod,
 } from '@/services/features/orders/type';
 
-import OrderPayment, { canPayOrderOnline } from './order-payment';
-
-const statusMap: Record<OrderStatus, { label: string; color: string }> = {
-  pending: {
-    label: 'در انتظار پرداخت',
-    color: 'bg-yellow-100 text-yellow-800',
-  },
-  paid: { label: 'پرداخت شده', color: 'bg-blue-100 text-blue-800' },
-  shipped: { label: 'ارسال شده', color: 'bg-purple-100 text-purple-800' },
-  delivered: { label: 'تحویل شده', color: 'bg-green-100 text-green-800' },
-  cancelled: { label: 'لغو شده', color: 'bg-red-100 text-red-800' },
-};
-
 interface OrderItemProps {
   order: OrderResponse;
+  /** باز بودنِ بخش جزئیات (از صفحه کنترل می‌شود تا لینکِ مستقیم ممکن باشد) */
+  expanded: boolean;
+  onToggle: () => void;
 }
 
-export default function OrderItem({ order }: OrderItemProps) {
-  const [expanded, setExpanded] = useState(false);
-  const cancelOrder = useCancelOrder();
+/**
+ * یک ردیفِ سفارش در صفحه‌ی «سفارشات من».
+ *
+ * قواعدِ اقدام‌ها از `lib/order-status.ts` می‌آید تا با سرور یکی باشد:
+ * پرداخت فقط برای سفارشِ در انتظار پرداختی که مبلغی از آن با اعتبارها پوشش
+ * داده نشده باشد، و لغو فقط برای سفارشِ در انتظار پرداخت (سرور سفارشِ
+ * پرداخت‌شده را نمی‌پذیرد). لغو همیشه با دیالوگِ تأیید انجام می‌شود.
+ */
+export default function OrderItem({
+  order,
+  expanded,
+  onToggle,
+}: OrderItemProps) {
+  const [cancelOpen, setCancelOpen] = useState(false);
+
   const confirmFromWallet = useConfirmOrderFromWallet();
 
-  const status = statusMap[order.status];
-  const canCancel =
-    order.status === OrderStatus.PENDING || order.status === OrderStatus.PAID;
+  const status = getOrderStatusMeta(order.status);
+
+  const canCancel = canCancelOrder(order);
+  const canPay = canPayOrderOnline(order);
+  const walletRetry = needsWalletConfirmation(order);
 
   const walletPaymentAmount = Number(order.walletPayment ?? 0);
+  const clubCreditAmount = Number(order.clubCreditPayment ?? 0);
 
-  const needsWalletRetry =
-    order.status === OrderStatus.PENDING &&
-    walletPaymentAmount > 0 &&
-    walletPaymentAmount >= Number(order.finalPrice);
+  const panelId = `order-details-${order.id}`;
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div
+      className={cn(
+        'overflow-hidden rounded-lg border border-border bg-white transition-shadow',
+        expanded ? 'shadow-md' : 'shadow-sm hover:shadow-md',
+      )}
+    >
       {/* هدر سفارش */}
-      <div
-        className="flex flex-wrap items-center justify-between p-4 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        className="flex w-full flex-col gap-3 p-4 text-start transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-[#1A1A1A] focus-visible:outline-none sm:flex-row sm:items-center sm:justify-between"
       >
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-sm font-medium">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-xs text-gray-500">شماره سفارش</span>
+          <span
+            dir="ltr"
+            className="max-w-full break-all font-mono text-sm font-medium"
+          >
             {order.orderNumber}
           </span>
-          <span
-            className={cn('text-xs px-2 py-0.5 rounded-full', status.color)}
-          >
-            {status.label}
-          </span>
+          <OrderStatusBadge status={order.status} />
         </div>
+
         <div className="flex items-center gap-4 text-sm">
-          <span>{new Date(order.createdAt).toLocaleDateString('fa-IR')}</span>
-          <span className="font-semibold">
+          <span className="text-gray-500">
+            {toPersianDate(order.createdAt)}
+          </span>
+          <span className="font-semibold whitespace-nowrap">
             {formatPrice(order.finalPrice)} تومان
           </span>
-          <button className="p-1 hover:bg-gray-100 rounded">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full text-gray-500">
             {expanded ? (
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="h-4 w-4" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
             )}
-          </button>
+          </span>
         </div>
-      </div>
+      </button>
 
       {/* جزئیات سفارش (expandable) */}
       {expanded && (
-        <div className="p-4 border-t space-y-4">
+        <div id={panelId} className="space-y-4 border-t border-border p-4">
+          {/* وضعیت و گام بعدی */}
+          <div className="rounded-md bg-neutral-50 p-3 text-xs leading-6 text-gray-600">
+            <p className="font-medium text-gray-800">{status.label}</p>
+            <p>{status.description}</p>
+            {status.nextAction && (
+              <p className="text-gray-700">{status.nextAction}</p>
+            )}
+          </div>
+
+          {/* اقلام سفارش */}
           <div className="space-y-2">
             {order.items.map(item => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 py-2 border-b last:border-0"
+                className="flex items-center gap-3 border-b border-border py-2 last:border-0"
               >
-                <div className="relative w-14 h-14 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
+                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
                   <Image
                     src={
                       process.env.NEXT_PUBLIC_IMAGE_URL +
@@ -102,7 +129,7 @@ export default function OrderItem({ order }: OrderItemProps) {
                     className="object-cover"
                   />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
                     {item.variant.product.title}
                   </p>
@@ -110,8 +137,8 @@ export default function OrderItem({ order }: OrderItemProps) {
                     {item.variant.color?.name} / {item.variant.size?.name}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold">
+                <div className="text-end">
+                  <p className="text-sm font-semibold whitespace-nowrap">
                     {formatPrice(item.price * item.quantity)} تومان
                   </p>
                   <p className="text-xs text-gray-500">
@@ -122,24 +149,31 @@ export default function OrderItem({ order }: OrderItemProps) {
             ))}
           </div>
 
-          <div className="flex flex-wrap justify-between items-center pt-2 border-t">
+          {/* اطلاعات ارسال و مبالغ */}
+          <div className="flex flex-wrap justify-between gap-4 border-t border-border pt-2">
             <div className="space-y-1 text-sm">
               {order.shippingMethod === ShippingMethod.PICKUP ? (
                 <p>روش تحویل: تحویل حضوری در هدیش مال</p>
               ) : (
-                <p>آدرس: {order.shippingAddress || 'ثبت نشده'}</p>
+                <p className="break-words">
+                  آدرس: {order.shippingAddress || 'ثبت نشده'}
+                </p>
               )}
               <p>تلفن: {order.phone || 'ثبت نشده'}</p>
               {order.note && <p>توضیحات: {order.note}</p>}
             </div>
-            <div className="text-sm space-y-1 text-left">
+
+            <div className="space-y-1 text-sm">
               <p>جمع سفارش: {formatPrice(order.totalPrice)} تومان</p>
               <p>هزینه ارسال: {formatPrice(order.shippingCost)} تومان</p>
               {order.discount > 0 && (
                 <p>تخفیف: {formatPrice(order.discount)} تومان</p>
               )}
               {!!order.promotionDiscount && (
-                <p>تخفیف پیشنهاد ویژه: {formatPrice(order.promotionDiscount)} تومان</p>
+                <p>
+                  تخفیف پیشنهاد ویژه:{' '}
+                  {formatPrice(order.promotionDiscount)} تومان
+                </p>
               )}
               {!!order.promotionFreeItemValue && (
                 <p>
@@ -147,51 +181,78 @@ export default function OrderItem({ order }: OrderItemProps) {
                   {formatPrice(order.promotionFreeItemValue)} تومان
                 </p>
               )}
-              {!!order.promotionFreeShipping && <p>ارسال رایگان (پیشنهاد ویژه)</p>}
+              {!!order.promotionFreeShipping && (
+                <p>ارسال رایگان (پیشنهاد ویژه)</p>
+              )}
               {walletPaymentAmount > 0 && (
                 <p>
                   پرداخت از کیف پول: {formatPrice(walletPaymentAmount)} تومان
                 </p>
               )}
-              <p className="font-semibold text-base">
+              {clubCreditAmount > 0 && (
+                <p>
+                  پرداخت از اعتبار باشگاه: {formatPrice(clubCreditAmount)}{' '}
+                  تومان
+                </p>
+              )}
+              <p className="text-base font-semibold">
                 قابل پرداخت: {formatPrice(order.finalPrice)} تومان
               </p>
             </div>
           </div>
 
-          {needsWalletRetry && (
-            <div className="flex items-center justify-between gap-3 border-t pt-3">
-              <p className="text-xs text-gray-500">
-                این سفارش با کیف پول پوشش داده شده؛ تأیید آن را دوباره امتحان
-                کنید.
-              </p>
-              <Button
-                size="sm"
-                onClick={() => confirmFromWallet.mutate(order.id)}
-                loading={confirmFromWallet.isPending}
-              >
-                تأیید مجدد با کیف پول
-              </Button>
-            </div>
-          )}
+          {/* اقدام‌ها — فقط آن‌هایی که سرور می‌پذیرد */}
+          {(walletRetry || canPay || canCancel) && (
+            <div className="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-end">
+              {walletRetry && (
+                <p className="text-xs text-gray-500 sm:me-auto">
+                  این سفارش با اعتبارهای شما (کیف پول یا باشگاه) پوشش داده شده؛
+                  تأیید آن را دوباره امتحان کنید.
+                </p>
+              )}
 
-          {canPayOrderOnline(order) && (
-            <div className="flex justify-end">
-              <OrderPayment order={order} />
+              {walletRetry && (
+                <Button
+                  size="sm"
+                  variant="dark"
+                  className="h-9 px-4 text-sm sm:h-8"
+                  onClick={() => confirmFromWallet.mutate(order.id)}
+                  loading={confirmFromWallet.isPending}
+                  disabled={confirmFromWallet.isPending}
+                >
+                  تأیید مجدد با کیف پول
+                </Button>
+              )}
+
+              {canPay && <OrderPayment order={order} />}
+
+              {canCancel && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-9 px-4 text-sm sm:h-8"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  لغو سفارش
+                </Button>
+              )}
             </div>
           )}
 
           {canCancel && (
-            <div className="flex justify-end">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => cancelOrder.mutate(order.id)}
-                loading={cancelOrder.isPending}
-              >
-                لغو سفارش
-              </Button>
-            </div>
+            <CancelOrderDialog
+              order={order}
+              open={cancelOpen}
+              onOpenChange={setCancelOpen}
+            />
+          )}
+
+          {!canPay && !canCancel && !walletRetry && (
+            <p className="border-t border-border pt-3 text-xs text-gray-500">
+              {status.status === 'delivered'
+                ? 'این سفارش تکمیل شده است. برای پرسش درباره‌ی آن با پشتیبانی تماس بگیرید.'
+                : 'اقدامی برای این سفارش لازم نیست.'}
+            </p>
           )}
         </div>
       )}
