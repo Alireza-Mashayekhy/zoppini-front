@@ -1,4 +1,24 @@
+import type { Metadata } from 'next';
+
 import SidebarAuth from '@/components/layout/auth/sidebar';
+
+/**
+ * صفحات ورود/ثبت‌نام نباید در نتایج جستجو بیایند.
+ *
+ * سیاست: این مسیرها **در robots.txt مسدود نشده‌اند** (برخلاف /admin،
+ * /dashboard و /checkout). دلیل: اگر یک صفحه هم `Disallow` شود و هم `noindex`
+ * داشته باشد، خزنده صفحه را نمی‌خزد، متای noindex را نمی‌بیند و آدرسِ بدون
+ * محتوا می‌تواند در نتایج بماند. چون این صفحات از هدرِ سایت لینک می‌شوند و
+ * خزش‌شان ارزان است، سیاستِ درست این است: «خزش آزاد + noindex روی خود صفحه».
+ *
+ * `follow: false` هم گذاشته شده چون این صفحات ارزشِ انتقالِ لینک ندارند.
+ */
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthLayout({
   children,

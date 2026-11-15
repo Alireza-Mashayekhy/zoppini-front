@@ -1,13 +1,40 @@
 User-Agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /login
-Disallow: /sign-up
-Disallow: /forgot-pass
-Disallow: /checkout
-Disallow: /panel/
+
+# ───────────────────────── منابع لازم برای رندر ─────────────────────────
+# باندل‌های JS/CSS و بهینه‌ساز تصویر باید در دسترس باشند؛ مسدود کردن آن‌ها
+# باعث خطای «منابع مسدود شده» و رندر ناقص در گوگل می‌شود.
+# ترتیب مهم است: برای خزنده‌هایی که اولین قانونِ منطبق را اعمال می‌کنند،
+# اجازه‌ها پیش از مسدودسازیِ کلی آمده‌اند.
+Allow: /_next/static/
+Allow: /_next/image
 Disallow: /_next/
+
+# ─────────────────────── مسیرهای بدون محتوای HTML ───────────────────────
+# /api/ شامل مسیرهای JSON/پروکسی است، متای `noindex` ندارد و ارزشی برای
+# جستجو ندارد؛ بنابراین اینجا مسدود می‌شود.
+#
+# اصلِ کلی: **`Disallow` هیچ‌وقت با متای `noindex` روی یک مسیر ترکیب نمی‌شود.**
+# اگر صفحه‌ای هم مسدود شود و هم noindex داشته باشد، خزنده صفحه را نمی‌خزد،
+# متا را نمی‌بیند و آدرسِ بدون محتوا می‌تواند در نتایج باقی بماند (URL-only
+# indexing). برای هر مسیر دقیقاً یکی از این دو انتخاب می‌شود:
+#
+#   • مسیر بدون HTML (مثل /api/)      → فقط Disallow؛
+#   • مسیر HTML که نباید ایندکس شود   → فقط noindex روی خود صفحه + خزشِ آزاد.
+Disallow: /api/
+
+# ─────────────── مسیرهایی که فقط با noindex مدیریت می‌شوند ───────────────
+# این مسیرها عمداً Disallow نشده‌اند تا خزنده بتواند متای `noindex` را
+# بخواند و صفحه تمیز از ایندکس خارج شود:
+#
+#   /login  /sign-up  /forgot-pass  → app/(auth)/layout.tsx
+#   /dashboard/*                    → app/(user)/layout.tsx
+#   /admin/*                        → app/(admin)/layout.tsx
+#   /compare                        → app/(public)/compare/page.tsx
+#   /checkout/*                     → app/(public)/checkout/layout.tsx
+#
+# هزینه‌ی خزشِ این مسیرها ناچیز است (همگی پشت احراز هویت‌اند یا صفحه‌ای
+# تکی‌اند)، در حالی که Disallow کردنِ آن‌ها تضمینِ noindex را از بین می‌برد.
+# توجه: robots ابزار امنیت نیست؛ دسترسیِ واقعی با proxy.ts بررسی می‌شود.
 
 Sitemap: https://zoppinico.com/sitemap.xml

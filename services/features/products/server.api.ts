@@ -1,4 +1,4 @@
-import { serverFetch } from '@/services/api/server';
+import { publicFetch, serverFetch } from '@/services/api/server';
 import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { ProductGuidesForCustomer } from '../product-guides/type';
@@ -7,6 +7,25 @@ import {
   ProductResponse,
   ProductsResponse,
 } from './type';
+
+/**
+ * جداسازیِ داده‌ی عمومی از داده‌ی شخصی (تشخیصِ هدر
+ * `Cache-Control: private, no-cache, no-store` روی HTML):
+ *
+ * اندپوینت‌های این فایل در بک‌اند هیچ Guard یا احراز هویتی ندارند و پاسخ‌شان
+ * به کاربر وابسته نیست؛ بنابراین با `publicFetch` خوانده می‌شوند: نه کوکیِ
+ * کاربر فرستاده می‌شود و نه `cookies()` فراخوانی می‌شود. سیاستِ کش این
+ * فراخوانی‌ها تغییر نکرده است.
+ *
+ * توجه: `publicFetch` مسیر را ایستا نمی‌کند — پیش‌فرضِ آن `cache: 'no-store'`
+ * است و مسیر در هر درخواست دوباره رندر می‌شود. سودِ این جداسازی آن است که
+ * هیچ داده‌ی وابسته به نشست وارد این درخواست‌ها نمی‌شود (و مسیر به‌خاطرِ
+ * `cookies()` داینامیک نمی‌ماند)، نه اینکه خروجی کش شود.
+ *
+ * فراخوانی‌هایی که `next: { revalidate }` دارند (مثل featured/style) عمداً روی
+ * `serverFetch` مانده‌اند؛ فعال کردنِ کش برای آن‌ها یعنی ISR و چون روی تازگیِ
+ * قیمت/موجودی اثر دارد، نیازمند تصمیم جداگانه است (در گزارش مستند شده).
+ */
 
 interface GetProductsParams {
   page?: number;
@@ -38,18 +57,20 @@ export async function getProducts(params: GetProductsParams = {}) {
   }
 
   const url = `products?${searchParams.toString()}`;
-  return serverFetch<ApiListResponse<ProductsResponse>>(url);
+  return publicFetch<ApiListResponse<ProductsResponse>>(url);
 }
 
 export async function getProduct(slug: string) {
-  return serverFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
+  return publicFetch<ApiSingleResponse<ProductResponse>>(
+    `products/${slug}`,
+  );
 }
 
 export async function getProductGuides(slug: string): Promise<{
   data: ProductGuidesForCustomer;
 } | null> {
   try {
-    return await serverFetch<ApiSingleResponse<ProductGuidesForCustomer>>(
+    return await publicFetch<ApiSingleResponse<ProductGuidesForCustomer>>(
       `product-guides/product-slug/${encodeURIComponent(slug)}`,
     );
   } catch {
@@ -87,5 +108,5 @@ export async function getDiscountedProducts(params: GetProductsParams = {}) {
   }
 
   const url = `products/discounted?${searchParams.toString()}`;
-  return serverFetch<ApiListResponse<ProductsResponse>>(url);
+  return publicFetch<ApiListResponse<ProductsResponse>>(url);
 }

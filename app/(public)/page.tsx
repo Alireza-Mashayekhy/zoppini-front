@@ -6,7 +6,11 @@ import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition'
 import SaleBanner from '@/components/pages/home/sale-banner';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 import { resolveHomeImages } from '@/lib/home-images';
-import { buildPageMetadata } from '@/lib/seo';
+import {
+  buildPageMetadata,
+  SITE_DEFAULT_DESCRIPTION,
+  SITE_DEFAULT_TITLE,
+} from '@/lib/seo';
 import {
   getHeroSectionCategories,
   getHomeCategories,
@@ -17,10 +21,10 @@ import {
 } from '@/services/features/products/server.api';
 import { getSiteImages } from '@/services/features/site-images/server.api';
 
+/** پیش‌فرضِ صفحه‌ی اصلی همان مقدارِ پیش‌فرضِ سایت است (ثابت‌های `lib/seo.ts`). */
 const pageMetadata: Metadata = {
-  title: 'فروشگاه پوشاک مردانه - زوپینی',
-  description:
-    'فروشگاه آنلاین پوشاک مردانه زوپینی | خرید انواع کت شلوار مردانه، کت تک، پالتو، پیراهن و شلوار- خرید حضوری و اینترنتی | پرداخت در محل✓ امکان بازگشت کالا✓',
+  title: SITE_DEFAULT_TITLE,
+  description: SITE_DEFAULT_DESCRIPTION,
   alternates: {
     canonical: 'https://zoppinico.com',
   },

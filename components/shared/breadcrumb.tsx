@@ -1,43 +1,29 @@
 import Link from 'next/link';
-import Script from 'next/script';
+
+import { buildBreadcrumbJsonLd } from '@/lib/jsonld/breadcrumb';
 
 export default function Breadcrumb({
   items,
 }: {
   items: { name: string; href: string }[];
 }) {
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'خانه',
-        item: 'https://zoppinico.com',
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: items[1].name,
-        item: items[1].href,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: items[2].name,
-        item: items[2].href,
-      },
-    ],
-  };
+  // آدرس‌های JSON-LD باید مطلق باشند؛ ساختِ آن‌ها به تابع خالص منتقل شده است.
+  const schema = buildBreadcrumbJsonLd(items);
 
   return (
     <>
-      <Script
-        id="product-breadcrumb-jsonld"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      {/*
+        تگ معمولی (نه next/script) تا JSON-LD در HTML اولیه‌ی سرور باشد و برای
+        خزنده بدون اجرای JavaScript هم در دسترس باشد.
+      */}
+      {schema ? (
+        <script
+          id="product-breadcrumb-jsonld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ) : null}
+
       <nav aria-label="مسیر" className="text-sm text-gray-500 px-6">
         <ol className="flex items-center gap-2">
           {items.map((item, i) => (

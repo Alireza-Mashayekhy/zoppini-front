@@ -6,6 +6,15 @@ import SidebarContent from '@/components/layout/dashboard/sidebar-content';
 import Header from '@/components/layout/public/header';
 import CompareBar from '@/components/shared/compare-bar';
 
+/**
+ * پنلِ کاربر (زیرمسیرهای `/dashboard`) نباید ایندکس شود.
+ *
+ * سیاست: این مسیرها در `robots.txt` مسدود **نشده‌اند** (برخلاف `/api/`).
+ * دلیل: ترکیبِ `Disallow` با `noindex` یعنی خزنده صفحه را نمی‌خزد، متا را
+ * نمی‌بیند و آدرسِ بدون محتوا می‌تواند در نتایج باقی بماند. هزینه‌ی خزشِ این
+ * چند صفحه ناچیز است (بدون نشست به `/login` هدایت می‌شوند)، بنابراین
+ * `noindex` روی خود صفحه انتخابِ امن‌تری است.
+ */
 export const metadata: Metadata = {
   robots: {
     index: false,
