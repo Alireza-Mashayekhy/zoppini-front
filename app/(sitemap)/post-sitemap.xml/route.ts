@@ -1,31 +1,31 @@
-// app/product-sitemap1.xml/route.ts
 import { NextResponse } from 'next/server';
 
+import { renderSitemapUrlset, SITEMAP_XML_CONTENT_TYPE, toSitemapLoc } from '@/lib/sitemap-xml';
 import { getSitemap } from '@/services/features/sitemap/server.api';
 
-const BASE_URL = 'https://zoppinico.com';
-
+/**
+ * نقشه‌ی مقالات وبلاگ.
+ *
+ * فقط مقالات منتشرشده و ایندکس‌شونده از سرویس sitemap می‌آیند
+ * (`isPublished` و `indexable` در بک‌اند فیلتر می‌شوند) و مسیرهایی که در پنل
+ * سئو noindex یا ریدایرکت گرفته‌اند هم حذف می‌شوند.
+ */
 export async function GET() {
-  const sitemapData = await getSitemap();
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${sitemapData?.data?.blogPosts
-    .map(
-      blog => `
-  <url>
-    <loc>${BASE_URL}/blog/${blog.slug}</loc>
-    <lastmod>${blog.updatedAt || new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  `,
-    )
-    .join('')}
-</urlset>`;
+  const data = await getSitemap();
+
+  const xml = renderSitemapUrlset(
+    (data?.blogPosts ?? []).map(post => ({
+      // `toSitemapLoc` فاصله‌ها را encode می‌کند و اسلاگ را تغییر نمی‌دهد.
+      loc: toSitemapLoc(`/blog/${post.slug}`),
+      lastModified: post.updatedAt ?? null,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    })),
+  );
 
   return new NextResponse(xml, {
     headers: {
-      'Content-Type': 'application/xml',
+      'Content-Type': SITEMAP_XML_CONTENT_TYPE,
       'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });

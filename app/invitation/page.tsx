@@ -22,7 +22,9 @@ export const metadata: Metadata = {
   },
 
   alternates: {
-    canonical: '/invitation',
+    // آدرس مطلق و canonical (non-www + https)؛ قبلاً نسبی بود و حل شدنِ آن
+    // به `metadataBase` وابسته بود.
+    canonical: 'https://zoppinico.com/invitation',
   },
 };
 

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { getOrderCardAmount } from '@/lib/order-status';
 import { formatPrice } from '@/lib/utils';
-import { OrderResponse, OrderStatus } from '@/services/features/orders/type';
+import { OrderResponse } from '@/services/features/orders/type';
 import {
   useSnappayEligibility,
   useStartPayment,
@@ -36,23 +37,16 @@ const ONLINE_GATEWAYS: {
 ];
 
 /**
- * مبلغی که باید با درگاه پرداخت شود (تومان).
- * بخشی از مبلغ سفارش ممکن است قبلاً از کیف پول کسر شده باشد.
+ * مبلغی که باید با درگاه پرداخت شود (تومان) و شرطِ امکانِ پرداخت.
+ *
+ * این دو تابع از `lib/order-status.ts` می‌آیند تا با قاعده‌ی سمت سرور یکی
+ * باشند: مبلغ درگاه = `finalPrice - (walletPayment + clubCreditPayment)` و
+ * فقط سفارش «در انتظار پرداخت» قابل پرداخت است. اگر کل مبلغ با اعتبارها
+ * پوشش داده شده باشد، دکمه نمایش داده نمی‌شود چون سرور درخواست را رد می‌کند.
+ *
+ * (صادرِ مجدد از این فایل برای سازگاری با مصرف‌کننده‌ها و تست‌های موجود.)
  */
-export function getOrderCardAmount(order: OrderResponse): number {
-  return Math.max(
-    0,
-    Number(order.finalPrice ?? 0) - Number(order.walletPayment ?? 0),
-  );
-}
-
-/**
- * آیا این سفارش در داشبورد امکان پرداخت با درگاه دارد؟
- * فقط سفارش در انتظار پرداخت که کل مبلغش با کیف پول پوشش داده نشده باشد.
- */
-export function canPayOrderOnline(order: OrderResponse): boolean {
-  return order.status === OrderStatus.PENDING && getOrderCardAmount(order) > 0;
-}
+export { canPayOrderOnline, getOrderCardAmount } from '@/lib/order-status';
 
 interface OrderPaymentProps {
   order: OrderResponse;

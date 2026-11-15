@@ -15,6 +15,17 @@ interface CustomPaginationProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   siblingsCount?: number;
+  /**
+   * سازنده‌ی آدرسِ واقعی برای هر صفحه.
+   *
+   * اگر داده شود، دکمه‌های صفحه‌بندی به‌جای دکمه‌ی بدون آدرس، یک لینکِ واقعی
+   * (`<a href>`) می‌شوند؛ بنابراین خزنده می‌تواند صفحات بعدی را کشف و دنبال
+   * کند. کلیک همچنان با `onPageChange` به‌صورت سمت‌کلاینت انجام می‌شود
+   * (بدون بارگذاری مجدد صفحه).
+   *
+   * برای بخش‌های مدیریت (که اصلاً نباید خزش شوند) این prop داده نمی‌شود.
+   */
+  hrefForPage?: (page: number) => string;
 }
 
 export default function CustomPagination({
@@ -22,6 +33,7 @@ export default function CustomPagination({
   currentPage,
   onPageChange,
   siblingsCount = 1,
+  hrefForPage,
 }: CustomPaginationProps) {
   const prevPage = Math.max(1, currentPage - 1);
   const nextPage = Math.min(totalPages, currentPage + 1);
@@ -56,13 +68,30 @@ export default function CustomPagination({
 
   const pages = generatePages();
 
+  const hrefFor = hrefForPage
+    ? (page: number) => {
+        try {
+          return hrefForPage(page);
+        } catch {
+          return undefined;
+        }
+      }
+    : undefined;
+
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
             text=""
-            onClick={() => currentPage > 1 && onPageChange(prevPage)}
+            href={currentPage > 1 ? hrefFor?.(prevPage) : undefined}
+            onClick={event => {
+              if (currentPage <= 1) return;
+              // لینک واقعی است؛ اما برای حفظ تجربه‌ی SPA، کلیک سمت کلاینت
+              // مدیریت می‌شود و از بارگذاری کامل صفحه جلوگیری می‌کنیم.
+              event.preventDefault();
+              onPageChange(prevPage);
+            }}
             className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
           />
         </PaginationItem>
@@ -80,7 +109,16 @@ export default function CustomPagination({
             <PaginationItem key={page}>
               <PaginationLink
                 isActive={currentPage === page}
-                onClick={() => onPageChange(page)}
+                href={hrefFor?.(page)}
+                onClick={event => {
+                  if (!hrefFor) {
+                    onPageChange(page);
+                    return;
+                  }
+                  event.preventDefault();
+                  onPageChange(page);
+                }}
+                aria-label={`صفحه ${page}`}
               >
                 {page}
               </PaginationLink>
@@ -91,7 +129,12 @@ export default function CustomPagination({
         <PaginationItem>
           <PaginationNext
             text=""
-            onClick={() => currentPage < totalPages && onPageChange(nextPage)}
+            href={currentPage < totalPages ? hrefFor?.(nextPage) : undefined}
+            onClick={event => {
+              if (currentPage >= totalPages) return;
+              event.preventDefault();
+              onPageChange(nextPage);
+            }}
             className={
               currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''
             }
