@@ -3,6 +3,8 @@
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
+import { formatPriceFa } from '@/lib/discount';
+import { cn } from '@/lib/utils';
 import { CartItem, CartResponse } from '@/services/features/cart/types';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
 import { CheckoutPreviewResponse } from '@/services/features/orders/type';
@@ -60,16 +62,13 @@ export default function OrderSummary({
   clubCreditUsed = 0,
   gatewayPayable,
 }: OrderSummaryProps) {
-  const {
-    promotionDiscount,
-    freeItemValue: freeItemTotal,
-    freeShipping: freeShippingFromPromotion,
-    notices: promotionNotices,
-    fromServer,
-  } = resolvePromotionTotals({ preview: checkoutPreview, pricing });
+  const promotionTotals = resolvePromotionTotals({
+    preview: checkoutPreview,
+    pricing,
+  });
 
   /* مبلغ قابل پرداخت: ارسال فقط وقتی اضافه می‌شود که خودمان حسابش می‌کنیم */
-  const payableTotal = fromServer
+  const payableTotal = promotionTotals.fromServer
     ? (checkoutPreview?.totals.finalPrice ?? 0)
     : (appliedDiscount?.summary?.finalPrice || pricing?.finalPrice || 0) +
       shippingCost;
@@ -78,15 +77,81 @@ export default function OrderSummary({
     <div dir="rtl" className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
       <h2 className="text-xl font-light tracking-wide mb-4">خلاصه سفارش</h2>
 
-      {/* محصولات */}
+      <CheckoutItemsList
+        items={items}
+        onQuantityChange={onQuantityChange}
+        onRemoveItem={onRemoveItem}
+        isUpdatingCart={isUpdatingCart}
+      />
 
-      <div className="space-y-3 max-h-60 overflow-y-auto">
-        {items.map(item => (
+      <CheckoutTotals
+        appliedDiscount={appliedDiscount}
+        pricing={pricing}
+        shippingCost={shippingCost}
+        isFreeShipping={isFreeShipping}
+        hasSelectedAddress={hasSelectedAddress}
+        isPickup={isPickup}
+        promotionDiscount={promotionTotals.promotionDiscount}
+        freeItemTotal={promotionTotals.freeItemValue}
+        freeShippingFromPromotion={promotionTotals.freeShipping}
+        promotionNotices={promotionTotals.notices}
+        firstPurchaseGiftDiscount={Number(
+          checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0,
+        )}
+        payableTotal={payableTotal}
+        walletCreditUsed={walletCreditUsed}
+        clubCreditUsed={clubCreditUsed}
+        gatewayPayable={gatewayPayable}
+      />
+    </div>
+  );
+}
+
+/* ========================================= */
+/* لیست اقلام سبد (مشترک دسکتاپ/ویزارد موبایل) */
+/* ========================================= */
+
+export interface CheckoutItemsListProps {
+  items: CartItem[];
+  /** کم و زیاد کردن تعداد؛ عدد کمتر از ۱ یعنی حذف آیتم (مثل سبد خرید) */
+  onQuantityChange: (itemId: number, quantity: number) => void;
+  onRemoveItem: (itemId: number) => void;
+  /** وقتی یک تغییر سبد در حال انجام است، کنترل‌ها غیرفعال می‌شوند */
+  isUpdatingCart?: boolean;
+  /**
+   * حالت کامل برای گام «سبد خرید» ویزارد موبایل: تصویر بزرگ‌تر و نمایش
+   * قیمت واحد. حالت پیش‌فرض (کامپکت) همان ظاهر قبلی خلاصه سفارش است.
+   */
+  detailed?: boolean;
+}
+
+export function CheckoutItemsList({
+  items,
+  onQuantityChange,
+  onRemoveItem,
+  isUpdatingCart = false,
+  detailed = false,
+}: CheckoutItemsListProps) {
+  return (
+    <div
+      className={cn(
+        detailed ? 'space-y-4' : 'space-y-3 max-h-60 overflow-y-auto',
+      )}
+    >
+      {items.map(item => (
           <div
             key={item.id}
-            className="flex items-center gap-3 border-b last:border-b-0 pb-3"
+            className={cn(
+              'flex items-center gap-3 border-b last:border-b-0',
+              detailed ? 'pb-4' : 'pb-3',
+            )}
           >
-            <div className="relative w-12 h-12 shrink-0 bg-gray-100 rounded-md overflow-hidden">
+            <div
+              className={cn(
+                'relative shrink-0 bg-gray-100 rounded-md overflow-hidden',
+                detailed ? 'w-20 h-24' : 'w-12 h-12',
+              )}
+            >
               <Image
                 src={
                   process.env.NEXT_PUBLIC_IMAGE_URL +
@@ -106,6 +171,20 @@ export default function OrderSummary({
               <p className="text-xs text-gray-500">
                 {item.variant.color?.name} / {item.variant.size?.name}
               </p>
+
+              {detailed && (
+                <p className="mt-1 text-xs text-gray-500">
+                  قیمت واحد:{' '}
+                  {formatPriceFa(
+                    Number(
+                      item.variant.discountedPrice ??
+                        item.variant.originalPrice ??
+                        item.variant.price,
+                    ),
+                  )}{' '}
+                  تومان
+                </p>
+              )}
 
               <div className="mt-2 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1 rounded-md border">
@@ -225,10 +304,54 @@ export default function OrderSummary({
           </div>
         ))}
       </div>
+  );
+}
 
+/* ========================================= */
+/* ردیف‌های مبالغ (مشترک دسکتاپ/ویزارد موبایل) */
+/* ========================================= */
+
+export interface CheckoutTotalsProps {
+  appliedDiscount: ApplyDiscountResponse | null;
+  pricing?: CartResponse['pricing'] | null;
+  shippingCost: number;
+  isFreeShipping: boolean;
+  hasSelectedAddress: boolean;
+  isPickup: boolean;
+  promotionDiscount: number;
+  freeItemTotal: number;
+  freeShippingFromPromotion: boolean;
+  promotionNotices: string[];
+  firstPurchaseGiftDiscount: number;
+  payableTotal: number;
+  walletCreditUsed?: number;
+  clubCreditUsed?: number;
+  gatewayPayable?: number;
+  /** در گام سبد خرید ویزارد موبایل ردیف ارسال هنوز معنی ندارد */
+  hideShipping?: boolean;
+}
+
+export function CheckoutTotals({
+  appliedDiscount,
+  pricing,
+  shippingCost,
+  isFreeShipping,
+  hasSelectedAddress,
+  isPickup,
+  promotionDiscount,
+  freeItemTotal,
+  freeShippingFromPromotion,
+  promotionNotices,
+  firstPurchaseGiftDiscount,
+  payableTotal,
+  walletCreditUsed = 0,
+  clubCreditUsed = 0,
+  gatewayPayable,
+  hideShipping = false,
+}: CheckoutTotalsProps) {
+  return (
+    <div className="border-t mt-4 pt-4 space-y-3 text-sm">
       {/* قیمت‌ها */}
-
-      <div className="border-t mt-4 pt-4 space-y-3 text-sm">
         {/* جمع سبد */}
 
         <div className="flex justify-between">
@@ -267,16 +390,10 @@ export default function OrderSummary({
 
         {/* هدیهٔ اولین خرید */}
 
-        {Number(checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0) > 0 && (
+        {firstPurchaseGiftDiscount > 0 && (
           <div className="flex justify-between text-rose-800">
             <span>هدیهٔ اولین خرید آنلاین</span>
-            <span>
-              -{' '}
-              {Number(
-                checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0,
-              ).toLocaleString()}{' '}
-              تومان
-            </span>
+            <span>- {firstPurchaseGiftDiscount.toLocaleString()} تومان</span>
           </div>
         )}
 
@@ -291,19 +408,21 @@ export default function OrderSummary({
 
         {/* ارسال */}
 
-        <div className="flex justify-between">
-          <span className="text-gray-600">هزینه ارسال</span>
+        {!hideShipping && (
+          <div className="flex justify-between">
+            <span className="text-gray-600">هزینه ارسال</span>
 
-          <span>
-            {isPickup || isFreeShipping || freeShippingFromPromotion
-              ? 'رایگان'
-              : !hasSelectedAddress
-                ? 'پس از انتخاب آدرس'
-                : shippingCost > 0
-                  ? `${shippingCost.toLocaleString()} تومان`
-                  : 'پس‌کرایه'}
-          </span>
-        </div>
+            <span>
+              {isPickup || isFreeShipping || freeShippingFromPromotion
+                ? 'رایگان'
+                : !hasSelectedAddress
+                  ? 'پس از انتخاب آدرس'
+                  : shippingCost > 0
+                    ? `${shippingCost.toLocaleString()} تومان`
+                    : 'پس‌کرایه'}
+            </span>
+          </div>
+        )}
 
         {/* نهایی */}
 
@@ -348,7 +467,6 @@ export default function OrderSummary({
             ))}
           </ul>
         )}
-      </div>
     </div>
   );
 }

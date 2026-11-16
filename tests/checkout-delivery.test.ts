@@ -113,8 +113,11 @@ test('دو گزینه نحوه دریافت بالاتر از آدرس قرار 
   assert.ok(source.includes('>ارسال<'), 'گزینه ارسال موجود است');
 
   const branchStart = source.indexOf('{isPickup ? (');
-  const branchSeparator = source.indexOf(') : (\n              <>', branchStart);
-  const branchEnd = source.indexOf('{/* ================================= */}\n            {/* کد تخفیف', branchStart);
+  const branchSeparator = source.indexOf(') : (', branchStart);
+  // پایان شاخهٔ ارسال: محل قرارگیری deliveryContent در Chunks مشترک، بعد از
+  // isPickup branch. با ساختارِ بخش‌بندی‌شدهٔ فعلی (هر بخش یک fragment در
+  // dom content جدا است) مرز پایان همان آغاز giftContent است.
+  const branchEnd = source.indexOf('const giftContent = (', branchStart);
   assert.ok(branchStart > -1 && branchSeparator > branchStart && branchEnd > branchSeparator);
 
   const pickupBranch = source.slice(branchStart, branchSeparator);
