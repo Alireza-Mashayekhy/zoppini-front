@@ -8,10 +8,8 @@ import { HomeImage } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
 interface HeroSectionProps {
-  categories: CategoriesResponse[];
-
-  // ref مربوط به لیست دسته بندی ها
-  categoriesRef: React.RefObject<HTMLDivElement | null>;
+  /** فعلاً در چیدمان استفاده نمی‌شود (فهرست دسته‌ها زیر هدر غیرفعال است) */
+  categories?: CategoriesResponse[];
 
   /**
    * پوستر ویدیوهای هدر (از پنل مدیریت).
@@ -105,7 +103,7 @@ export default function HeroSection({
   };
 
   return (
-    <section className="relative h-full overflow-hidden">
+    <section className="relative h-full overflow-hidden bg-black">
       {/*
         پوستر ویدیوها از همان ابتدای لود HTML دانلود می‌شود
         تا تا رسیدن فریم اول ویدیو، جای آن مشکی نباشد.

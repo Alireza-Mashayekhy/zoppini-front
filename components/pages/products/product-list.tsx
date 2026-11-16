@@ -26,7 +26,11 @@ import {
 import { DEFAULT_PRODUCT_SORT, PRODUCT_SORT_OPTIONS } from '@/lib/product-sort';
 import { cn } from '@/lib/utils';
 import { ApiListResponse } from '@/services/api/types';
-import { ProductsResponse } from '@/services/features/products/type';
+import {
+  ColorResponse,
+  ProductsResponse,
+  SizeResponse,
+} from '@/services/features/products/type';
 
 import ProductFilter from './product-filter';
 
@@ -42,6 +46,9 @@ interface ProductListProps {
     sizeIds?: number[];
   };
   discounted?: boolean;
+  /** اگر این صفحه دسته‌بندی باشد، گزینه‌های فیلتر فقط همین دسته را می‌گیرند */
+  filterColors?: ColorResponse[];
+  filterSizes?: SizeResponse[];
 }
 
 const BASE_URL =
@@ -102,6 +109,8 @@ export default function ProductList({
   initialData,
   initialParams,
   discounted = false,
+  filterColors,
+  filterSizes,
 }: ProductListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -279,25 +288,26 @@ export default function ProductList({
 
   const gridClass =
     rows === 3
-      ? 'grid-cols-2 sm:grid-cols-3'
+      ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
       : rows === 4
-        ? 'grid-cols-2 sm:grid-cols-4'
-        : 'grid-cols-2 sm:grid-cols-6';
+        ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4'
+        : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
 
   return (
     <div className="flex flex-col">
-      {/* نوار بالایی */}
+      {/* نوار ابزار: فیلتر/مرتب‌سازی/نمایش گرید — چسبان */}
       <div
         className={cn(
-          'sticky z-30 flex h-20 items-center justify-between gap-4 border-t bg-background/80 px-6 backdrop-blur-xl transition-[top] duration-300',
-          isScrollingDown ? 'top-0' : 'top-[52px]',
+          'sticky z-30 flex h-20 items-center justify-between gap-4 border-t bg-background/80 px-3 backdrop-blur-xl transition-[top] duration-300 sm:px-4',
+          isScrollingDown ? 'top-0 lg:top-[52px]' : 'top-[52px]',
         )}
       >
         <div className="flex items-center gap-2">
+          {/* موبایل: کلید باز کردن بلوک inline فیلتر؛ دسکتاپ دایماً سایدبار نمایش داده می‌شود */}
           <Button
             variant="ghost"
-            onClick={() => setIsFilterOpen(true)}
-            className="relative"
+            onClick={() => setIsFilterOpen(v => !v)}
+            className="relative lg:hidden"
           >
             فیلترها
             {activeFilterCount > 0 && (
@@ -335,6 +345,7 @@ export default function ProductList({
             variant="ghost"
             onClick={() => setRows(3)}
             className={'group'}
+            aria-label="نمایش ۳ ستونه"
           >
             <Dot active={rows === 3} col={3} row={1} />
           </Button>
@@ -342,6 +353,7 @@ export default function ProductList({
             variant="ghost"
             onClick={() => setRows(4)}
             className={'group'}
+            aria-label="نمایش ۴ ستونه"
           >
             <Dot active={rows === 4} col={4} row={2} />
           </Button>
@@ -349,61 +361,83 @@ export default function ProductList({
             variant="ghost"
             onClick={() => setRows(6)}
             className={'group'}
+            aria-label="نمایش متراکم‌تر"
           >
             <Dot active={rows === 6} col={6} row={3} />
           </Button>
         </div>
       </div>
 
-      {/* مودال فیلتر */}
-      <ProductFilter
-        selectedColorIds={colorIds}
-        selectedSizeIds={sizeIds}
-        onApplyFilters={handleApplyFilters}
-        open={isFilterOpen}
-        onOpenChange={setIsFilterOpen}
-        onClearFilters={handleClearFilters}
-      />
+      {/* فیلترهای inline برای موبایل/تبلت (بالای گرید, بدون overlay) */}
+      <div className="lg:hidden">
+        <ProductFilter
+          selectedColorIds={colorIds}
+          selectedSizeIds={sizeIds}
+          onApplyFilters={handleApplyFilters}
+          open={isFilterOpen}
+          onOpenChange={setIsFilterOpen}
+          onClearFilters={handleClearFilters}
+          colors={filterColors || []}
+          sizes={filterSizes || []}
+          inline
+        />
+      </div>
 
-      {/* لیست محصولات */}
-      <main className="flex-1">
-        {items.length === 0 && !loading ? (
-          <div className="text-center py-12 text-gray-500">محصولی یافت نشد</div>
-        ) : (
-          <div className={`grid gap-1 ${gridClass}`}>
-            {items.map(product => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                image={product.image}
-                title={product.title}
-                price={product.variants?.[0]?.price || 0}
-                slug={product.slug}
-                discount={product?.discount}
-                promotionBadge={product.promotionBadge ?? null}
-              />
-            ))}
+      {/* بدنه: سایدبار دائمی فیلتر در دسکتاپ + گرید محصولات */}
+      <div className="flex flex-1">
+        <ProductFilter
+          selectedColorIds={colorIds}
+          selectedSizeIds={sizeIds}
+          onApplyFilters={handleApplyFilters}
+          open={isFilterOpen}
+          onOpenChange={setIsFilterOpen}
+          onClearFilters={handleClearFilters}
+          colors={filterColors || []}
+          sizes={filterSizes || []}
+        />
 
-            {loading &&
-              Array.from({ length: initialParams.limit || 10 }).map(
-                (_, idx) => <ProductCardSkeleton key={`skeleton-${idx}`} />,
-              )}
-          </div>
-        )}
+        {/* لیست محصولات */}
+        <main className="flex-1 min-w-0" id="products">
+          {items.length === 0 && !loading ? (
+            <div className="text-center py-12 text-gray-500">
+              محصولی یافت نشد
+            </div>
+          ) : (
+            <div className={cn('grid gap-2 p-2 sm:gap-3 sm:p-3', gridClass)}>
+              {items.map(product => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  image={product.image}
+                  title={product.title}
+                  price={product.variants?.[0]?.price || 0}
+                  slug={product.slug}
+                  discount={product?.discount}
+                  promotionBadge={product.promotionBadge ?? null}
+                />
+              ))}
 
-        <div ref={loaderRef} aria-hidden="true" className="h-px" />
+              {loading &&
+                Array.from({ length: initialParams.limit || 10 }).map(
+                  (_, idx) => <ProductCardSkeleton key={`skeleton-${idx}`} />,
+                )}
+            </div>
+          )}
 
-        {!loading && hasMore && (
-          <div className="mt-10 flex justify-center">
-            <Link
-              href={nextPageQuery ? `?${nextPageQuery}` : '?'}
-              className="text-sm underline"
-            >
-              محصولات بیشتر
-            </Link>
-          </div>
-        )}
-      </main>
+          <div ref={loaderRef} aria-hidden="true" className="h-px" />
+
+          {!loading && hasMore && (
+            <div className="mt-10 flex justify-center">
+              <Link
+                href={nextPageQuery ? `?${nextPageQuery}` : '?'}
+                className="text-sm underline"
+              >
+                محصولات بیشتر
+              </Link>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

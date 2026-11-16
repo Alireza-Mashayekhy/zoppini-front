@@ -6,8 +6,10 @@ import { toast } from 'sonner';
 import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
+import CompareToggle from '@/components/shared/compare-toggle';
 import PromotionBadge from '@/components/shared/promotion-badge';
 import { track } from '@/lib/consent/client';
+import { discountPercent, formatPriceFa } from '@/lib/discount';
 import { resolveHtmlMedia } from '@/lib/media';
 import {
   findSelectedVariant,
@@ -25,6 +27,7 @@ import { useCartStore } from '@/store/cart.store';
 import InstallmentInfo from './installment-info';
 import { selectedProductPrice } from './installment-price';
 import RelatedSlider from './relatedSlider';
+import ProductShareButton from './share-button';
 import TrustStrip from './trust-strip';
 import WishlistButton from './wishlist-button';
 
@@ -129,6 +132,11 @@ export default function ProductContent({
   });
   const price = displayVariant?.price || 0;
   const discountedPrice = displayVariant?.discountedPrice;
+  /**
+   * درصد تخفیف از مقادیر عددی‌ای که بک‌اند برگردانده ساخته می‌شود (نه متنِ
+   * قالب‌بندی‌شده). اگر تخفیف معتبر نباشد null است و badge نشان داده نمی‌شود.
+   */
+  const discountPercentValue = discountPercent(price, discountedPrice);
   const installmentPrice = selectedProductPrice(
     product.variants,
     activeColorId,
@@ -209,30 +217,59 @@ export default function ProductContent({
               </div>
             )}
 
-            <div className="flex gap-1 mt-6">
-              <button
-                onClick={handleAddToCart}
-                disabled={addToCart.isPending}
-                className="w-full text-sm border flex items-center justify-between h-[50px] px-5 bg-primary text-background disabled:opacity-60"
-              >
-                {addToCart.isPending
-                  ? 'در حال افزودن...'
-                  : 'افزودن به سبد خرید'}
-                <div className="flex flex-col">
-                  {discountedPrice && (
-                    <span>
-                      {parseInt(discountedPrice.toString()).toLocaleString()}{' '}
+            {/* بلوک قیمت بالای دکمه، مجزا و با راستای متفاوت */}
+            <div className="mt-6">
+              <div className="mr-auto flex w-fit flex-col items-end gap-0.5 text-left">
+                {discountPercentValue !== null && discountedPrice ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-400 line-through decoration-gray-400/80">
+                        {formatPriceFa(price)} تومان
+                      </span>
+                      <span className="rounded-full bg-[#EF4056] px-2 py-0.5 text-[11px] font-bold text-white">
+                        {discountPercentValue}٪
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold text-gray-900">
+                      {formatPriceFa(discountedPrice)}
+                      <span className="pr-1 text-sm font-normal text-gray-500">
+                        تومان
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xl font-bold text-gray-900">
+                    {formatPriceFa(price)}
+                    <span className="pr-1 text-sm font-normal text-gray-500">
                       تومان
                     </span>
-                  )}
-                  <span
-                    className={discountedPrice ? 'line-through text-xs' : ''}
-                  >
-                    {parseInt(price.toString()).toLocaleString()} تومان
-                  </span>
-                </div>
-              </button>
-              <WishlistButton productId={product.id} />
+                  </div>
+                )}
+              </div>
+
+              {/* دکمهٔ اصلی افزودن به سبد + اکشن‌های کوچک ثانویه */}
+              <div className="mt-3 flex gap-1.5">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addToCart.isPending}
+                  className="flex h-[50px] w-full flex-1 items-center justify-center rounded-xl bg-[#EF4056] text-sm font-semibold text-white transition-colors hover:bg-[#d8354b] active:bg-[#c22e42] disabled:opacity-60"
+                >
+                  {addToCart.isPending
+                    ? 'در حال افزودن...'
+                    : 'افزودن به سبد خرید'}
+                </button>
+                <ProductShareButton product={product} />
+                <CompareToggle
+                  product={{
+                    id: product.id,
+                    title: product.title,
+                    slug: product.slug,
+                    image: product.image,
+                    price: Number(price) || 0,
+                  }}
+                />
+                <WishlistButton productId={product.id} />
+              </div>
             </div>
             {installmentPrice !== null && (
               <InstallmentInfo className="mt-3" price={installmentPrice} />

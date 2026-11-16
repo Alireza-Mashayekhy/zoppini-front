@@ -45,6 +45,7 @@ import { useWallet } from '@/services/features/wallet/hooks';
 import { useAuthStore } from '@/store/auth.store';
 
 import { CheckoutFormValues, checkoutSchema } from './checkout-schema';
+import CheckoutWizardShell from './checkout-wizard';
 import {
   DEFAULT_DELIVERY_METHOD,
   getDeliveryMethods,
@@ -52,7 +53,8 @@ import {
   isCheckoutSubmittable,
   restoreDeliveryMethod,
 } from './delivery';
-import OrderSummary from './order-summary';
+import OrderSummary, { CheckoutItemsList, CheckoutTotals } from './order-summary';
+import { resolvePromotionTotals } from './promotion-totals';
 import { calculateCheckoutShipping } from './shipping';
 
 export default function CheckoutForm() {
@@ -107,6 +109,12 @@ export default function CheckoutForm() {
   const [useWalletPayment, setUseWalletPayment] = useState(false);
 
   const [useClubCreditPayment, setUseClubCreditPayment] = useState(false);
+
+  /**
+   * مرحلهٔ فعلی ویزارد موبایل (۰=سبد خرید، ۱=اطلاعات ارسال، ۲=پرداخت).
+   * روی دسکتاپ هیچ اثری ندارد چون چیدمان ویزارد فقط زیر lg نمایش داده می‌شود.
+   */
+  const [wizardStep, setWizardStep] = useState(0);
 
   const cartItems = cartData?.data?.items ?? [];
 
@@ -398,15 +406,34 @@ export default function CheckoutForm() {
    * ==========================================
    */
 
+  /**
+   * کاربر موبایل را به مرحله‌ای از ویزارد می‌فرستد که خطای اعتبارسنجی به آن
+   * مربوط است (بدون اثر روی دسکتاپ، چون ویزارد آنجا نمایش داده نمی‌شود).
+   */
+  const goToWizardStep = (step: number) => {
+    setWizardStep(step);
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  /** خطاهای اعتبارسنجی فرم (zod) — بازگشت خودکار به مرحلهٔ مرتبط */
+  const onInvalidSubmit = () => {
+    if (!isPickup && !getValues('addressId')) goToWizardStep(1);
+  };
+
   const onSubmit = async (data: CheckoutFormValues) => {
     if (!cartItems.length) {
       toast.error('سبد خرید شما خالی است');
+      goToWizardStep(0);
 
       return;
     }
 
     if (data.shippingMethod !== ShippingMethod.PICKUP && !data.addressId) {
       toast.error('لطفاً آدرس تحویل را انتخاب کنید');
+      goToWizardStep(1);
 
       return;
     }
@@ -416,6 +443,8 @@ export default function CheckoutForm() {
       !deliveryMethods.includes(data.shippingMethod)
     ) {
       toast.error('روش ارسال برای آدرس انتخاب‌شده در دسترس نیست');
+      goToWizardStep(1);
+
       return;
     }
 
@@ -622,23 +651,69 @@ export default function CheckoutForm() {
    * ==========================================
    */
 
-  return (
-    <div dir="rtl" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* ===================================== */}
-      {/* Checkout */}
-      {/* ===================================== */}
+  /**
+   * ==========================================
+   * مرزهای اعتبارسنجی مراحل ویزارد موبایل
+   * ==========================================
+   * همان قواعدی که امروز هنگام ثبت سفارش اجرا می‌شوند؛ فقط زودتر و با پیام
+   * فارسیِ مشخص در هر مرحله بررسی می‌شوند تا کاربر نتوانسته ناقص جلو برود.
+   */
+  const validateWizardStep = (current: number): boolean => {
+    if (current === 0) {
+      if (!cartItems.length) {
+        toast.error('سبد خرید شما خالی است');
+        return false;
+      }
+      return true;
+    }
 
-      <div className="lg:col-span-2">
-        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
-            {/* ================================= */}
-            {/* نحوه دریافت (انتخاب بالا) */}
-            {/* ================================= */}
+    if (current === 1) {
+      // دریافت حضوری: آدرس لازم نیست
+      if (isPickup) return true;
+      if (!selectedAddressId) {
+        toast.error('لطفاً آدرس تحویل را انتخاب کنید');
+        return false;
+      }
+      if (!deliveryMethods.includes(selectedShipping)) {
+        toast.error('روش ارسال برای آدرس انتخاب‌شده در دسترس نیست');
+        return false;
+      }
+      return true;
+    }
 
-            <section>
-              <h2 className="text-xl font-light tracking-wide mb-4">
-                نحوه دریافت
-              </h2>
+    return true;
+  };
+
+  /**
+   * ==========================================
+   * مقادیر مشترک خلاصه‌ها (ویزارد موبایل)
+   * ==========================================
+   */
+  const promotionTotals = resolvePromotionTotals({
+    preview: checkoutPreviewData?.data ?? null,
+    pricing: cartData?.data?.pricing ?? null,
+  });
+  const payableTotal = promotionTotals.fromServer
+    ? (checkoutPreviewData?.data?.totals.finalPrice ?? 0)
+    : (appliedDiscount?.summary?.finalPrice ||
+        cartData?.data?.pricing?.finalPrice ||
+        0) + shippingCost;
+
+  /**
+   * ==========================================
+   * بخش‌های محتوا (مشترک بین دسکتاپ و موبایل)
+   * ==========================================
+   * هر بخش فقط یک‌بار تعریف می‌شود تا منطق/ساختار دسکتاپ دقیقاً همان چیزی
+   * بماند که بوده و ویزارد موبایل هم همان قواعد و همپوشانی را به ارث ببرد.
+   */
+  const deliveryContent = (
+    <>
+      {/* ================================= */}
+      {/* نحوه دریافت (انتخاب بالا) */}
+      {/* ================================= */}
+
+      <section>
+        <h2 className="text-xl font-light tracking-wide mb-4">نحوه دریافت</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
@@ -820,12 +895,16 @@ export default function CheckoutForm() {
                 </section>
               </>
             )}
+    </>
+  );
 
-            {user && giftEligibility?.eligible && giftEligibility.config && (
-              <section
-                className="rounded-xl border border-rose-200 bg-gradient-to-l from-rose-50 via-white to-amber-50 p-4"
-                aria-labelledby="first-purchase-gift-title"
-              >
+  const giftContent = (
+    <>
+      {user && giftEligibility?.eligible && giftEligibility.config && (
+        <section
+          className="rounded-xl border border-rose-200 bg-gradient-to-l from-rose-50 via-white to-amber-50 p-4"
+          aria-labelledby="first-purchase-gift-title"
+        >
                 <label className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
@@ -873,14 +952,17 @@ export default function CheckoutForm() {
               </section>
             )}
 
-            {/* ================================= */}
-            {/* کد تخفیف */}
-            {/* ================================= */}
+    </>
+  );
 
-            <section>
-              <h2 className="text-xl font-light tracking-wide mb-4">
-                کد تخفیف
-              </h2>
+  const paymentContent = (
+    <>
+      {/* ================================= */}
+      {/* کد تخفیف */}
+      {/* ================================= */}
+
+      <section>
+        <h2 className="text-xl font-light tracking-wide mb-4">کد تخفیف</h2>
 
               {appliedDiscount ? (
                 <div className="border border-green-200 bg-green-50 rounded-lg p-4">
@@ -1107,9 +1189,8 @@ export default function CheckoutForm() {
               </div>
             </section>
 
-            {/* ================================= */}
-            {/* Submit */}
-            {/* ================================= */}
+    </>
+  );
 
             <Button
               type="submit"
@@ -1128,14 +1209,10 @@ export default function CheckoutForm() {
               {creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'}
             </Button>
           </div>
-        </FormProvider>
-      </div>
+        </div>
 
-      {/* ===================================== */}
-      {/* Summary */}
-      {/* ===================================== */}
-
-      <div className="lg:col-span-1">
+        {/* Summary */}
+        <div className="lg:col-span-1">
         <OrderSummary
           items={cartItems}
           pricing={cartData?.data?.pricing || null}
@@ -1154,6 +1231,34 @@ export default function CheckoutForm() {
         />
       </div>
     </div>
+
+    {/* ===================================== */}
+    {/* موبایل: ویزارد سه‌مرحله‌ای (فقط زیر lg) */}
+    {/* ===================================== */}
+    <div className="lg:hidden">
+      <CheckoutWizardShell
+        step={wizardStep}
+        onStepChange={goToWizardStep}
+        validateStep={validateWizardStep}
+        hasCartItems={cartItems.length > 0}
+        submitting={createOrder.isPending || startPayment.isPending}
+        canSubmit={isCheckoutSubmittable({
+          isPickup,
+          hasSelectedAddress: !!selectedAddressId,
+          hasGateway: !!selectedGateway,
+          walletFullyCovers: creditsFullyCover,
+        })}
+        submitLabel={
+          creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'
+        }
+        stepsContent={[
+          cartStepContent,
+          deliveryStepContent,
+          paymentStepContent,
+        ]}
+      />
+    </div>
+    </FormProvider>
   );
 }
 

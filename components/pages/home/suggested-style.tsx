@@ -16,7 +16,6 @@ export default function SuggestedStyle({
   products: FeaturedProductResponse[];
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>(
     {
       loop: true,
@@ -24,9 +23,6 @@ export default function SuggestedStyle({
       slides: {
         perView: 'auto',
         spacing: 2,
-      },
-      slideChanged(slider) {
-        setCurrentSlide(slider.track.details.rel);
       },
       created() {
         setLoaded(true);
@@ -67,8 +63,13 @@ export default function SuggestedStyle({
   const totalSlides = products.length + 1; // +1 for video
 
   return (
-    <section className="relative flex h-[60vh] sm:h-screen w-full flex-col overflow-hidden bg-white">
-      <LuxuryTitle className="mb-6 mt-4 shrink-0 px-6">
+    <section
+      id="home-style"
+      data-home-section
+      aria-label="پیشنهاد استایل"
+      className="home-section home-section--full home-section--below-header relative flex w-full flex-col overflow-hidden bg-white"
+    >
+      <LuxuryTitle className="mt-4 mb-6 shrink-0 px-6">
         پیشنهاد استایل
       </LuxuryTitle>
 

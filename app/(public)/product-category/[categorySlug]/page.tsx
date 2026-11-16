@@ -15,7 +15,10 @@ import {
 } from '@/lib/product-category-params';
 import { mergePageSeo, metaDescriptionFromHtml } from '@/lib/seo';
 import { getPublicCategoryBySlug } from '@/services/features/categories/server.api';
-import { getProducts } from '@/services/features/products/server.api';
+import {
+  getCategoryFilters,
+  getProducts,
+} from '@/services/features/products/server.api';
 import { getPageSeo } from '@/services/features/seo/server.api';
 
 interface ProductsCategoryPageProps {
@@ -72,6 +75,23 @@ async function buildCategoryMetadata(categorySlug: string): Promise<Metadata> {
     return {
       title: `قیمت و خرید انواع ${categoryData.name} - زوپینی`,
       description: cleanDescription,
+      /**
+       * آرشیو دسته‌بندی باید index, follow باشد. این صفحه‌ها در
+       * product-category-sitemap.xml ثبت می‌شوند و خزنده‌ها برای کشف محصولات
+       * به آن‌ها نیاز دارند؛ بنابراین تگ robots صریحاً مثبت نوشته می‌شود تا
+       * هیچ رکورد نامتناسبِ پنل سئو (مثلاً noindex قدیمی برای
+       * `/product-category/{slug}`) یا بازنویسیِ سمت هاست نتواند
+       * ایندکس‌شدگیِ آن‌ها را خاموش کند. canonical هم در alternates حفظ
+       * می‌شود.
+       */
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+        },
+      },
       openGraph: {
         title: categoryData.name,
         description: cleanDescription,
@@ -113,21 +133,27 @@ export default async function ProductsCategoryPage({
   // ۲. ساخت پارامترهای query برای دریافت محصولات
   const queryParams = productCategoryParams(search, category.data.id);
 
-  // ۳. دریافت محصولات
-  const productsData = await getProducts(queryParams);
+  // ۳. دریافت محصولات و گزینه‌های فیلتر واقعی همین دسته (سایز/رنگ در دسترس)
+  const [productsData, filterOptions] = await Promise.all([
+    getProducts(queryParams),
+    getCategoryFilters(category.data.id),
+  ]);
 
   return (
     <div className="pt-[52px]">
       {category?.data?.id && <CategoryViewTracker id={category.data.id} />}
       {/* هدر با نام دسته‌بندی */}
+      {/* نام دسته‌بندی بدون نمایش شماره‌ی محصولات در عنوان؛ شمارشِ پاسخ فقط برای صفحه‌بندی/فیلتر استفاده می‌شود */}
       <h1 className="h-20 border-t px-6 flex items-center text-xl font-semibold">
         {category?.data?.name || 'دسته‌بندی'}
-        <span className="mr-2 text-sm text-gray-500 font-normal">
-          ({productsData?.pagination?.total || 0} محصول)
-        </span>
       </h1>
 
-      <ProductList initialData={productsData} initialParams={queryParams} />
+      <ProductList
+        initialData={productsData}
+        initialParams={queryParams}
+        filterColors={filterOptions.colors}
+        filterSizes={filterOptions.sizes}
+      />
 
       {/* توضیحات دسته‌بندی؛ همان متنی که در /category/[slug] هم نمایش داده می‌شود */}
       {category?.data && (

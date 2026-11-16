@@ -3,9 +3,11 @@ import { ApiListResponse, ApiSingleResponse } from '@/services/api/types';
 
 import { ProductGuidesForCustomer } from '../product-guides/type';
 import {
+  ColorResponse,
   FeaturedProductResponse,
   ProductResponse,
   ProductsResponse,
+  SizeResponse,
 } from './type';
 
 /**
@@ -61,9 +63,7 @@ export async function getProducts(params: GetProductsParams = {}) {
 }
 
 export async function getProduct(slug: string) {
-  return publicFetch<ApiSingleResponse<ProductResponse>>(
-    `products/${slug}`,
-  );
+  return publicFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
 }
 
 export async function getProductGuides(slug: string): Promise<{

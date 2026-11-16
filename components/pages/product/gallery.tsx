@@ -1,7 +1,8 @@
 'use client';
 
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -84,9 +85,9 @@ export default function ProductGallery({
   product,
   colorImages,
 }: ProductGalleryProps) {
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const currentIndexRef = useRef(0);
 
   const [isPaused, setIsPaused] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -95,6 +96,25 @@ export default function ProductGallery({
   const images = colorImages;
   const displayImages =
     images.length > 0 ? images : [{ url: product.image, id: 0 }];
+
+  /**
+   * دکمهٔ برگشت: اول به تاریخچه‌ی مرورگر می‌نگرد تا contextی که کاربر از
+   * دسته‌بندی با فیلتر/صفحه آورده حفظ شود؛ اگر تاریخچهٔ قبلی نبود، به صفحهٔ
+   * دسته‌بندیِ محصول می‌رود و اگر آن هم نبود، به آرشیو عمومی محصولات.
+   */
+  const fallbackHref = product.categories?.[0]?.slug
+    ? `/product-category/${encodeURIComponent(product.categories[0].slug)}`
+    : '/products';
+
+  const handleBack = () => {
+    // فقط اگر کاربر واقعاً از همین تب آمده باشد برمی‌گردیم تا رفتار ترک سایت
+    // پیش نیاید.
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(fallbackHref);
+    }
+  };
 
   const scrollTo = useCallback((index: number) => {
     if (!scrollRef.current) return;
@@ -172,6 +192,17 @@ export default function ProductGallery({
       onTouchEnd={() => setIsPaused(false)}
     >
       {' '}
+      {/* دکمهٔ برگشت بالا-چپ گالری — روی تصاویر روشن/تیره خوانا است */}
+      <button
+        type="button"
+        onClick={handleBack}
+        aria-label="برگشت به صفحهٔ قبلی"
+        title="برگشت"
+        className="absolute top-4 left-4 z-10 flex size-10 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-md backdrop-blur-sm transition-colors hover:bg-white"
+      >
+        <ArrowLeft className="size-5" />
+      </button>
+
       {/* کانتینر اسکرول عمودی */}
       <div
         ref={scrollRef}
