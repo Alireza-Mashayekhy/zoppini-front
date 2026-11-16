@@ -1192,141 +1192,22 @@ export default function CheckoutForm() {
     </>
   );
 
-  // دکمهٔ ثبت داخل کارت سفید (فقط در چیدمان دسکتاپ نمایش داده می‌شود؛
-  // در موبایل دکمهٔ نهایی در نوار پیمایش ویزارد است)
-  const submitButton = (
-    <Button
-      type="submit"
-      className="w-full"
-      variant="dark"
-      loading={createOrder.isPending || startPayment.isPending}
-      disabled={
-        !isCheckoutSubmittable({
-          isPickup,
-          hasSelectedAddress: !!selectedAddressId,
-          hasGateway: !!selectedGateway,
-          walletFullyCovers: creditsFullyCover,
-        })
-      }
-    >
-      {creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'}
-    </Button>
-  );
-
-  // گام اول ویزارد: سبد خرید + خلاصهٔ مبالغ (بدون ردیف ارسال)
-  const cartStepContent = (
-    <section
-      className="rounded-xl border border-gray-200 bg-white p-4"
-      aria-labelledby="checkout-mobile-cart-title"
-    >
-      <h2
-        id="checkout-mobile-cart-title"
-        className="mb-3 text-base font-semibold"
-      >
-        سبد خرید
-      </h2>
-      <CheckoutItemsList
-        items={cartItems}
-        onQuantityChange={handleQuantityChange}
-        onRemoveItem={handleRemoveCartItem}
-        isUpdatingCart={isUpdatingCart}
-        detailed
-      />
-      <CheckoutTotals
-        appliedDiscount={appliedDiscount}
-        pricing={cartData?.data?.pricing || null}
-        shippingCost={shippingCost}
-        isFreeShipping={isFreeShipping}
-        hasSelectedAddress={!!selectedAddressId}
-        isPickup={isPickup}
-        promotionDiscount={promotionTotals.promotionDiscount}
-        freeItemTotal={promotionTotals.freeItemValue}
-        freeShippingFromPromotion={promotionTotals.freeShipping}
-        promotionNotices={promotionTotals.notices}
-        firstPurchaseGiftDiscount={Number(
-          checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0,
-        )}
-        payableTotal={payableTotal}
-        hideShipping
-      />
-    </section>
-  );
-
-  // گام دوم ویزارد: نحوه دریافت، آدرس و روش ارسال
-  const deliveryStepContent = (
-    <section
-      className="space-y-6 rounded-xl border border-gray-200 bg-white p-4"
-      aria-labelledby="checkout-mobile-delivery-title"
-    >
-      <h2
-        id="checkout-mobile-delivery-title"
-        className="text-base font-semibold"
-      >
-        اطلاعات ارسال
-      </h2>
-      {deliveryContent}
-    </section>
-  );
-
-  // گام سوم ویزارد: هدیه/کد تخفیف، توضیحات، روش‌های پرداخت + خلاصه نهایی
-  const paymentStepContent = (
-    <div className="space-y-4">
-      <section
-        className="space-y-6 rounded-xl border border-gray-200 bg-white p-4"
-        aria-labelledby="checkout-mobile-payment-title"
-      >
-        <h2
-          id="checkout-mobile-payment-title"
-          className="text-base font-semibold"
-        >
-          پرداخت
-        </h2>
-        {giftContent}
-        {paymentContent}
-      </section>
-      <section
-        className="rounded-xl border border-gray-200 bg-white p-4"
-        aria-label="خلاصه نهایی سفارش"
-      >
-        <h3 className="text-sm font-semibold">خلاصه سفارش</h3>
-        <CheckoutTotals
-          appliedDiscount={appliedDiscount}
-          pricing={cartData?.data?.pricing || null}
-          shippingCost={shippingCost}
-          isFreeShipping={isFreeShipping}
-          hasSelectedAddress={!!selectedAddressId}
-          isPickup={isPickup}
-          promotionDiscount={promotionTotals.promotionDiscount}
-          freeItemTotal={promotionTotals.freeItemValue}
-          freeShippingFromPromotion={promotionTotals.freeShipping}
-          promotionNotices={promotionTotals.notices}
-          firstPurchaseGiftDiscount={Number(
-            checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0,
-          )}
-          payableTotal={payableTotal}
-          walletCreditUsed={walletCreditUsed}
-          clubCreditUsed={clubCreditUsed}
-          gatewayPayable={gatewayPayable}
-        />
-      </section>
-    </div>
-  );
-
-  return (
-    <FormProvider
-      methods={methods}
-      onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}
-    >
-      {/* ===================================== */}
-      {/* دسکتاپ: دقیقاً همان چیدمان قبلی */}
-      {/* ===================================== */}
-      <div dir="rtl" className="hidden lg:grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
-            {deliveryContent}
-            {giftContent}
-            {paymentContent}
-            {submitButton}
+            <Button
+              type="submit"
+              className="w-full"
+              variant="dark"
+              loading={createOrder.isPending || startPayment.isPending}
+              disabled={
+                !isCheckoutSubmittable({
+                  isPickup,
+                  hasSelectedAddress: !!selectedAddressId,
+                  hasGateway: !!selectedGateway,
+                  walletFullyCovers: creditsFullyCover,
+                })
+              }
+            >
+              {creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'}
+            </Button>
           </div>
         </div>
 

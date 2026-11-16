@@ -62,39 +62,8 @@ export async function getProducts(params: GetProductsParams = {}) {
   return publicFetch<ApiListResponse<ProductsResponse>>(url);
 }
 
-export interface CategoryFiltersResponse {
-  colors: ColorResponse[];
-  sizes: SizeResponse[];
-}
-
-/**
- * رنگ‌ها و سایزهای واقعاً موجود در یک دسته‌بندی (برای سایدبار فیلتر).
- *
- * به‌جای `useColorsList`/`useSizeList` (که همه‌ی رنگ‌ها و سایزهای سیستم را
- * می‌آوردند و سیستم‌های سایزبندی مختلف را مخلوط می‌کردند)، این تابع از
- * بک‌اند فقط گزینه‌هایی را می‌گیرد که واقعاً در variantهای محصولاتِ همان
- * دسته استفاده شده‌اند — مثلاً کفش ۴۰–۴۶ و کت‌وشلوار ۴۶–۵۸.
- */
-export async function getCategoryFilters(
-  categoryId: number,
-): Promise<CategoryFiltersResponse> {
-  try {
-    const body = await publicFetch<
-      ApiSingleResponse<CategoryFiltersResponse> | CategoryFiltersResponse
-    >(`products/filters?categoryIds=${categoryId}`);
-    if ('data' in body && body.data) return body.data;
-    return body as CategoryFiltersResponse;
-  } catch {
-    // اگر اندپوینت هنوز منتشر نشده باشد، لیست خالی برمی‌گردد تا صفحه کادر
-    // سایز/رنگ را خالی نشان دهد (بهتر از شکستن کل صفحه).
-    return { colors: [], sizes: [] };
-  }
-}
-
 export async function getProduct(slug: string) {
-  return publicFetch<ApiSingleResponse<ProductResponse>>(
-    `products/${slug}`,
-  );
+  return publicFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
 }
 
 export async function getProductGuides(slug: string): Promise<{
