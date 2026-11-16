@@ -92,9 +92,7 @@ export async function getCategoryFilters(
 }
 
 export async function getProduct(slug: string) {
-  return publicFetch<ApiSingleResponse<ProductResponse>>(
-    `products/${slug}`,
-  );
+  return publicFetch<ApiSingleResponse<ProductResponse>>(`products/${slug}`);
 }
 
 export async function getProductGuides(slug: string): Promise<{

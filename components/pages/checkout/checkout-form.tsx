@@ -53,7 +53,10 @@ import {
   isCheckoutSubmittable,
   restoreDeliveryMethod,
 } from './delivery';
-import OrderSummary, { CheckoutItemsList, CheckoutTotals } from './order-summary';
+import OrderSummary, {
+  CheckoutItemsList,
+  CheckoutTotals,
+} from './order-summary';
 import { resolvePromotionTotals } from './promotion-totals';
 import { calculateCheckoutShipping } from './shipping';
 
@@ -715,186 +718,178 @@ export default function CheckoutForm() {
       <section>
         <h2 className="text-xl font-light tracking-wide mb-4">نحوه دریافت</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="deliveryType"
-                    value="pickup"
-                    checked={isPickup}
-                    onChange={switchToPickup}
-                  />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+            <input
+              type="radio"
+              name="deliveryType"
+              value="pickup"
+              checked={isPickup}
+              onChange={switchToPickup}
+            />
 
-                  <div>
-                    <div className="font-medium">دریافت حضوری</div>
+            <div>
+              <div className="font-medium">دریافت حضوری</div>
 
-                    <div className="text-xs text-gray-500">
-                      تحویل در فروشگاه، بدون هزینه ارسال
-                    </div>
-                  </div>
-                </label>
-
-                <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="deliveryType"
-                    value="delivery"
-                    checked={!isPickup}
-                    onChange={switchToDelivery}
-                  />
-
-                  <div>
-                    <div className="font-medium">ارسال</div>
-
-                    <div className="text-xs text-gray-500">
-                      ارسال به آدرس شما
-                    </div>
-                  </div>
-                </label>
+              <div className="text-xs text-gray-500">
+                تحویل در فروشگاه، بدون هزینه ارسال
               </div>
-            </section>
+            </div>
+          </label>
 
-            {isPickup ? (
-              <section>
-                <h2 className="text-xl font-light tracking-wide mb-4">
-                  روش تحویل
-                </h2>
+          <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+            <input
+              type="radio"
+              name="deliveryType"
+              value="delivery"
+              checked={!isPickup}
+              onChange={switchToDelivery}
+            />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                  <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="shippingMethod"
-                      value={ShippingMethod.PICKUP}
-                      checked
-                      onChange={switchToPickup}
-                    />
-                    <div>
-                      <div className="font-medium">تحویل حضوری در هدیش مال</div>
-                      <div className="text-xs text-green-600">
-                        بدون هزینه ارسال
-                      </div>
-                    </div>
-                  </label>
-                </div>
+            <div>
+              <div className="font-medium">ارسال</div>
 
-                <p className="mt-3 text-sm text-gray-600">
-                  تحویل در هدیش مال انجام می‌شود و آدرس ارسال برای این سفارش ثبت
-                  نخواهد شد.
-                </p>
-              </section>
-            ) : (
-              <>
-                <section>
-                  <h2 className="text-xl font-light tracking-wide mb-4">
-                    آدرس تحویل
-                  </h2>
+              <div className="text-xs text-gray-500">ارسال به آدرس شما</div>
+            </div>
+          </label>
+        </div>
+      </section>
 
-                  <p className="mb-3 text-sm text-gray-500">
-                    برای ارسال، انتخاب آدرس الزامی است.
-                  </p>
+      {isPickup ? (
+        <section>
+          <h2 className="text-xl font-light tracking-wide mb-4">روش تحویل</h2>
 
-                  <Addresses
-                    mode="checkout"
-                    selectedAddressId={selectedAddressId}
-                    onAddressSelect={id => {
-                      const newAddress = addresses?.data?.find(
-                        address => address.id === id,
-                      );
-                      if (
-                        selectedShipping === ShippingMethod.COURIER &&
-                        newAddress?.city?.name !== 'تهران'
-                      ) {
-                        setValue('shippingMethod', ShippingMethod.POST, {
-                          shouldValidate: true,
-                        });
-                        setLastDeliveryMethod(ShippingMethod.POST);
-                      }
-                      setSelectedAddressId(id);
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+              <input
+                type="radio"
+                name="shippingMethod"
+                value={ShippingMethod.PICKUP}
+                checked
+                onChange={switchToPickup}
+              />
+              <div>
+                <div className="font-medium">تحویل حضوری در هدیش مال</div>
+                <div className="text-xs text-green-600">بدون هزینه ارسال</div>
+              </div>
+            </label>
+          </div>
 
-                      setValue('addressId', id, {
-                        shouldValidate: true,
-                      });
-                    }}
-                  />
-                  {methods.formState.errors.addressId && (
-                    <p role="alert" className="mt-2 text-sm text-red-600">
-                      {methods.formState.errors.addressId.message}
-                    </p>
-                  )}
-                </section>
+          <p className="mt-3 text-sm text-gray-600">
+            تحویل در هدیش مال انجام می‌شود و آدرس ارسال برای این سفارش ثبت
+            نخواهد شد.
+          </p>
+        </section>
+      ) : (
+        <>
+          <section>
+            <h2 className="text-xl font-light tracking-wide mb-4">
+              آدرس تحویل
+            </h2>
 
-                <section>
-                  <h2 className="text-xl font-light tracking-wide mb-4">
-                    روش ارسال
-                  </h2>
+            <p className="mb-3 text-sm text-gray-500">
+              برای ارسال، انتخاب آدرس الزامی است.
+            </p>
 
-                  {!selectedAddressId && (
-                    <p className="mb-3 text-sm text-gray-500">
-                      برای ارسال، ابتدا آدرس خود را انتخاب کنید.
-                    </p>
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                    {deliveryMethods.includes(ShippingMethod.POST) && (
-                      <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          value={ShippingMethod.POST}
-                          {...shippingMethodField}
-                          onChange={handleDeliveryMethodChange}
-                        />
+            <Addresses
+              mode="checkout"
+              selectedAddressId={selectedAddressId}
+              onAddressSelect={id => {
+                const newAddress = addresses?.data?.find(
+                  address => address.id === id,
+                );
+                if (
+                  selectedShipping === ShippingMethod.COURIER &&
+                  newAddress?.city?.name !== 'تهران'
+                ) {
+                  setValue('shippingMethod', ShippingMethod.POST, {
+                    shouldValidate: true,
+                  });
+                  setLastDeliveryMethod(ShippingMethod.POST);
+                }
+                setSelectedAddressId(id);
 
-                        <div>
-                          <div className="font-medium">پست</div>
-
-                          <div className="text-xs text-gray-500">
-                            {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
-                          </div>
-                        </div>
-                      </label>
-                    )}
-
-                    {deliveryMethods.includes(ShippingMethod.COURIER) && (
-                      <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          value={ShippingMethod.COURIER}
-                          {...shippingMethodField}
-                          onChange={handleDeliveryMethodChange}
-                        />
-
-                        <div>
-                          <div className="font-medium">پیک</div>
-
-                          <div className="text-xs text-green-600">
-                            {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                          </div>
-                        </div>
-                      </label>
-                    )}
-
-                    {deliveryMethods.includes(ShippingMethod.TIBAX) && (
-                      <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          value={ShippingMethod.TIBAX}
-                          {...shippingMethodField}
-                          onChange={handleDeliveryMethodChange}
-                        />
-
-                        <div>
-                          <div className="font-medium">تیباکس</div>
-
-                          <div className="text-xs text-green-600">
-                            {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                          </div>
-                        </div>
-                      </label>
-                    )}
-                  </div>
-                </section>
-              </>
+                setValue('addressId', id, {
+                  shouldValidate: true,
+                });
+              }}
+            />
+            {methods.formState.errors.addressId && (
+              <p role="alert" className="mt-2 text-sm text-red-600">
+                {methods.formState.errors.addressId.message}
+              </p>
             )}
+          </section>
+
+          <section>
+            <h2 className="text-xl font-light tracking-wide mb-4">روش ارسال</h2>
+
+            {!selectedAddressId && (
+              <p className="mb-3 text-sm text-gray-500">
+                برای ارسال، ابتدا آدرس خود را انتخاب کنید.
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              {deliveryMethods.includes(ShippingMethod.POST) && (
+                <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value={ShippingMethod.POST}
+                    {...shippingMethodField}
+                    onChange={handleDeliveryMethodChange}
+                  />
+
+                  <div>
+                    <div className="font-medium">پست</div>
+
+                    <div className="text-xs text-gray-500">
+                      {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
+                    </div>
+                  </div>
+                </label>
+              )}
+
+              {deliveryMethods.includes(ShippingMethod.COURIER) && (
+                <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value={ShippingMethod.COURIER}
+                    {...shippingMethodField}
+                    onChange={handleDeliveryMethodChange}
+                  />
+
+                  <div>
+                    <div className="font-medium">پیک</div>
+
+                    <div className="text-xs text-green-600">
+                      {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
+                    </div>
+                  </div>
+                </label>
+              )}
+
+              {deliveryMethods.includes(ShippingMethod.TIBAX) && (
+                <label className="flex items-center gap-3 p-4 border rounded-md cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    value={ShippingMethod.TIBAX}
+                    {...shippingMethodField}
+                    onChange={handleDeliveryMethodChange}
+                  />
+
+                  <div>
+                    <div className="font-medium">تیباکس</div>
+
+                    <div className="text-xs text-green-600">
+                      {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
+                    </div>
+                  </div>
+                </label>
+              )}
+            </div>
+          </section>
+        </>
+      )}
     </>
   );
 
@@ -905,53 +900,50 @@ export default function CheckoutForm() {
           className="rounded-xl border border-rose-200 bg-gradient-to-l from-rose-50 via-white to-amber-50 p-4"
           aria-labelledby="first-purchase-gift-title"
         >
-                <label className="flex cursor-pointer items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={useFirstPurchaseGift}
-                    disabled={Boolean(appliedDiscount && !giftCanStackWithCode)}
-                    onChange={event =>
-                      setUseFirstPurchaseGift(event.target.checked)
-                    }
-                    className="mt-1 h-4 w-4 accent-rose-800"
-                    aria-describedby="first-purchase-gift-description"
-                  />
-                  <span className="flex-1">
-                    <span
-                      className="flex items-center gap-2 font-semibold text-rose-950"
-                      id="first-purchase-gift-title"
-                    >
-                      <Gift className="h-4 w-4" aria-hidden="true" />
-                      {giftEligibility.config.title} —{' '}
-                      {giftEligibility.config.discountPercent}٪
-                    </span>
-                    <span
-                      id="first-purchase-gift-description"
-                      className="mt-1 block text-sm leading-6 text-stone-600"
-                    >
-                      {giftEligibility.config.description} این هدیه روی محصولات
-                      با قیمت عادی اعمال می‌شود.
-                    </span>
-                    {useFirstPurchaseGift && (
-                      <span className="mt-2 block text-sm font-semibold text-rose-900">
-                        تخفیف هدیه در محاسبهٔ سفارش:{' '}
-                        {Number(
-                          checkoutPreviewData?.data?.totals
-                            .firstPurchaseGiftDiscount ?? 0,
-                        ).toLocaleString('fa-IR')}{' '}
-                        تومان
-                      </span>
-                    )}
-                    {appliedDiscount && !giftCanStackWithCode && (
-                      <span className="mt-2 block text-xs text-amber-800">
-                        برای استفاده از هدیه، ابتدا کد تخفیف فعلی را حذف کنید.
-                      </span>
-                    )}
-                  </span>
-                </label>
-              </section>
-            )}
-
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={useFirstPurchaseGift}
+              disabled={Boolean(appliedDiscount && !giftCanStackWithCode)}
+              onChange={event => setUseFirstPurchaseGift(event.target.checked)}
+              className="mt-1 h-4 w-4 accent-rose-800"
+              aria-describedby="first-purchase-gift-description"
+            />
+            <span className="flex-1">
+              <span
+                className="flex items-center gap-2 font-semibold text-rose-950"
+                id="first-purchase-gift-title"
+              >
+                <Gift className="h-4 w-4" aria-hidden="true" />
+                {giftEligibility.config.title} —{' '}
+                {giftEligibility.config.discountPercent}٪
+              </span>
+              <span
+                id="first-purchase-gift-description"
+                className="mt-1 block text-sm leading-6 text-stone-600"
+              >
+                {giftEligibility.config.description} این هدیه روی محصولات با
+                قیمت عادی اعمال می‌شود.
+              </span>
+              {useFirstPurchaseGift && (
+                <span className="mt-2 block text-sm font-semibold text-rose-900">
+                  تخفیف هدیه در محاسبهٔ سفارش:{' '}
+                  {Number(
+                    checkoutPreviewData?.data?.totals
+                      .firstPurchaseGiftDiscount ?? 0,
+                  ).toLocaleString('fa-IR')}{' '}
+                  تومان
+                </span>
+              )}
+              {appliedDiscount && !giftCanStackWithCode && (
+                <span className="mt-2 block text-xs text-amber-800">
+                  برای استفاده از هدیه، ابتدا کد تخفیف فعلی را حذف کنید.
+                </span>
+              )}
+            </span>
+          </label>
+        </section>
+      )}
     </>
   );
 
@@ -964,231 +956,224 @@ export default function CheckoutForm() {
       <section>
         <h2 className="text-xl font-light tracking-wide mb-4">کد تخفیف</h2>
 
-              {appliedDiscount ? (
-                <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-green-700">
-                        کد تخفیف{' '}
-                        <span dir="ltr">{appliedDiscount.discount?.code}</span>{' '}
-                        اعمال شد
-                      </p>
+        {appliedDiscount ? (
+          <div className="border border-green-200 bg-green-50 rounded-lg p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-green-700">
+                  کد تخفیف{' '}
+                  <span dir="ltr">{appliedDiscount.discount?.code}</span> اعمال
+                  شد
+                </p>
 
-                      <p className="text-sm text-green-600 mt-1">
-                        {appliedDiscount.summary?.discountPrice.toLocaleString()}{' '}
-                        تومان تخفیف
-                      </p>
-                    </div>
+                <p className="text-sm text-green-600 mt-1">
+                  {appliedDiscount.summary?.discountPrice.toLocaleString()}{' '}
+                  تومان تخفیف
+                </p>
+              </div>
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleRemoveDiscount}
-                    >
-                      حذف
-                    </Button>
-                  </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleRemoveDiscount}
+              >
+                حذف
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              {...register('discountCode')}
+              placeholder="کد تخفیف را وارد کنید"
+              dir="ltr"
+              className="flex-1"
+            />
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleApplyDiscount}
+              loading={applyDiscountMutation.isPending}
+            >
+              اعمال
+            </Button>
+          </div>
+        )}
+
+        {!appliedDiscount && (
+          <p className="text-xs text-gray-500 mt-2">
+            کد تخفیف خود را وارد کنید و روی «اعمال» بزنید.
+          </p>
+        )}
+      </section>
+
+      {/* ================================= */}
+      {/* توضیحات */}
+      {/* ================================= */}
+
+      <section>
+        <h2 className="text-xl font-light tracking-wide mb-4">توضیحات سفارش</h2>
+
+        <textarea
+          {...register('note')}
+          className="w-full border rounded-md p-3 text-sm"
+          rows={3}
+          placeholder="توضیحات سفارش..."
+        />
+      </section>
+
+      {/* ================================= */}
+      {/* پرداخت */}
+      {/* ================================= */}
+
+      <section>
+        <h2 className="text-xl font-light tracking-wide mb-4">روش پرداخت</h2>
+
+        {(walletInfo || clubData?.data) && (
+          <div className="space-y-3 mb-3">
+            <label
+              className={`flex items-center gap-3 border-2 p-4 transition-all ${
+                walletBalance <= 0
+                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
+                  : useWalletPayment
+                    ? 'cursor-pointer border-primary bg-primary/5'
+                    : 'cursor-pointer border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={useWalletPayment}
+                onChange={e => setUseWalletPayment(e.target.checked)}
+                disabled={walletBalance <= 0}
+                className="w-4 h-4"
+              />
+
+              <div>
+                <div className="flex items-center gap-2 font-medium">
+                  <Wallet className="w-4 h-4" strokeWidth={1.5} />
+                  پرداخت از کیف پول
                 </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Input
-                    {...register('discountCode')}
-                    placeholder="کد تخفیف را وارد کنید"
-                    dir="ltr"
-                    className="flex-1"
-                  />
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleApplyDiscount}
-                    loading={applyDiscountMutation.isPending}
-                  >
-                    اعمال
-                  </Button>
+                <div className="text-sm text-gray-500">
+                  موجودی: {formatPrice(walletBalance)} تومان
                 </div>
-              )}
+              </div>
+            </label>
 
-              {!appliedDiscount && (
-                <p className="text-xs text-gray-500 mt-2">
-                  کد تخفیف خود را وارد کنید و روی «اعمال» بزنید.
+            {walletBalance <= 0 && (
+              <p className="text-xs text-gray-500">
+                موجودی کیف پول شما صفر است. برای شارژ به صفحه کیف پول مراجعه
+                کنید.
+              </p>
+            )}
+
+            {useWalletPayment &&
+              creditsFullyCover &&
+              estimatedFinalPrice > 0 && (
+                <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                  کل مبلغ سفارش ({formatPrice(estimatedFinalPrice)} تومان) از
+                  اعتبارهای انتخاب‌شده پرداخت می‌شود.
                 </p>
               )}
-            </section>
 
-            {/* ================================= */}
-            {/* توضیحات */}
-            {/* ================================= */}
+            {useWalletPayment &&
+              estimatedFinalPrice > 0 &&
+              walletCreditUsed > 0 &&
+              !creditsFullyCover && (
+                <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                  مبلغ باقی‌مانده ({formatPrice(gatewayPayable)} تومان) با درگاه
+                  پرداخت می‌شود.
+                </p>
+              )}
+          </div>
+        )}
 
-            <section>
-              <h2 className="text-xl font-light tracking-wide mb-4">
-                توضیحات سفارش
-              </h2>
-
-              <textarea
-                {...register('note')}
-                className="w-full border rounded-md p-3 text-sm"
-                rows={3}
-                placeholder="توضیحات سفارش..."
+        {clubData?.data && (
+          <div className="mb-3 space-y-2">
+            <label
+              className={`flex items-center gap-3 border-2 p-4 transition-all ${
+                clubCreditBalance <= 0 || clubLoading
+                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
+                  : useClubCreditPayment
+                    ? 'cursor-pointer border-primary bg-primary/5'
+                    : 'cursor-pointer border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={useClubCreditPayment}
+                onChange={e => setUseClubCreditPayment(e.target.checked)}
+                disabled={clubCreditBalance <= 0 || clubLoading}
+                className="h-4 w-4"
               />
-            </section>
-
-            {/* ================================= */}
-            {/* پرداخت */}
-            {/* ================================= */}
-
-            <section>
-              <h2 className="text-xl font-light tracking-wide mb-4">
-                روش پرداخت
-              </h2>
-
-              {(walletInfo || clubData?.data) && (
-                <div className="space-y-3 mb-3">
-                  <label
-                    className={`flex items-center gap-3 border-2 p-4 transition-all ${
-                      walletBalance <= 0
-                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
-                        : useWalletPayment
-                          ? 'cursor-pointer border-primary bg-primary/5'
-                          : 'cursor-pointer border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={useWalletPayment}
-                      onChange={e => setUseWalletPayment(e.target.checked)}
-                      disabled={walletBalance <= 0}
-                      className="w-4 h-4"
-                    />
-
-                    <div>
-                      <div className="flex items-center gap-2 font-medium">
-                        <Wallet className="w-4 h-4" strokeWidth={1.5} />
-                        پرداخت از کیف پول
-                      </div>
-
-                      <div className="text-sm text-gray-500">
-                        موجودی: {formatPrice(walletBalance)} تومان
-                      </div>
-                    </div>
-                  </label>
-
-                  {walletBalance <= 0 && (
-                    <p className="text-xs text-gray-500">
-                      موجودی کیف پول شما صفر است. برای شارژ به صفحه کیف پول
-                      مراجعه کنید.
-                    </p>
-                  )}
-
-                  {useWalletPayment &&
-                    creditsFullyCover &&
-                    estimatedFinalPrice > 0 && (
-                      <p className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                        کل مبلغ سفارش ({formatPrice(estimatedFinalPrice)} تومان)
-                        از اعتبارهای انتخاب‌شده پرداخت می‌شود.
-                      </p>
-                    )}
-
-                  {useWalletPayment &&
-                    estimatedFinalPrice > 0 &&
-                    walletCreditUsed > 0 &&
-                    !creditsFullyCover && (
-                      <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                        مبلغ باقی‌مانده ({formatPrice(gatewayPayable)} تومان) با
-                        درگاه پرداخت می‌شود.
-                      </p>
-                    )}
+              <div>
+                <div className="font-medium">اعتبار باشگاه مشتریان</div>
+                <div className="text-sm text-gray-500">
+                  اعتبار قابل استفاده: {formatPrice(clubCreditBalance)} تومان
                 </div>
-              )}
+              </div>
+            </label>
+            {clubCreditBalance <= 0 && (
+              <p className="text-xs text-gray-500">
+                اعتبار قابل استفاده‌ای در باشگاه مشتریان ندارید.
+              </p>
+            )}
+            {useClubCreditPayment && clubCreditUsed > 0 && (
+              <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                {formatPrice(clubCreditUsed)} تومان از اعتبار باشگاه کسر می‌شود
+                {gatewayPayable > 0
+                  ? ` و ${formatPrice(gatewayPayable)} تومان با درگاه پرداخت می‌شود.`
+                  : ' و کل سفارش با اعتبار انتخاب‌شده پرداخت می‌شود.'}
+              </p>
+            )}
+          </div>
+        )}
 
-              {clubData?.data && (
-                <div className="mb-3 space-y-2">
-                  <label
-                    className={`flex items-center gap-3 border-2 p-4 transition-all ${
-                      clubCreditBalance <= 0 || clubLoading
-                        ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60'
-                        : useClubCreditPayment
-                          ? 'cursor-pointer border-primary bg-primary/5'
-                          : 'cursor-pointer border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={useClubCreditPayment}
-                      onChange={e => setUseClubCreditPayment(e.target.checked)}
-                      disabled={clubCreditBalance <= 0 || clubLoading}
-                      className="h-4 w-4"
-                    />
-                    <div>
-                      <div className="font-medium">اعتبار باشگاه مشتریان</div>
-                      <div className="text-sm text-gray-500">
-                        اعتبار قابل استفاده: {formatPrice(clubCreditBalance)}{' '}
-                        تومان
-                      </div>
-                    </div>
-                  </label>
-                  {clubCreditBalance <= 0 && (
-                    <p className="text-xs text-gray-500">
-                      اعتبار قابل استفاده‌ای در باشگاه مشتریان ندارید.
-                    </p>
-                  )}
-                  {useClubCreditPayment && clubCreditUsed > 0 && (
-                    <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-                      {formatPrice(clubCreditUsed)} تومان از اعتبار باشگاه کسر
-                      می‌شود
-                      {gatewayPayable > 0
-                        ? ` و ${formatPrice(gatewayPayable)} تومان با درگاه پرداخت می‌شود.`
-                        : ' و کل سفارش با اعتبار انتخاب‌شده پرداخت می‌شود.'}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div
-                className={`space-y-3 ${
-                  creditsFullyCover ? 'pointer-events-none opacity-50' : ''
-                }`}
-              >
-                {' '}
-                {/* <GatewayCard
+        <div
+          className={`space-y-3 ${
+            creditsFullyCover ? 'pointer-events-none opacity-50' : ''
+          }`}
+        >
+          {' '}
+          {/* <GatewayCard
                   gateway={PaymentGateway.MELLAT}
                   title="بانک ملت"
                   description="درگاه شتاب"
                   selectedGateway={selectedGateway}
                   onSelect={setSelectedGateway}
                 /> */}
-                <GatewayCard
-                  gateway={PaymentGateway.ZARINPAL}
-                  title="زرین‌پال"
-                  description="درگاه اینترنتی"
-                  selectedGateway={selectedGateway}
-                  onSelect={setSelectedGateway}
-                />
-                <GatewayCard
-                  gateway={PaymentGateway.DIGIPAY}
-                  title="دیجی‌پی"
-                  description="درگاه اینترنتی"
-                  selectedGateway={selectedGateway}
-                  onSelect={setSelectedGateway}
-                />
-                <GatewayCard
-                  gateway={PaymentGateway.TARA}
-                  title="تارا"
-                  description="درگاه اینترنتی"
-                  selectedGateway={selectedGateway}
-                  onSelect={setSelectedGateway}
-                />
-                <GatewayCard
-                  gateway={PaymentGateway.SNAPPAY}
-                  title={snappayEligibility?.title_message ?? ''}
-                  description={snappayEligibility?.description ?? ''}
-                  selectedGateway={selectedGateway}
-                  onSelect={setSelectedGateway}
-                  disabled={!snappayAvailable}
-                />
-              </div>
-            </section>
-
+          <GatewayCard
+            gateway={PaymentGateway.ZARINPAL}
+            title="زرین‌پال"
+            description="درگاه اینترنتی"
+            selectedGateway={selectedGateway}
+            onSelect={setSelectedGateway}
+          />
+          <GatewayCard
+            gateway={PaymentGateway.DIGIPAY}
+            title="دیجی‌پی"
+            description="درگاه اینترنتی"
+            selectedGateway={selectedGateway}
+            onSelect={setSelectedGateway}
+          />
+          <GatewayCard
+            gateway={PaymentGateway.TARA}
+            title="تارا"
+            description="درگاه اینترنتی"
+            selectedGateway={selectedGateway}
+            onSelect={setSelectedGateway}
+          />
+          <GatewayCard
+            gateway={PaymentGateway.SNAPPAY}
+            title={snappayEligibility?.title_message ?? ''}
+            description={snappayEligibility?.description ?? ''}
+            selectedGateway={selectedGateway}
+            onSelect={setSelectedGateway}
+            disabled={!snappayAvailable}
+          />
+        </div>
+      </section>
     </>
   );
 
@@ -1332,51 +1317,51 @@ export default function CheckoutForm() {
 
         {/* Summary */}
         <div className="lg:col-span-1">
-        <OrderSummary
-          items={cartItems}
-          pricing={cartData?.data?.pricing || null}
-          checkoutPreview={checkoutPreviewData?.data ?? null}
-          appliedDiscount={appliedDiscount}
-          shippingCost={shippingCost}
-          isFreeShipping={isFreeShipping}
-          hasSelectedAddress={!!selectedAddressId}
-          isPickup={isPickup}
-          clubCreditUsed={clubCreditUsed}
-          walletCreditUsed={walletCreditUsed}
-          gatewayPayable={gatewayPayable}
-          onQuantityChange={handleQuantityChange}
-          onRemoveItem={handleRemoveCartItem}
-          isUpdatingCart={isUpdatingCart}
+          <OrderSummary
+            items={cartItems}
+            pricing={cartData?.data?.pricing || null}
+            checkoutPreview={checkoutPreviewData?.data ?? null}
+            appliedDiscount={appliedDiscount}
+            shippingCost={shippingCost}
+            isFreeShipping={isFreeShipping}
+            hasSelectedAddress={!!selectedAddressId}
+            isPickup={isPickup}
+            clubCreditUsed={clubCreditUsed}
+            walletCreditUsed={walletCreditUsed}
+            gatewayPayable={gatewayPayable}
+            onQuantityChange={handleQuantityChange}
+            onRemoveItem={handleRemoveCartItem}
+            isUpdatingCart={isUpdatingCart}
+          />
+        </div>
+      </div>
+
+      {/* ===================================== */}
+      {/* موبایل: ویزارد سه‌مرحله‌ای (فقط زیر lg) */}
+      {/* ===================================== */}
+      <div className="lg:hidden">
+        <CheckoutWizardShell
+          step={wizardStep}
+          onStepChange={goToWizardStep}
+          validateStep={validateWizardStep}
+          hasCartItems={cartItems.length > 0}
+          submitting={createOrder.isPending || startPayment.isPending}
+          canSubmit={isCheckoutSubmittable({
+            isPickup,
+            hasSelectedAddress: !!selectedAddressId,
+            hasGateway: !!selectedGateway,
+            walletFullyCovers: creditsFullyCover,
+          })}
+          submitLabel={
+            creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'
+          }
+          stepsContent={[
+            cartStepContent,
+            deliveryStepContent,
+            paymentStepContent,
+          ]}
         />
       </div>
-    </div>
-
-    {/* ===================================== */}
-    {/* موبایل: ویزارد سه‌مرحله‌ای (فقط زیر lg) */}
-    {/* ===================================== */}
-    <div className="lg:hidden">
-      <CheckoutWizardShell
-        step={wizardStep}
-        onStepChange={goToWizardStep}
-        validateStep={validateWizardStep}
-        hasCartItems={cartItems.length > 0}
-        submitting={createOrder.isPending || startPayment.isPending}
-        canSubmit={isCheckoutSubmittable({
-          isPickup,
-          hasSelectedAddress: !!selectedAddressId,
-          hasGateway: !!selectedGateway,
-          walletFullyCovers: creditsFullyCover,
-        })}
-        submitLabel={
-          creditsFullyCover ? 'ثبت سفارش با اعتبار' : 'ثبت سفارش و پرداخت'
-        }
-        stepsContent={[
-          cartStepContent,
-          deliveryStepContent,
-          paymentStepContent,
-        ]}
-      />
-    </div>
     </FormProvider>
   );
 }
