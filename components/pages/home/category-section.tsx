@@ -1,14 +1,23 @@
 'use client';
 
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRef } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
 import HomeImage from '@/components/shared/home-image';
 import { HomeImage as HomeImageData } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 
-interface CategoriesSectionProps {
+gsap.registerPlugin(ScrollTrigger);
+
+export default function CategoriesSection({
+  categories,
+  images,
+}: {
   categories: CategoriesResponse[];
   /**
    * تصاویر بخش دسته‌بندی‌ها (از پنل مدیریت).
@@ -19,107 +28,135 @@ interface CategoriesSectionProps {
     first?: HomeImageData;
     second?: HomeImageData;
   };
-}
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const firstSectionRef = useRef<HTMLDivElement>(null);
+  const secondSectionRef = useRef<HTMLDivElement>(null);
 
-const tileClass = 'group relative mx-0.5 my-1 aspect-square bg-gray-300';
+  useGSAP(
+    () => {
+      if (
+        !wrapperRef.current ||
+        !firstSectionRef.current ||
+        !secondSectionRef.current
+      ) {
+        return;
+      }
 
-const labelClass =
-  'text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100';
+      const mm = gsap.matchMedia();
 
-/** یک خانه‌ی دسته‌بندی (لینک + تصویر + برچسب) */
-function CategoryTile({ category }: { category: CategoriesResponse }) {
-  return (
-    <Link
-      href={`/product-category/${category.slug}`}
-      className={tileClass}
-      aria-label={category.name}
-    >
-      <Image
-        src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${category.image}`}
-        fill
-        alt={category.name}
-        className="object-cover"
-        sizes="(min-width: 640px) 25vw, 50vw"
-        loading="lazy"
-      />
+      // فقط دسکتاپ
+      mm.add('(min-width: 768px)', () => {
+        const firstSection = firstSectionRef.current!;
+        const secondSection = secondSectionRef.current!;
 
-      <div className={labelClass}>{category.name}</div>
-    </Link>
+        const getStart = () => `+=${firstSection.offsetHeight} bottom`;
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: wrapperRef.current,
+
+            start: getStart,
+            end: '+=1600',
+
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        // مکث قبل از ورود بخش دوم
+        tl.to({}, { duration: 0.5 });
+
+        // ورود بخش دوم از پایین
+        tl.fromTo(
+          secondSection,
+          {
+            yPercent: 100,
+          },
+          {
+            yPercent: 0,
+            duration: 1,
+            ease: 'none',
+          },
+        );
+
+        // مکث انتهایی
+        tl.to({}, { duration: 0.2 });
+
+        return () => {
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        };
+      });
+
+      // cleanup matchMedia
+      return () => {
+        mm.revert();
+      };
+    },
+    {
+      scope: wrapperRef,
+    },
   );
-}
-
-/**
- * بخش دسته‌بندی‌های صفحه‌ی اصلی: دو شبکه‌ی ۴ خانه‌ای (۲ رسانه‌ی بزرگ + ۴
- * دسته‌بندی) که پشت سر هم می‌آیند.
- *
- * ── چه چیزی عوض شد و چرا ───────────────────────────────────────────────────
- * محتوا و ظاهر هر دو شبکه دقیقاً همان قبلی است؛ فقط رفتار اسکرولشان.
- * قبلاً شبکه‌ی دوم با یک ScrollTrigger روی شبکه‌ی اول `pin` می‌شد و با
- * `yPercent` از پایین روی آن می‌لغزید. آن pin دو مشکل می‌ساخت:
- *
- *   1. صفحه را ۱۶۰۰px قفل می‌کرد؛ کاربر باید چند بار چرخ ماوس را می‌چرخاند
- *      تا از این بخش رد شود.
- *   2. شبکه‌ی دوم «تدریجی» وارد صفحه می‌شد، نه کامل — همان حس نیمه‌کاره بودن
- *      بنرها.
- *
- * اکنون هر دو شبکه در جریان عادی سند هستند و ارتفاعشان با عرض واقعی صفحه
- * محدود می‌شود (`.home-square-grid`)؛ هر شبکه تقریباً یک صفحه‌ی کامل است و
- * اسکرول اسنپ روی مرز دو شبکه می‌ایستد، پس هیچ بخشی نیمه‌کاره نمی‌ماند.
- */
-export default function CategoriesSection({
-  categories,
-  images,
-}: CategoriesSectionProps) {
-  /** ردیف اول: تصاویر بزرگ + دسته‌بندی‌های ۱ تا ۴ */
-  const firstRowCategories = categories.slice(0, 4);
-
-  /** ردیف دوم: ویدیوهای بزرگ + دسته‌بندی‌های ۵ تا ۸ */
-  const secondRowCategories = categories.slice(4, 8);
 
   return (
     <section
-      id="home-categories"
-      data-home-section
-      aria-label="دسته‌بندی‌ها"
-      className="home-section home-section--below-header w-full overflow-hidden bg-white"
+      ref={wrapperRef}
+      className="relative w-full overflow-hidden bg-white"
     >
       {/* ============================================== */}
-      {/* شبکه اول — تصاویر                              */}
+      {/* بخش اول */}
       {/* ============================================== */}
 
       <div
-        data-home-snap
-        className="home-snap home-square-grid mx-auto grid w-full grid-cols-2 bg-white sm:grid-cols-4"
+        ref={firstSectionRef}
+        className="relative z-0 grid w-full grid-cols-2 bg-white sm:grid-cols-4"
       >
-        {images?.first && (
-          <div className="relative col-span-2 hidden aspect-square bg-gray-200 sm:block">
-            <HomeImage image={images.first} />
-          </div>
-        )}
+        {/* تصویر اول */}
+        <div className="relative col-span-2 aspect-square hidden sm:block bg-gray-200">
+          {images?.first && <HomeImage image={images.first} />}
+        </div>
 
-        {images?.second && (
-          <div className="relative col-span-2 aspect-square bg-gray-200">
-            <HomeImage image={images.second} />
-          </div>
-        )}
+        {/* تصویر دوم */}
+        <div className="relative col-span-2 aspect-square bg-gray-200">
+          {images?.second && <HomeImage image={images.second} />}
+        </div>
 
-        {firstRowCategories.map(category => (
-          <CategoryTile
-            key={category.id ?? category.name}
-            category={category}
-          />
+        {/* دسته بندی های 1 تا 4 */}
+        {categories.slice(0, 4).map(category => (
+          <Link
+            href={`/product-category/${category.slug}`}
+            key={category.name}
+            className="group relative mx-0.5 my-1 aspect-square bg-gray-300"
+          >
+            <Image
+              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${category.image}`}
+              fill
+              alt={category.name}
+              className="object-cover"
+              sizes="(min-width: 640px) 25vw, 50vw"
+              loading="lazy"
+            />
+
+            <div className="text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
+              {category.name}
+            </div>
+          </Link>
         ))}
       </div>
 
       {/* ============================================== */}
-      {/* شبکه دوم — ویدیوها                             */}
+      {/* بخش دوم */}
       {/* ============================================== */}
 
       <div
-        data-home-snap
-        className="home-snap home-square-grid mx-auto grid w-full grid-cols-2 bg-white sm:grid-cols-4"
+        ref={secondSectionRef}
+        className="relative grid w-full grid-cols-2 sm:grid-cols-4 bg-white sm:absolute sm:left-0 sm:top-0 sm:z-10"
       >
-        <div className="relative col-span-2 hidden aspect-square sm:block">
+        {/* ویدیو اول */}
+        <div className="relative col-span-2 aspect-square hidden sm:block">
           <HlsVideo
             src="/home/category_1/master.m3u8"
             poster="/home/category_1/poster.webp"
@@ -127,6 +164,7 @@ export default function CategoriesSection({
           />
         </div>
 
+        {/* ویدیو دوم */}
         <div className="relative col-span-2 aspect-square">
           <HlsVideo
             src="/home/category_2/master.m3u8"
@@ -135,11 +173,26 @@ export default function CategoriesSection({
           />
         </div>
 
-        {secondRowCategories.map(category => (
-          <CategoryTile
-            key={category.id ?? category.name}
-            category={category}
-          />
+        {/* دسته بندی های 5 تا 8 */}
+        {categories.slice(4, 8).map(category => (
+          <Link
+            href={`/product-category/${category.slug}`}
+            key={category.name}
+            className="group relative mx-0.5 my-1 aspect-square bg-gray-300"
+          >
+            <Image
+              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${category.image}`}
+              fill
+              alt={category.name}
+              className="object-cover"
+              sizes="(min-width: 640px) 25vw, 50vw"
+              loading="lazy"
+            />
+
+            <div className="text-xs sm:text-base absolute bottom-4 right-4 sm:opacity-0 transition-all group-hover:opacity-100">
+              {category.name}
+            </div>
+          </Link>
         ))}
       </div>
     </section>

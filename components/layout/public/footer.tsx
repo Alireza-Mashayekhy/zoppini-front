@@ -4,10 +4,7 @@ import AnimateLink from '@/components/shared/animate-link';
 
 export default function Footer() {
   return (
-    <footer
-      id="site-footer"
-      className="w-full p-12 bg-gray-200 flex flex-col gap-10"
-    >
+    <div className="p-12 bg-gray-200 flex flex-col gap-10">
       <div className="flex justify-between flex-wrap gap-10">
         <div className="flex flex-col gap-5">
           <span className="text-sm font-semibold">اطلاعات تماس</span>
@@ -269,6 +266,6 @@ export default function Footer() {
       <p className="text-center text-xs">
         کلیه حقوق این سایت متعلق به زوپینی می باشد.
       </p>
-    </footer>
+    </div>
   );
 }

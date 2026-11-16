@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatPriceFa } from '@/lib/discount';
 import { cn } from '@/lib/utils';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { useProductBySlug } from '@/services/features/products/hooks';
@@ -128,24 +127,20 @@ function QuickAddContent({
       item.color?.id === selectedColorId && item.size?.id === selectedSizeId,
   );
 
-  /**
-   * قیمت‌ها از API به‌صورت رشته‌ی اعشاری (`"9800000.00"`) برمی‌گردند؛ ابتدا
-   * به عدد تبدیل می‌شوند تا هم مقایسه‌ی تخفیف درست کار کند و هم نمایش بدون
-   * بخش اعشاری و با جداکننده‌ی هزارگان انجام شود.
-   */
-  const basePrice =
-    Number(variant?.price ?? product.variants?.[0]?.price) || 0;
+  const basePrice = variant?.price ?? product.variants?.[0]?.price ?? 0;
 
-  const productDiscountRaw = Number(product.discount?.finalPrice) || 0;
   const productDiscountFinal =
-    productDiscountRaw > 0 && productDiscountRaw < basePrice
-      ? productDiscountRaw
+    product.discount?.finalPrice &&
+    product.discount.finalPrice > 0 &&
+    product.discount.finalPrice < basePrice
+      ? product.discount.finalPrice
       : null;
 
-  const variantDiscountRaw = Number(variant?.discountedPrice) || 0;
   const variantDiscountFinal =
-    variantDiscountRaw > 0 && variantDiscountRaw < basePrice
-      ? variantDiscountRaw
+    variant?.discountedPrice &&
+    variant.discountedPrice > 0 &&
+    variant.discountedPrice < basePrice
+      ? variant.discountedPrice
       : null;
 
   const finalPrice = productDiscountFinal ?? variantDiscountFinal ?? basePrice;
@@ -260,11 +255,13 @@ function QuickAddContent({
         <div>
           {hasDiscount && (
             <div className="text-xs text-muted-foreground line-through">
-              {formatPriceFa(basePrice)} تومان
+              {basePrice.toLocaleString()} تومان
             </div>
           )}
 
-          <div className="font-semibold">{formatPriceFa(finalPrice)} تومان</div>
+          <div className="font-semibold">
+            {finalPrice.toLocaleString()} تومان
+          </div>
         </div>
 
         <span

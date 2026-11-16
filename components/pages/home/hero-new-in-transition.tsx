@@ -1,10 +1,17 @@
 'use client';
 
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useRef } from 'react';
+
 import HeroSection from '@/components/pages/home/hero-section';
 import NewIn from '@/components/pages/home/new-in';
 import { HomeImages } from '@/lib/home-images';
 import { CategoriesResponse } from '@/services/features/categories/types';
 import { FeaturedProductResponse } from '@/services/features/products/type';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface HeroNewInTransitionProps {
   categories: CategoriesResponse[];
@@ -16,43 +23,129 @@ interface HeroNewInTransitionProps {
   };
 }
 
-/**
- * هدر (دو ویدیوی کنار هم) و سپس New In — هر کدام دقیقاً یک بخش تمام‌صفحه.
- *
- * ── چرا این‌طور شد ─────────────────────────────────────────────────────────
- * قبلاً این دو با یک تایم‌لاین GSAP `pin` روی هم سوار می‌شدند: صفحه ۱۶۰۰px
- * قفل می‌شد تا New In از پایین روی هدر بلغزد. نتیجه‌اش همان چیزی بود که کاربر
- * تجربه می‌کرد — «برای رسیدن به بخش بعدی چند بار باید چرخ ماوس را بچرخانیم»
- * و «انتقال از هدر به New In بی‌دلیل طولانی است».
- *
- * حالا هر دو بخش مستقل و تمام‌صفحه‌اند: یک حرکت چرخ ماوس = یک بخش، و
- * ScrollTrigger هیچ بخشی را pin نمی‌کند تا با اسکرول اسنپ (و با ارتفاع واقعی
- * صفحه) تضاد نداشته باشد. ظاهر هر دو بخش دست‌نخورده است.
- */
 export default function HeroNewInTransition({
   categories,
   products,
   heroPosters,
 }: HeroNewInTransitionProps) {
-  return (
-    <>
-      <section
-        id="home-hero"
-        data-home-section
-        aria-label="کالکشن جدید"
-        className="home-section home-section--full relative overflow-hidden bg-black"
-      >
-        <HeroSection categories={categories} posters={heroPosters} />
-      </section>
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const newInRef = useRef<HTMLDivElement>(null);
 
-      <section
-        id="home-new-in"
-        data-home-section
-        aria-label="جدیدترین محصولات"
-        className="home-section home-section--full home-section--below-header relative bg-white"
+  useGSAP(
+    () => {
+      if (!wrapperRef.current || !newInRef.current) {
+        return;
+      }
+
+      const mm = gsap.matchMedia();
+
+      const PIN_SCROLL_DISTANCE = 1600;
+
+      // فقط دسکتاپ
+      mm.add('(min-width: 768px)', () => {
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: wrapperRef.current,
+            start: 'top top',
+            end: () => `+=${PIN_SCROLL_DISTANCE}`,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        /*
+         * مرحله 1 - Categories
+         *
+         * در صورت نیاز می‌توانی فعالش کنی.
+         */
+
+        // if (categoriesRef.current) {
+        //   timeline.fromTo(
+        //     categoriesRef.current,
+        //     {
+        //       yPercent: 120,
+        //     },
+        //     {
+        //       yPercent: 0,
+        //       duration: 1,
+        //       ease: 'power2.out',
+        //     },
+        //   );
+        // }
+
+        /*
+         * مرحله 2 - New In
+         */
+
+        timeline.fromTo(
+          newInRef.current,
+          {
+            zIndex: 10,
+          },
+          {
+            zIndex: 30,
+            ease: 'none',
+          },
+        );
+
+        timeline.fromTo(
+          newInRef.current,
+          {
+            yPercent: 100,
+          },
+          {
+            yPercent: 0,
+            duration: 0.5,
+            ease: 'none',
+          },
+        );
+
+        timeline.to(
+          {},
+          {
+            duration: 0.2,
+          },
+        );
+
+        return () => {
+          timeline.scrollTrigger?.kill();
+          timeline.kill();
+        };
+      });
+
+      return () => {
+        mm.revert();
+      };
+    },
+    {
+      scope: wrapperRef,
+    },
+  );
+
+  return (
+    <section
+      ref={wrapperRef}
+      className="relative min-h-screen sm:h-screen overflow-hidden"
+    >
+      {/* Hero */}
+      <div className="relative sm:absolute inset-0 z-20 h-screen sm:h-auto">
+        <HeroSection
+          categories={categories}
+          categoriesRef={categoriesRef}
+          posters={heroPosters}
+        />
+      </div>
+
+      {/* New In */}
+      <div
+        ref={newInRef}
+        className="relative sm:absolute inset-0 z-10 h-[500px] sm:h-auto"
       >
         <NewIn products={products} />
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import CategoriesSection from '@/components/pages/home/category-section';
 import EndVideo from '@/components/pages/home/end-video';
 import HeroNewInTransition from '@/components/pages/home/hero-new-in-transition';
-import HomeScrollExperience from '@/components/pages/home/home-scroll-experience';
 import SaleBanner from '@/components/pages/home/sale-banner';
 import SuggestedStyle from '@/components/pages/home/suggested-style';
 import { resolveHomeImages } from '@/lib/home-images';
@@ -66,13 +65,6 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/*
-        تجربه‌ی اسکرول صفحه‌ی اصلی: اسکرول اسنپ بخش‌به‌بخش، نوار پیشرفت بالای
-        صفحه و ناوبری دایره‌ای سمت راست در دسکتاپ. فقط در همین صفحه فعال است و
-        با ترک صفحه همه‌چیز پاک می‌شود.
-      */}
-      <HomeScrollExperience />
-
       {/* Hero → New In Transition */}
       <HeroNewInTransition
         categories={HeroSectionCategories?.data ?? []}
@@ -83,9 +75,11 @@ export default async function HomePage() {
         }}
       />
 
-      <SaleBanner image={homeImages['home.sale-banner']} />
+      <div className="mb-4">
+        <SaleBanner image={homeImages['home.sale-banner']} />
+      </div>
 
-      {/* دسته‌بندی‌ها، پیشنهاد استایل و ویدیوی پایانی — هر کدام یک بخش */}
+      {/* اسکرول عادی بعد از New In */}
       <CategoriesSection
         categories={HomeCategories?.data ?? []}
         images={{

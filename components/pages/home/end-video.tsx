@@ -1,22 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
 import { HomeImage } from '@/lib/home-images';
 
+gsap.registerPlugin(ScrollTrigger);
+
 /**
- * ویدیوی پایانی صفحه‌ی اصلی — یک بخش کامل تمام‌صفحه.
+ * انتخاب نسخه موبایل/دسکتاپ با همان بریک‌پوینتی که انیمیشن GSAP
+ * استفاده می‌کند (768px) و بر اساس عرض واقعی پنجره — نه User-Agent.
  *
- * انتخاب نسخه‌ی موبایل/دسکتاپ با بریک‌پوینت ۷۶۸px و بر اساس عرض واقعی پنجره
- * انجام می‌شود — نه User-Agent؛ قبلاً روی تبلت/اندروید با نمایشگر بزرگ نسخه‌ی
- * اشتباه (و چه بسا ویدیوی 4K) دانلود می‌شد.
- *
- * ── تغییر نسبت به قبل ──────────────────────────────────────────────────────
- * قبلاً یک ScrollTrigger این بخش را ۵۰۰px pin می‌کرد. pin یعنی صفحه برای
- * مدتی «قفل» می‌شود؛ همان چیزی که حس «چند بار باید چرخ ماوس را بچرخانم» را
- * می‌ساخت. اکنون ویدیو فقط تمام‌صفحه است و اسکرول اسنپ خودش آن را در جای
- * خودش نگه می‌دارد.
+ * قبلاً با User-Agent تصمیم گرفته می‌شد که روی تبلت/اندروید با
+ * نمایشگر بزرگ، نسخه اشتباه (و چه بسا ویدیوی 4K) دانلود می‌شد.
  */
 export default function EndVideo({
   poster,
@@ -28,6 +27,7 @@ export default function EndVideo({
    */
   poster?: HomeImage;
 } = {}) {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -41,12 +41,42 @@ export default function EndVideo({
     return () => query.removeEventListener('change', update);
   }, []);
 
+  useGSAP(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const mm = gsap.matchMedia();
+
+    mm.add('(min-width: 768px)', () => {
+      const pinDuration = 500;
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 52px',
+          end: () => `+=${pinDuration}`,
+          scrub: 0.5,
+          pin: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+      };
+    });
+
+    return () => {
+      mm.revert();
+    };
+  }, []);
+
   return (
-    <section
-      id="home-end"
-      data-home-section
-      aria-label="ویدیوی پایانی"
-      className="home-section home-section--full relative w-full overflow-hidden bg-black"
+    <div
+      ref={sectionRef}
+      className="aspect-6/7 sm:aspect-auto sm:h-screen w-full overflow-hidden relative mt-5 sm:mt-0 bg-black"
     >
       {isMobile !== null && (
         <HlsVideo
@@ -66,6 +96,6 @@ export default function EndVideo({
           className="w-full h-full object-cover"
         />
       )}
-    </section>
+    </div>
   );
 }

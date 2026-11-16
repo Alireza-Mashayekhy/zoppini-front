@@ -2,9 +2,9 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
-import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { buildPageMetadata } from '@/lib/seo';
 import { getProducts } from '@/services/features/products/server.api';
+import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -54,8 +54,12 @@ export default async function ProductsPage({
 
   return (
     <div className="pt-[52px]">
-      {/* عنوان صفحه بدون نمایش شماره‌ی محصولات */}
-      <h1 className="h-20 border-t px-6 flex items-center">همه محصولات</h1>
+      <h1 className="h-20 border-t px-6 flex items-center">
+        همه محصولات{' '}
+        <span className="mr-2 text-sm text-gray-500 font-normal">
+          ({productsData?.pagination?.total || 0} محصول)
+        </span>
+      </h1>
       <ProductList initialData={productsData} initialParams={queryParams} />
     </div>
   );

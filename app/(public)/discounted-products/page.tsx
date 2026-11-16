@@ -66,8 +66,12 @@ export default async function ProductsPage({
 
   return (
     <div className="pt-[52px]">
-      {/* عنوان فروش ویژه بدون نمایش شماره‌ی محصولات */}
-      <h1 className="h-20 border-t px-6 flex items-center">فروش ویژه</h1>
+      <h1 className="h-20 border-t px-6 flex items-center">
+        فروش ویژه
+        <span className="mr-2 text-sm text-gray-500 font-normal">
+          ({productsData?.pagination?.total || 0} محصول)
+        </span>
+      </h1>
       <ProductList
         initialData={productsData}
         initialParams={queryParams}
