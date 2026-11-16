@@ -79,7 +79,7 @@ export default function NewIn({ products }: NewInProps) {
   const resizeRef = useSliderResize(sliderRef, instanceRef);
 
   return (
-    <section className="relative flex h-full w-full flex-col overflow-hidden bg-white pb-5">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-white pb-5">
       {/* Title */}
       <div className="shrink-0 pt-5">
         <LuxuryTitle className="p-10" left>
@@ -140,6 +140,6 @@ export default function NewIn({ products }: NewInProps) {
           </>
         )}
       </div>
-    </section>
+    </div>
   );
 }
