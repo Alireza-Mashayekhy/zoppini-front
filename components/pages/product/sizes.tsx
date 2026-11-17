@@ -28,7 +28,8 @@ export default function ProductSizes({
 
   const uniqueSizes =
     product.variants
-      ?.map(v => v.size)
+      ?.map(v => v?.size)
+      .filter((size): size is NonNullable<typeof size> => size?.id != null)
       .filter(
         (size, index, self) => self.findIndex(s => s.id === size.id) === index,
       ) || [];
@@ -37,7 +38,7 @@ export default function ProductSizes({
   const isSizeAvailable = (sizeId: number) => {
     return (
       product.variants?.some(
-        variant => variant.size?.id === sizeId && variant.stock > 0,
+        variant => variant?.size?.id === sizeId && variant.stock > 0,
       ) ?? false
     );
   };

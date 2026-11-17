@@ -33,6 +33,20 @@ test('missing, zero and invalid prices are not advertised', () => {
   assert.equal(selectedProductPrice(variants, 2, 1), null);
   assert.equal(selectedProductPrice(undefined, 1, 1), null);
   assert.equal(
+    selectedProductPrice(
+      [
+        {
+          ...variants[0],
+          color: null,
+          size: null,
+        } as unknown as VariantResponse,
+      ],
+      undefined,
+      undefined,
+    ),
+    null,
+  );
+  assert.equal(
     selectedProductPrice([{ ...variants[0], discountedPrice: NaN }], 1, 1),
     null,
   );

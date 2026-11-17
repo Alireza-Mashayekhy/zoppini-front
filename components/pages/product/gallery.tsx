@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { mediaUrl } from '@/lib/media';
 import { cn } from '@/lib/utils';
 import {
   ColorImageResponse,
@@ -93,9 +94,15 @@ export default function ProductGallery({
   const [isZoomed, setIsZoomed] = useState(false);
   const autoplayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const images = colorImages;
+  const images = (colorImages ?? []).filter(
+    img => typeof img?.url === 'string' && img.url.trim(),
+  );
   const displayImages =
-    images.length > 0 ? images : [{ url: product.image, id: 0 }];
+    images.length > 0
+      ? images
+      : product.image
+        ? [{ url: product.image, id: 0 }]
+        : [];
 
   /**
    * دکمهٔ برگشت: اول به تاریخچه‌ی مرورگر می‌نگرد تا contextی که کاربر از
@@ -202,7 +209,6 @@ export default function ProductGallery({
       >
         <ArrowLeft className="size-5" />
       </button>
-
       {/* کانتینر اسکرول عمودی */}
       <div
         ref={scrollRef}
@@ -221,7 +227,7 @@ export default function ProductGallery({
             className="w-full flex-shrink-0 snap-start h-full"
           >
             <ZoomableImage
-              src={process.env.NEXT_PUBLIC_IMAGE_URL + img.url}
+              src={mediaUrl(img.url)}
               alt={product.title}
               onZoomChange={setIsZoomed}
             />

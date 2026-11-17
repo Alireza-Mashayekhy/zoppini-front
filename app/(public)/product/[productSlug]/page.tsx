@@ -116,6 +116,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const productData = product.data;
+  // An empty category relation is valid product data; it must not take down
+  // the product page. A missing product payload, however, is an API error,
+  // not evidence that the product does not exist.
+  if (!productData?.product) throw new Error('Product API returned no product');
+  const category = productData.product.categories?.find(
+    item => item?.name && item?.slug,
+  );
 
   const guides = await getProductGuides(productData.product.slug);
 
@@ -125,10 +132,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <Breadcrumb
         items={[
           { name: 'خانه', href: '/' },
-          {
-            name: productData.product.categories[0].name,
-            href: `/product-category/${productData.product.categories[0].slug}`,
-          },
+          ...(category
+            ? [
+                {
+                  name: category.name,
+                  href: `/product-category/${encodeURIComponent(category.slug)}`,
+                },
+              ]
+            : []),
           {
             name: productData.product.title,
             href: `/product/${productData.product.slug}`,

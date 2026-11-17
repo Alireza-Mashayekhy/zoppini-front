@@ -6,8 +6,9 @@ export function selectedProductPrice(
   colorId: number | undefined,
   sizeId: number | undefined,
 ): number | null {
+  if (colorId == null || sizeId == null) return null;
   const variant = variants?.find(
-    item => item.color?.id === colorId && item.size?.id === sizeId,
+    item => item?.color?.id === colorId && item?.size?.id === sizeId,
   );
   if (!variant) return null;
   const price = Number(variant.discountedPrice ?? variant.price);

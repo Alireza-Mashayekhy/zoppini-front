@@ -12,6 +12,8 @@ import { track } from '@/lib/consent/client';
 import { discountPercent, formatPriceFa } from '@/lib/discount';
 import { resolveHtmlMedia } from '@/lib/media';
 import {
+  basePrice,
+  effectivePrice,
   findSelectedVariant,
   resolveDisplayVariant,
 } from '@/lib/product-price';
@@ -50,19 +52,23 @@ export default function ProductContent({
   // ==================== استخراج رنگ‌ها از variants ====================
   // ۱. رنگ‌های خود محصول
   const selfColors =
-    product.variants?.map(v => ({
-      color: v.color,
-      productSlug: product.slug,
-    })) || [];
+    product.variants
+      ?.filter(v => v?.color?.id != null)
+      .map(v => ({
+        color: v.color,
+        productSlug: product.slug,
+      })) || [];
 
   // ۲. رنگ‌های محصولات هم‌رنگ
   const sameColorColors =
     product.sameColorProducts?.flatMap(
       p =>
-        p.variants?.map(v => ({
-          color: v.color,
-          productSlug: p.slug,
-        })) || [],
+        p?.variants
+          ?.filter(v => v?.color?.id != null)
+          .map(v => ({
+            color: v.color,
+            productSlug: p.slug,
+          })) || [],
     ) || [];
 
   // ۳. ادغام و حذف تکراری‌ها (بر اساس id رنگ)
@@ -82,16 +88,16 @@ export default function ProductContent({
     if (item.productSlug === product.slug) {
       // برای خود محصول: از colorImages خود محصول استفاده کن
       const colorImage = product.colorImages?.find(
-        img => img.color?.id === item.color.id,
+        img => img?.color?.id === item.color.id,
       );
       imageUrl = colorImage?.url || '';
     } else {
       // برای محصول هم‌رنگ: از colorImages آن محصول استفاده کن
       const sameProduct = product.sameColorProducts?.find(
-        p => p.slug === item.productSlug,
+        p => p?.slug === item.productSlug,
       );
       if (sameProduct) {
-        const colorImage = sameProduct.colorImages[0];
+        const colorImage = sameProduct.colorImages?.[0];
 
         imageUrl = colorImage?.url || '';
       }
@@ -130,7 +136,7 @@ export default function ProductContent({
     colorId: activeColorId,
     sizeId: selectedSizeId,
   });
-  const price = displayVariant?.price || 0;
+  const price = basePrice(displayVariant) ?? effectivePrice(displayVariant);
   const discountedPrice = displayVariant?.discountedPrice;
   /**
    * درصد تخفیف از مقادیر عددی‌ای که بک‌اند برگردانده ساخته می‌شود (نه متنِ
@@ -220,7 +226,11 @@ export default function ProductContent({
             {/* بلوک قیمت بالای دکمه، مجزا و با راستای متفاوت */}
             <div className="mt-6">
               <div className="mr-auto flex w-fit flex-col items-end gap-0.5 text-left">
-                {discountPercentValue !== null && discountedPrice ? (
+                {price === null ? (
+                  <div className="text-sm text-gray-500">
+                    قیمت در دسترس نیست
+                  </div>
+                ) : discountPercentValue !== null && discountedPrice ? (
                   <>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-400 line-through decoration-gray-400/80">
@@ -251,7 +261,7 @@ export default function ProductContent({
               <div className="mt-3 flex gap-1.5">
                 <button
                   onClick={handleAddToCart}
-                  disabled={addToCart.isPending}
+                  disabled={addToCart.isPending || price === null}
                   className="flex h-[50px] w-full flex-1 items-center justify-center rounded-xl bg-[#EF4056] text-sm font-semibold text-white transition-colors hover:bg-[#d8354b] active:bg-[#c22e42] disabled:opacity-60"
                 >
                   {addToCart.isPending
@@ -259,15 +269,17 @@ export default function ProductContent({
                     : 'افزودن به سبد خرید'}
                 </button>
                 <ProductShareButton product={product} />
-                <CompareToggle
-                  product={{
-                    id: product.id,
-                    title: product.title,
-                    slug: product.slug,
-                    image: product.image,
-                    price: Number(price) || 0,
-                  }}
-                />
+                {price !== null && (
+                  <CompareToggle
+                    product={{
+                      id: product.id,
+                      title: product.title,
+                      slug: product.slug,
+                      image: product.image,
+                      price,
+                    }}
+                  />
+                )}
                 <WishlistButton productId={product.id} />
               </div>
             </div>
