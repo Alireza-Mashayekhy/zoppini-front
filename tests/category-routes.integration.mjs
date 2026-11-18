@@ -203,4 +203,56 @@ test('product category listing renders actual product cards', async () => {
   assert.equal(res.status, 200, logs);
   assert.match(html, /محصول آزمایشی/);
   assert.match(html, /example-product/);
+  assert.match(html, /href="\/landing\/blackfriday"[^>]*>بلک فرایدی<\/a>/);
+});
+
+test('Black Friday uses the production storefront shell and serves its campaign assets', async () => {
+  const before = requests.length;
+  const { res, html } = await page('/landing/blackfriday');
+  assert.equal(res.status, 200, logs);
+  assert.match(res.headers.get('cache-control') ?? '', /no-store/);
+  assert.match(html, /<main[^>]*dir="rtl"/);
+  assert.match(html, /BLACK FRIDAY/);
+  assert.match(html, /Up To 70% OFF/);
+  assert.match(html, /role="timer"|کمپین آغاز شده است\./);
+  assert.match(html, /<header\b/);
+  assert.match(html, /<footer[^>]*id="site-footer"/);
+  assert.match(html, /href="\/login"/);
+  assert.doesNotMatch(requests.slice(before).join('\n'), /\/api\/products/);
+
+  const assets = [
+    ...[
+      'blazer-black',
+      'blazer-linen-cream',
+      'clutch-black',
+      'knit-fullzip-black',
+      'trousers-classic',
+    ].map(name => [`/campaign/studio/${name}.webp`, /image\/webp/]),
+    [
+      '/_next/image?url=%2Fcampaign%2Fstudio%2Fblazer-black.webp&w=640&q=75',
+      /image\//,
+    ],
+  ];
+  const preload = `${html} ${res.headers.get('link') ?? ''}`;
+  const fonts = [
+    ...new Set(
+      preload.match(
+        /\/_next\/static\/media\/(?:Vazir|cormorant|oswald)[\w.~\-]+\.woff2/g,
+      ),
+    ),
+  ];
+  assert.equal(fonts.length, 4, 'SSR preloads all four campaign font files');
+  assets.push(...fonts.map(font => [font, /woff2/]));
+
+  const css = html.match(/href="(\/_next\/static\/[^" ]+\.css)"/);
+  const script = html.match(/src="(\/_next\/static\/[^" ]+\.js)"/);
+  assert.ok(css && script, 'SSR links to the compiled CSS and JS assets');
+  assets.push([css[1], /text\/css/], [script[1], /javascript/]);
+
+  for (const [path, contentType] of assets) {
+    const asset = await fetch(`${origin}${path}`);
+    assert.equal(asset.status, 200, path);
+    assert.match(asset.headers.get('content-type') ?? '', contentType, path);
+    assert.ok((await asset.arrayBuffer()).byteLength > 0, path);
+  }
 });

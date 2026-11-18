@@ -28,6 +28,7 @@ import { useMe } from '@/services/features/auth/hooks';
 import type { CategoriesResponse } from '@/services/features/categories/types';
 import { useCartStore } from '@/store/cart.store';
 
+import BlackFridayLink, { BLACK_FRIDAY_PATH } from './black-friday-link';
 import { type CategoryNode, makeCategoryTree } from './category-navigation';
 
 const categoryItemClass =
@@ -140,6 +141,11 @@ export default function MobileBottomNavigation({
             <LayoutGrid className="size-5" strokeWidth={1.7} />
             <span>دسته‌بندی‌ها</span>
           </button>
+
+          <BlackFridayLink
+            className="min-w-0 flex-1 justify-center gap-1 text-[10px]"
+            current={pathname === BLACK_FRIDAY_PATH}
+          />
 
           <button
             type="button"

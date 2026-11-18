@@ -1,0 +1,31 @@
+.campaign {
+  --cs-black: #080808;
+  --cs-onyx: #171717;
+  --cs-crimson: #c8102e;
+  --cs-burgundy: #690d25;
+  --cs-ivory: #f3ede2;
+  --cs-studio: #eae8e5;
+  --cs-white: #ffffff;
+
+  padding-block-start: var(--zp-header-h);
+  background: var(--cs-black);
+  color: var(--cs-ivory);
+}
+
+.condensed {
+  font-family: var(--font-bf-oswald), 'Arial Narrow', sans-serif;
+}
+
+.serif {
+  font-family: var(--font-bf-cormorant), Georgia, serif;
+}
+
+.persian {
+  font-family: var(--font-bf-vazir), Tahoma, sans-serif;
+  font-weight: 500;
+}
+
+.unit {
+  background: var(--cs-onyx);
+  box-shadow: inset 0 -3px 0 var(--cs-crimson);
+}

@@ -4,6 +4,7 @@ import Logo from '@/components/shared/logo';
 import { getAllCategories } from '@/services/features/categories/server.api';
 
 import AuthButton from './auth-button';
+import BlackFridayLink from './black-friday-link';
 import Cart from './cart';
 import HeaderScroll from './header-scroll';
 import Menu from './menu';
@@ -25,6 +26,7 @@ export default async function Header() {
               <Menu categories={categoryList} />
 
               <nav className="hidden items-center gap-5 lg:flex">
+                <BlackFridayLink className="shrink-0 gap-2 text-sm" />
                 <Link
                   href="/blog"
                   className="text-sm transition-colors hover:text-black/50"
