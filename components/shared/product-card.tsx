@@ -195,7 +195,7 @@ export default function ProductCard({
                       </del>
                       {percent > 0 && (
                         <span
-                          className="inline-flex shrink-0 items-center rounded-full bg-[#ad2e38] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white sm:text-[11px]"
+                          className="inline-flex shrink-0 items-center bg-[#ad2e38] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white sm:text-[11px]"
                           aria-label={`${stageLabel}: ${percent.toLocaleString('fa-IR')} درصد تخفیف`}
                         >
                           {percent.toLocaleString('fa-IR')}٪
