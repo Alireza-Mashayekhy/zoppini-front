@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { productActionButtonClass } from '@/components/shared/product-action-button';
 import { cn } from '@/lib/utils';
 import {
   useAddToWishlist,
@@ -52,20 +52,31 @@ export default function WishlistButton({ productId }: WishlistButtonProps) {
   };
 
   return (
-    <Button
+    <button
+      type="button"
       onClick={handleToggle}
       disabled={isLoading || isLocalLoading}
-      variant="darkOutline"
-      className="flex h-[48px] aspect-square"
+      aria-label={
+        isInWishlist ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'
+      }
+      title={
+        isInWishlist ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'
+      }
+      aria-pressed={Boolean(isInWishlist)}
+      className={cn(
+        productActionButtonClass,
+        isInWishlist && 'border-rose-200 text-rose-600',
+      )}
     >
       <Heart
         className={cn(
-          'w-5! h-5! transition-colors',
+          'h-5 w-5 transition-colors',
           isInWishlist
-            ? 'fill-red-500 text-red-500'
-            : 'fill-none text-primary ',
+            ? 'fill-rose-500 text-rose-500'
+            : 'fill-none text-gray-700',
         )}
+        aria-hidden="true"
       />
-    </Button>
+    </button>
   );
 }

@@ -73,9 +73,9 @@ export default function CheckoutWizardShell({
       {/* شاخص سه‌مرحله‌ای */}
       <nav
         aria-label="مراحل تکمیل سفارش"
-        className="rounded-xl border border-gray-200 bg-white px-3 py-3"
+        className="rounded-xl border border-gray-200 bg-white px-2 py-3 sm:px-3"
       >
-        <ol className="flex items-center">
+        <ol className="flex min-w-0 items-center">
           {CHECKOUT_WIZARD_STEPS.map((label, index) => {
             const state =
               index < step
@@ -88,14 +88,17 @@ export default function CheckoutWizardShell({
               <li
                 key={label}
                 aria-current={state === 'current' ? 'step' : undefined}
-                className={cn('flex items-center', index > 0 && 'flex-1')}
+                className={cn(
+                  'flex min-w-0 items-center',
+                  index > 0 && 'flex-1',
+                )}
               >
                 {/* خط اتصال بین مراحل */}
                 {index > 0 && (
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'mx-2 h-px flex-1',
+                      'mx-1.5 h-px min-w-2 flex-1 sm:mx-2',
                       index <= step ? 'bg-stone-900' : 'bg-gray-200',
                     )}
                   />
@@ -126,7 +129,10 @@ export default function CheckoutWizardShell({
                   </span>
                   <span
                     className={cn(
-                      'whitespace-nowrap text-[11px] font-medium sm:text-xs',
+                      'min-w-0 max-w-[5.5rem] truncate whitespace-nowrap text-[10px] font-medium sm:text-xs',
+                      // روی صفحه‌های خیلی باریک فقط نام مرحلهٔ جاری می‌ماند
+                      // تا شماره‌ها/خط‌ها سرریز نکنند.
+                      state !== 'current' && 'hidden min-[380px]:inline',
                       state === 'current' && 'font-semibold text-stone-900',
                       state === 'done' && 'text-stone-700',
                       state === 'upcoming' && 'text-gray-400',
@@ -153,7 +159,7 @@ export default function CheckoutWizardShell({
       {/* دکمه‌های پیمایش (چسبیده به پایین صفحه در موبایل) */}
       <div className="sticky bottom-0 z-30 mt-4 border-t border-gray-200 bg-background/90 px-1 py-3 backdrop-blur">
         {isLast ? (
-          <div className="flex items-center gap-2">
+          <div className="flex w-full min-w-0 items-center gap-2">
             <Button
               type="button"
               variant="outline"
@@ -163,10 +169,13 @@ export default function CheckoutWizardShell({
             >
               <ArrowRight className="size-4" aria-hidden="true" />
             </Button>
+            {/* «مرحله قبل» در سمت راست فیزیکی می‌ماند و دکمهٔ نهایی تمام
+                عرض باقی‌مانده را می‌گیرد؛ min-w-0/whitespace-normal تضمین
+                می‌کند برچسب بلند به‌جای سرریز، در دو خط جا شود. */}
             <Button
               type="submit"
               variant="dark"
-              className="h-12 w-full rounded-xl text-sm font-semibold"
+              className="h-12 min-w-0 flex-1 shrink basis-0 whitespace-normal rounded-xl px-3 text-center text-[13px] font-semibold leading-5 sm:text-sm"
               loading={submitting}
               disabled={!canSubmit}
             >
@@ -174,14 +183,16 @@ export default function CheckoutWizardShell({
             </Button>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-2">
-            {/* در RTL اولین فرزند در سمت راست قرار می‌گیرد */}
+          // در RTL اولین فرزند سمت راست است. با flex-row-reverse جای فیزیکی
+          // دو دکمه عوض می‌شود: «مرحله بعد» سمت چپ و «مرحله قبل» سمت راست.
+          // معنای دکمه‌ها، ترتیب DOM و دسترسی با کیبورد تغییری نمی‌کند.
+          <div className="flex flex-row-reverse items-center gap-2">
             <Button
               type="button"
               variant="dark"
               onClick={goNext}
               disabled={isFirst && !hasCartItems}
-              className="h-12 flex-1 rounded-xl text-sm font-semibold"
+              className="h-12 min-w-0 flex-1 rounded-xl text-sm font-semibold"
             >
               مرحله بعد
               <ArrowLeft className="size-4" aria-hidden="true" />
@@ -191,7 +202,7 @@ export default function CheckoutWizardShell({
               variant="outline"
               onClick={goPrev}
               disabled={isFirst}
-              className="h-12 flex-1 rounded-xl text-sm font-medium"
+              className="h-12 min-w-0 flex-1 rounded-xl text-sm font-medium"
             >
               <ArrowRight className="size-4" aria-hidden="true" />
               مرحله قبل

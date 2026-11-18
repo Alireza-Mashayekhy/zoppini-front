@@ -2,9 +2,13 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import { parseProductPriceRange } from '@/lib/product-list-params';
 import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { buildPageMetadata } from '@/lib/seo';
-import { getProducts } from '@/services/features/products/server.api';
+import {
+  getCategoryFilters,
+  getProducts,
+} from '@/services/features/products/server.api';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -15,6 +19,8 @@ interface ProductsPageProps {
     categoryIds?: string;
     colorIds?: string;
     sizeIds?: string;
+    priceMin?: string;
+    priceMax?: string;
   }>;
 }
 
@@ -38,6 +44,8 @@ export default async function ProductsPage({
 }: ProductsPageProps) {
   const params = await searchParams;
 
+  const priceRange = parseProductPriceRange(params.priceMin, params.priceMax);
+
   const queryParams = {
     page: params.page ? Number(params.page) : 1,
     limit: params.limit ? Number(params.limit) : 10,
@@ -48,15 +56,27 @@ export default async function ProductsPage({
       params.categoryIds?.split(',').map(Number).filter(Boolean) || [],
     colorIds: params.colorIds?.split(',').map(Number).filter(Boolean) || [],
     sizeIds: params.sizeIds?.split(',').map(Number).filter(Boolean) || [],
+    ...priceRange,
   };
 
-  const productsData = await getProducts(queryParams);
+  const [productsData, filterOptions] = await Promise.all([
+    getProducts(queryParams),
+    // بدون categoryIds یعنی اجتماع رنگ‌ها/سایزهای همهٔ محصولات + بازهٔ قیمت
+    getCategoryFilters(),
+  ]);
 
   return (
     <div className="pt-[52px]">
       {/* عنوان صفحه بدون نمایش شماره‌ی محصولات */}
       <h1 className="h-20 border-t px-6 flex items-center">همه محصولات</h1>
-      <ProductList initialData={productsData} initialParams={queryParams} />
+      <ProductList
+        initialData={productsData}
+        initialParams={queryParams}
+        filterColors={filterOptions.colors}
+        filterSizes={filterOptions.sizes}
+        filterMinPrice={filterOptions.minPrice}
+        filterMaxPrice={filterOptions.maxPrice}
+      />
     </div>
   );
 }

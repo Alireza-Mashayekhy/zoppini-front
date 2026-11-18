@@ -5,6 +5,9 @@ export interface ProductListParamState {
   sort: string;
   colorIds?: number[];
   sizeIds?: number[];
+  /** بازهٔ قیمت انتخاب‌شده؛ undefined یعنی بدون محدودیت قیمت */
+  priceMin?: number;
+  priceMax?: number;
   /** فقط برای لینک «محصولات بیشتر»؛ اگر داده نشود پارامتر page دست نمی‌خورد */
   page?: number;
 }
@@ -47,6 +50,18 @@ export function buildProductListQuery(
     params.delete('sizeIds');
   }
 
+  if (state.priceMin !== undefined) {
+    params.set('priceMin', String(state.priceMin));
+  } else {
+    params.delete('priceMin');
+  }
+
+  if (state.priceMax !== undefined) {
+    params.set('priceMax', String(state.priceMax));
+  } else {
+    params.delete('priceMax');
+  }
+
   if (state.page !== undefined) {
     if (state.page > 1) params.set('page', String(state.page));
     else params.delete('page');
@@ -70,6 +85,8 @@ export function buildNextPageQuery(params: {
   categoryIds?: number[];
   colorIds?: number[];
   sizeIds?: number[];
+  priceMin?: number;
+  priceMax?: number;
 }): string {
   const base = new URLSearchParams();
 
@@ -99,4 +116,34 @@ export function productQueriesEqual(a: string, b: string): boolean {
       .join('&');
 
   return normalize(a) === normalize(b);
+}
+
+
+/**
+ * خواندن امن بازهٔ قیمت از search params.
+ *
+ * فقط عدد نامنفی صحیح پذیرفته می‌شود؛ اگر min بزرگ‌تر از max باشد جای دو مقدار
+ * عوض می‌شود تا بک‌اند هرگز با بازهٔ نامعتبر (که نتیجه‌ی خالی می‌دهد) صدا
+ * زده نشود.
+ */
+export function parseProductPriceRange(
+  minValue?: string | number | null,
+  maxValue?: string | number | null,
+): { priceMin?: number; priceMax?: number } {
+  const toNumber = (value?: string | number | null) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0
+      ? Math.floor(parsed)
+      : undefined;
+  };
+
+  let priceMin = toNumber(minValue);
+  let priceMax = toNumber(maxValue);
+
+  if (priceMin !== undefined && priceMax !== undefined && priceMin > priceMax) {
+    [priceMin, priceMax] = [priceMax, priceMin];
+  }
+
+  return { priceMin, priceMax };
 }

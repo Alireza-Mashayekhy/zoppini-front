@@ -44,11 +44,16 @@ interface ProductListProps {
     categoryIds?: number[];
     colorIds?: number[];
     sizeIds?: number[];
+    priceMin?: number;
+    priceMax?: number;
   };
   discounted?: boolean;
   /** اگر این صفحه دسته‌بندی باشد، گزینه‌های فیلتر فقط همین دسته را می‌گیرند */
   filterColors?: ColorResponse[];
   filterSizes?: SizeResponse[];
+  /** بازهٔ قیمت واقعی همین دامنه؛ برای مقید کردن اسلایدرها */
+  filterMinPrice?: number;
+  filterMaxPrice?: number;
 }
 
 const BASE_URL =
@@ -111,6 +116,8 @@ export default function ProductList({
   discounted = false,
   filterColors,
   filterSizes,
+  filterMinPrice,
+  filterMaxPrice,
 }: ProductListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -122,11 +129,38 @@ export default function ProductList({
     initialParams.colorIds || [],
   );
   const [sizeIds, setSizeIds] = useState<number[]>(initialParams.sizeIds || []);
+  const [priceMin, setPriceMin] = useState<number | undefined>(
+    initialParams.priceMin,
+  );
+  const [priceMax, setPriceMax] = useState<number | undefined>(
+    initialParams.priceMax,
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [rows, setRows] = useState(4);
 
-  // تعداد فیلترهای فعال
-  const activeFilterCount = colorIds.length + sizeIds.length;
+  // تعداد فیلترهای فعال (قیمت فقط وقتی شمارش می‌شود که واقعاً محدود شده باشد)
+  const activeFilterCount =
+    colorIds.length + sizeIds.length + (priceMin !== undefined ? 1 : 0);
+
+  /**
+   * اگر اندپوینت فیلترها در دسترس نباشد، بازهٔ قیمت را از همان محصولاتی که
+   * صفحه آورده می‌سازیم تا اسلایدر به‌جای بازهٔ هاردکد/صفر خالی نماند.
+   */
+  const fallbackPriceBounds = (() => {
+    const prices = (initialData.data || [])
+      .flatMap(product => product.variants || [])
+      .map(variant => Number(variant?.price))
+      .filter(price => Number.isFinite(price) && price >= 0);
+
+    if (!prices.length) return { min: 0, max: 0 };
+
+    return { min: Math.floor(Math.min(...prices)), max: Math.floor(Math.max(...prices)) };
+  })();
+
+  const priceBounds = {
+    min: filterMinPrice ?? fallbackPriceBounds.min,
+    max: filterMaxPrice ?? fallbackPriceBounds.max,
+  };
 
   // State برای Infinite Scroll
   const [items, setItems] = useState<ProductsResponse[]>(
@@ -156,6 +190,8 @@ export default function ProductList({
         categoryIds: initialParams.categoryIds,
         colorIds,
         sizeIds,
+        priceMin,
+        priceMax,
       };
 
       // ساخت query string
@@ -172,6 +208,12 @@ export default function ProductList({
       }
       if (params.sizeIds?.length) {
         queryParams.append('sizeIds', params.sizeIds.join(','));
+      }
+      if (params.priceMin !== undefined) {
+        queryParams.append('priceMin', String(params.priceMin));
+      }
+      if (params.priceMax !== undefined) {
+        queryParams.append('priceMax', String(params.priceMax));
       }
 
       const response = await fetch(
@@ -198,6 +240,8 @@ export default function ProductList({
     sort,
     colorIds,
     sizeIds,
+    priceMin,
+    priceMax,
     initialParams,
     discounted,
   ]);
@@ -234,12 +278,26 @@ export default function ProductList({
         ? initialData.pagination.page < initialData.pagination.totalPages
         : false,
     );
-  }, [initialData, sort, colorIds, sizeIds]);
+  }, [
+    initialData,
+    initialParams.page,
+    sort,
+    colorIds,
+    sizeIds,
+    priceMin,
+    priceMax,
+  ]);
 
   // تابع اعمال فیلترها (بازخوانی کامل صفحه)
-  const handleApplyFilters = (newColorIds: number[], newSizeIds: number[]) => {
+  const handleApplyFilters = (
+    newColorIds: number[],
+    newSizeIds: number[],
+    price?: { min: number; max: number },
+  ) => {
     setColorIds(newColorIds);
     setSizeIds(newSizeIds);
+    setPriceMin(price?.min);
+    setPriceMax(price?.max);
     // برای دریافت داده‌های جدید از سرور، صفحه را رفرش می‌کنیم
     router.refresh();
   };
@@ -247,6 +305,8 @@ export default function ProductList({
   const handleClearFilters = () => {
     setColorIds([]);
     setSizeIds([]);
+    setPriceMin(undefined);
+    setPriceMax(undefined);
     if (isFilterOpen) setIsFilterOpen(false);
     router.refresh();
   };
@@ -267,6 +327,8 @@ export default function ProductList({
       sort,
       colorIds,
       sizeIds,
+      priceMin,
+      priceMax,
     });
 
     // اگر آدرس همین حالا همان چیزی است که می‌خواهیم، replace نکن.
@@ -275,7 +337,7 @@ export default function ProductList({
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
-  }, [sort, colorIds, sizeIds, router, pathname]);
+  }, [sort, colorIds, sizeIds, priceMin, priceMax, router, pathname]);
 
   // لینک «محصولات بیشتر» هم باید search و بقیه فیلترها را با خود ببرد
   const nextPageQuery = buildNextPageQuery({
@@ -283,6 +345,8 @@ export default function ProductList({
     sort,
     colorIds,
     sizeIds,
+    priceMin,
+    priceMax,
     page: page + 1,
   });
 
@@ -325,12 +389,16 @@ export default function ProductList({
             <Select value={sort} onValueChange={setSort}>
               <SelectTrigger
                 noIcon
-                className="w-fit border border-primary outline-0! ring-0! shadow-none!"
+                aria-label="مرتب‌سازی محصولات"
+                className="w-fit max-w-[10rem] border border-primary outline-0! ring-0! shadow-none!"
               >
                 <SelectValue placeholder="مرتب‌سازی..." />
                 <ChevronDown />
               </SelectTrigger>
-              <SelectContent position="popper">
+              <SelectContent
+                position="popper"
+                className="max-w-[calc(100vw-1rem)]"
+              >
                 {PRODUCT_SORT_OPTIONS.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -373,6 +441,10 @@ export default function ProductList({
         <ProductFilter
           selectedColorIds={colorIds}
           selectedSizeIds={sizeIds}
+          selectedPriceMin={priceMin}
+          selectedPriceMax={priceMax}
+          minPrice={priceBounds.min}
+          maxPrice={priceBounds.max}
           onApplyFilters={handleApplyFilters}
           open={isFilterOpen}
           onOpenChange={setIsFilterOpen}
@@ -388,6 +460,10 @@ export default function ProductList({
         <ProductFilter
           selectedColorIds={colorIds}
           selectedSizeIds={sizeIds}
+          selectedPriceMin={priceMin}
+          selectedPriceMax={priceMax}
+          minPrice={priceBounds.min}
+          maxPrice={priceBounds.max}
           onApplyFilters={handleApplyFilters}
           open={isFilterOpen}
           onOpenChange={setIsFilterOpen}

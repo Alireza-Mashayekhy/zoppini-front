@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import {
   buildNextPageQuery,
   buildProductListQuery,
+  parseProductPriceRange,
   productQueriesEqual,
 } from '../lib/product-list-params';
 import { DEFAULT_PRODUCT_SORT } from '../lib/product-sort';
@@ -151,4 +152,55 @@ test('لیست محصولات آدرس را از صفر نمی‌سازد (رگ�
     list,
     /href=\{nextPageQuery \? `\?\$\{nextPageQuery\}` : '\?'\}/,
   );
+});
+
+
+test('بازهٔ قیمت در آدرس نوشته و با پاک کردن حذف می‌شود', () => {
+  const withPrice = buildProductListQuery(
+    new URLSearchParams({ search: 'کت', priceMax: '9000000' }).toString(),
+    {
+      sort: DEFAULT_PRODUCT_SORT,
+      priceMin: 1000000,
+      priceMax: 8000000,
+    },
+  );
+  const params = new URLSearchParams(withPrice);
+  assert.equal(params.get('search'), 'کت');
+  assert.equal(params.get('priceMin'), '1000000');
+  assert.equal(params.get('priceMax'), '8000000');
+
+  const cleared = buildProductListQuery(
+    withPrice,
+    { sort: DEFAULT_PRODUCT_SORT, priceMin: undefined, priceMax: undefined },
+  );
+  const clearedParams = new URLSearchParams(cleared);
+  assert.equal(clearedParams.get('priceMin'), null);
+  assert.equal(clearedParams.get('priceMax'), null);
+});
+
+test('لینک صفحه بعد بازهٔ قیمت را هم نگه می‌دارد', () => {
+  const query = buildNextPageQuery({
+    sort: 'price:asc',
+    priceMin: 2000000,
+    priceMax: 7000000,
+    page: 2,
+  });
+  const params = new URLSearchParams(query);
+  assert.equal(params.get('priceMin'), '2000000');
+  assert.equal(params.get('priceMax'), '7000000');
+});
+
+test('بازهٔ قیمت نامعتبر رد و بازهٔ برعکس اصلاح می‌شود', () => {
+  assert.deepEqual(parseProductPriceRange('-1', 'abc'), {
+    priceMin: undefined,
+    priceMax: undefined,
+  });
+  assert.deepEqual(parseProductPriceRange('9000000', '1000000'), {
+    priceMin: 1000000,
+    priceMax: 9000000,
+  });
+  assert.deepEqual(parseProductPriceRange('۱۲۳', undefined), {
+    priceMin: undefined,
+    priceMax: undefined,
+  });
 });

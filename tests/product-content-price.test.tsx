@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { test } from 'node:test';
 
 /**
  * آرشیو قیمت بالای دکمهٔ افزودن به سبد خرید (فاز ۸):
  * ۱) قیمت بالای دکمهٔ «افزودن به سبد خرید» است (نه داخل آن).
- * ۲) دکمهٔ اصلی bg-[#EF4056] دارد و متنش سفید و وسط‌چین است.
+ * ۲) دکمهٔ اصلی نارنجی برند است و متنش خوانا و وسط‌چین است.
  * ۳) badge تخفیف bg-[#EF4056] است و درصد با مقادیر نامعتبر نمایش داده نمی‌شود.
  */
 
@@ -29,9 +28,14 @@ test('price block sits above the add-to-cart button (not inside it)', () => {
   );
 });
 
-test('add-to-cart button uses solid #EF4056 with white centered text', () => {
-  assert.match(contentSrc, /bg-\[#EF4056\]/);
-  assert.match(contentSrc, /text-white/);
+test('add-to-cart button uses the brand orange with legible centered text', () => {
+  assert.match(contentSrc, /bg-\[rgb\(201,97,21\)\]/);
+  // متن تیره روی نارنجی روشن‌تر از متن سفید کنتراست دارد
+  assert.match(contentSrc, /text-stone-950/);
+  assert.doesNotMatch(
+    contentSrc,
+    /bg-\[#EF4056\][^\n]*افزودن به سبد خرید/,
+  );
   // دکمه متن‌باز است: justify-center, نه justify-between
   assert.match(contentSrc, /justify-center/);
   assert.doesNotMatch(contentSrc, /justify-between/);

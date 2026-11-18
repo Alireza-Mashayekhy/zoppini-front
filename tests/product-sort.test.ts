@@ -5,62 +5,71 @@ import { test } from 'node:test';
 
 import {
   DEFAULT_PRODUCT_SORT,
+  PRODUCT_SORT_BEST_SELLING,
   PRODUCT_SORT_CHEAPEST,
   PRODUCT_SORT_MOST_EXPENSIVE,
   PRODUCT_SORT_NEWEST,
-  PRODUCT_SORT_OLDEST,
   PRODUCT_SORT_OPTIONS,
 } from '../lib/product-sort';
 
 const source = (path: string) =>
   readFileSync(resolve(__dirname, '..', path), 'utf8');
 
-test('«جدیدترین» به ترتیب نزولی تاریخ فرستاده می‌شود', () => {
-  // بک‌اند جهت را عیناً اعمال می‌کند؛ asc یعنی قدیمی‌ترین‌ها اول.
+test('«جدیدترین» بر اساس تاریخ ساخت نزولی است', () => {
   assert.equal(PRODUCT_SORT_NEWEST, 'createdAt:desc');
-  assert.equal(PRODUCT_SORT_OLDEST, 'createdAt:asc');
+  assert.equal(DEFAULT_PRODUCT_SORT, PRODUCT_SORT_NEWEST);
 
   const newest = PRODUCT_SORT_OPTIONS.find(
     option => option.label === 'جدیدترین',
   );
   assert.equal(newest?.value, PRODUCT_SORT_NEWEST);
-
-  const oldest = PRODUCT_SORT_OPTIONS.find(
-    option => option.label === 'قدیمی‌ترین',
-  );
-  assert.equal(oldest?.value, PRODUCT_SORT_OLDEST);
-
-  assert.equal(DEFAULT_PRODUCT_SORT, PRODUCT_SORT_NEWEST);
 });
 
-test('ارزان‌ترین صعودی و گران‌ترین نزولی است', () => {
+test('کمترین/بیشترین قیمت به فیلد price وصل‌اند', () => {
   assert.equal(PRODUCT_SORT_CHEAPEST, 'price:asc');
   assert.equal(PRODUCT_SORT_MOST_EXPENSIVE, 'price:desc');
 });
 
-test('هیچ گزینه‌ای برچسب و مقدار ناسازگار ندارد', () => {
-  const labels = PRODUCT_SORT_OPTIONS.map(option => option.label);
+test('«پرفروش‌ترین» یک مرتب‌سازی واقعی و جدا از بقیه است', () => {
+  assert.equal(PRODUCT_SORT_BEST_SELLING, 'sold:desc');
+
+  const bestSelling = PRODUCT_SORT_OPTIONS.find(
+    option => option.label === 'پرفروش‌ترین',
+  );
+  assert.equal(bestSelling?.value, PRODUCT_SORT_BEST_SELLING);
+
+  // هیچ گزینه‌ای برچسب/مقدار تکراری نداشته باشد؛ پرفروش‌ترین نباید
+  // لیبل دیگری روی createdAt یا price باشد.
+  const values = PRODUCT_SORT_OPTIONS.map(option => option.value);
+  assert.equal(new Set(values).size, values.length);
+});
+
+test('دقیقاً چهار گزینه و به ترتیب خواسته‌شده وجود دارد', () => {
+  const labels: string[] = PRODUCT_SORT_OPTIONS.map(option => option.label);
+
   assert.deepEqual(labels, [
+    'کمترین قیمت',
+    'بیشترین قیمت',
+    'پرفروش‌ترین',
     'جدیدترین',
-    'قدیمی‌ترین',
-    'ارزان‌ترین',
-    'گران‌ترین',
   ]);
 
-  for (const option of PRODUCT_SORT_OPTIONS) {
-    const [, direction] = option.value.split(':');
-    if (option.label === 'جدیدترین' || option.label === 'گران‌ترین') {
-      assert.equal(direction, 'desc', `${option.label} باید نزولی باشد`);
-    } else {
-      assert.equal(direction, 'asc', `${option.label} باید صعودی باشد`);
-    }
+  for (const removed of ['قدیمی‌ترین', 'ارزان‌ترین', 'گران‌ترین']) {
+    assert.ok(!labels.includes(removed), `گزینهٔ حذف‌شده مانده است: ${removed}`);
   }
+
+  const prices = PRODUCT_SORT_OPTIONS.filter(option =>
+    option.value.startsWith('price:'),
+  );
+  assert.deepEqual(
+    prices.map(option => option.value.split(':')[1]),
+    ['asc', 'desc'],
+  );
 });
 
 test('لیست محصولات منوی مرتب‌سازی را از همین ثابت‌ها می‌سازد', () => {
   const list = source('components/pages/products/product-list.tsx');
 
-  // دیگر هیچ نگاشت دستی/ناسازگاری در کامپوننت نمانده باشد.
   assert.doesNotMatch(
     list,
     /value="createdAt:asc"[\s\S]{0,60}جدیدترین/,
@@ -72,6 +81,15 @@ test('لیست محصولات منوی مرتب‌سازی را از همین ث
     list,
     /queryParams\.append\('sort', params\.sort \|\| DEFAULT_PRODUCT_SORT\)/,
   );
+});
+
+test('بک‌اند پرفروش‌ترین را از دادهٔ واقعی سفارش‌ها محاسبه می‌کند', () => {
+  const sortUtil = source('../back/src/products/utils/product-sort.util.ts');
+
+  assert.match(sortUtil, /SORTABLE_FIELDS = \[[^\]]*'sold'/);
+  assert.match(sortUtil, /FROM order_item/);
+  assert.match(sortUtil, /status IN \('paid', 'shipped', 'delivered'\)/);
+  assert.match(sortUtil, /orderBy\('soldCount'/);
 });
 
 test('صفحه‌های عمومی از همان مرتب‌سازی پیش‌فرض برای داده‌ی سرور استفاده می‌کنند', () => {

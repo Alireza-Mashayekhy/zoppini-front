@@ -7,6 +7,7 @@ import ProductColors from '@/components/pages/product/colors';
 import ProductGallery from '@/components/pages/product/gallery';
 import ProductSizes from '@/components/pages/product/sizes';
 import CompareToggle from '@/components/shared/compare-toggle';
+import { productActionButtonClass } from '@/components/shared/product-action-button';
 import PromotionBadge from '@/components/shared/promotion-badge';
 import { track } from '@/lib/consent/client';
 import { discountPercent, formatPriceFa } from '@/lib/discount';
@@ -176,7 +177,7 @@ export default function ProductContent({
   };
 
   return (
-    <div className="pt-[52px] flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pt-1 sm:pt-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="order-1 md:order-2 flex justify-end">
           <ProductGallery product={product} colorImages={product.colorImages} />
@@ -258,11 +259,12 @@ export default function ProductContent({
               </div>
 
               {/* دکمهٔ اصلی افزودن به سبد + اکشن‌های کوچک ثانویه */}
-              <div className="mt-3 flex gap-1.5">
+              <div className="mt-3 flex items-center gap-1.5">
                 <button
+                  type="button"
                   onClick={handleAddToCart}
                   disabled={addToCart.isPending || price === null}
-                  className="flex h-[50px] w-full flex-1 items-center justify-center rounded-xl bg-[#EF4056] text-sm font-semibold text-white transition-colors hover:bg-[#d8354b] active:bg-[#c22e42] disabled:opacity-60"
+                  className="flex h-[50px] min-w-0 flex-1 shrink items-center justify-center rounded-xl bg-[rgb(201,97,21)] px-2 text-center text-[13px] font-semibold leading-5 text-stone-950 transition-colors hover:bg-[rgb(214,111,37)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(201,97,21)]/40 focus-visible:ring-offset-2 active:bg-[rgb(226,127,53)] disabled:opacity-60 sm:px-3 sm:text-sm"
                 >
                   {addToCart.isPending
                     ? 'در حال افزودن...'
@@ -271,6 +273,7 @@ export default function ProductContent({
                 <ProductShareButton product={product} />
                 {price !== null && (
                   <CompareToggle
+                    actionClassName={productActionButtonClass}
                     product={{
                       id: product.id,
                       title: product.title,

@@ -153,6 +153,8 @@ export default async function ProductsCategoryPage({
         initialParams={queryParams}
         filterColors={filterOptions.colors}
         filterSizes={filterOptions.sizes}
+        filterMinPrice={filterOptions.minPrice}
+        filterMaxPrice={filterOptions.maxPrice}
       />
 
       {/* توضیحات دسته‌بندی؛ همان متنی که در /category/[slug] هم نمایش داده می‌شود */}

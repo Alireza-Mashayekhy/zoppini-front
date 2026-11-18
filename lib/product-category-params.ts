@@ -1,3 +1,4 @@
+import { parseProductPriceRange } from './product-list-params';
 import { DEFAULT_PRODUCT_SORT, PRODUCT_SORT_OPTIONS } from './product-sort';
 
 type QueryValue = string | string[] | undefined;
@@ -31,6 +32,7 @@ export function productCategoryParams(
   categoryId: number,
 ) {
   const requestedSort = first(search.sort);
+  const priceRange = parseProductPriceRange(first(search.priceMin), first(search.priceMax));
   return {
     page: positiveInteger(search.page, 1),
     limit: positiveInteger(search.limit, 24, 100),
@@ -41,5 +43,6 @@ export function productCategoryParams(
     categoryIds: [categoryId],
     colorIds: ids(search.colorIds),
     sizeIds: ids(search.sizeIds),
+    ...priceRange,
   };
 }

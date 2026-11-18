@@ -2,9 +2,13 @@
 import { Metadata } from 'next';
 
 import ProductList from '@/components/pages/products/product-list';
+import { parseProductPriceRange } from '@/lib/product-list-params';
 import { DEFAULT_PRODUCT_SORT } from '@/lib/product-sort';
 import { buildPageMetadata } from '@/lib/seo';
-import { getDiscountedProducts } from '@/services/features/products/server.api';
+import {
+  getCategoryFilters,
+  getDiscountedProducts,
+} from '@/services/features/products/server.api';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -15,6 +19,8 @@ interface ProductsPageProps {
     categoryIds?: string;
     colorIds?: string;
     sizeIds?: string;
+    priceMin?: string;
+    priceMax?: string;
   }>;
 }
 
@@ -50,6 +56,8 @@ export default async function ProductsPage({
 }: ProductsPageProps) {
   const params = await searchParams;
 
+  const priceRange = parseProductPriceRange(params.priceMin, params.priceMax);
+
   const queryParams = {
     page: params.page ? Number(params.page) : 1,
     limit: params.limit ? Number(params.limit) : 10,
@@ -60,9 +68,13 @@ export default async function ProductsPage({
       params.categoryIds?.split(',').map(Number).filter(Boolean) || [],
     colorIds: params.colorIds?.split(',').map(Number).filter(Boolean) || [],
     sizeIds: params.sizeIds?.split(',').map(Number).filter(Boolean) || [],
+    ...priceRange,
   };
 
-  const productsData = await getDiscountedProducts(queryParams);
+  const [productsData, filterOptions] = await Promise.all([
+    getDiscountedProducts(queryParams),
+    getCategoryFilters(),
+  ]);
 
   return (
     <div className="pt-[52px]">
@@ -71,6 +83,10 @@ export default async function ProductsPage({
       <ProductList
         initialData={productsData}
         initialParams={queryParams}
+        filterColors={filterOptions.colors}
+        filterSizes={filterOptions.sizes}
+        filterMinPrice={filterOptions.minPrice}
+        filterMaxPrice={filterOptions.maxPrice}
         discounted
       />
     </div>

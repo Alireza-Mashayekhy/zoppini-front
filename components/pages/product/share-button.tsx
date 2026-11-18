@@ -5,6 +5,7 @@ import { Share2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { productActionButtonClass } from '@/components/shared/product-action-button';
 import { cn } from '@/lib/utils';
 import { ProductsResponse } from '@/services/features/products/type';
 
@@ -61,10 +62,7 @@ export default function ProductShareButton({
       disabled={pending}
       aria-label="اشتراک‌گذاری محصول"
       title="اشتراک‌گذاری محصول"
-      className={cn(
-        'flex aspect-square h-[50px] items-center justify-center border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-50',
-        className,
-      )}
+      className={cn(productActionButtonClass, className)}
     >
       <Share2 className="size-5" />
     </button>

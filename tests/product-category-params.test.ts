@@ -37,3 +37,20 @@ test('oversized limits and fractional pages use safe defaults', () => {
   assert.equal(params.page, 1);
   assert.equal(params.limit, 24);
 });
+
+
+test('بازهٔ قیمت دسته از URL خوانده و برعکس‌شدگی اصلاح می‌شود', () => {
+  const params = productCategoryParams(
+    { priceMin: '9000000', priceMax: '1000000' },
+    3,
+  );
+  assert.equal(params.priceMin, 1000000);
+  assert.equal(params.priceMax, 9000000);
+
+  const invalid = productCategoryParams(
+    { priceMin: 'abc', priceMax: '-5' },
+    3,
+  );
+  assert.equal(invalid.priceMin, undefined);
+  assert.equal(invalid.priceMax, undefined);
+});

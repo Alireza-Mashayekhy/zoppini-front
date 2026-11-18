@@ -38,6 +38,8 @@ interface GetProductsParams {
   directCategory?: boolean;
   colorIds?: number[];
   sizeIds?: number[];
+  priceMin?: number;
+  priceMax?: number;
 }
 
 export async function getProducts(params: GetProductsParams = {}) {
@@ -57,6 +59,12 @@ export async function getProducts(params: GetProductsParams = {}) {
   if (params.sizeIds?.length) {
     searchParams.append('sizeIds', params.sizeIds.join(','));
   }
+  if (params.priceMin !== undefined) {
+    searchParams.append('priceMin', String(params.priceMin));
+  }
+  if (params.priceMax !== undefined) {
+    searchParams.append('priceMax', String(params.priceMax));
+  }
 
   const url = `products?${searchParams.toString()}`;
   return publicFetch<ApiListResponse<ProductsResponse>>(url);
@@ -65,6 +73,10 @@ export async function getProducts(params: GetProductsParams = {}) {
 export interface CategoryFiltersResponse {
   colors: ColorResponse[];
   sizes: SizeResponse[];
+  /** کمترین/بیشترین قیمت واقعی در همین دامنه (صفر یعنی محدوده در دسترس نیست) */
+  minPrice?: number;
+  maxPrice?: number;
+  priceRange?: { min: number; max: number };
 }
 
 /**
@@ -76,12 +88,14 @@ export interface CategoryFiltersResponse {
  * دسته استفاده شده‌اند — مثلاً کفش ۴۰–۴۶ و کت‌وشلوار ۴۶–۵۸.
  */
 export async function getCategoryFilters(
-  categoryId: number,
+  categoryId?: number,
 ): Promise<CategoryFiltersResponse> {
   try {
+    const query =
+      categoryId !== undefined ? `?categoryIds=${categoryId}` : '';
     const body = await publicFetch<
       ApiSingleResponse<CategoryFiltersResponse> | CategoryFiltersResponse
-    >(`products/filters?categoryIds=${categoryId}`);
+    >(`products/filters${query}`);
     if ('data' in body && body.data) return body.data;
     return body as CategoryFiltersResponse;
   } catch {
@@ -134,6 +148,12 @@ export async function getDiscountedProducts(params: GetProductsParams = {}) {
   }
   if (params.sizeIds?.length) {
     searchParams.append('sizeIds', params.sizeIds.join(','));
+  }
+  if (params.priceMin !== undefined) {
+    searchParams.append('priceMin', String(params.priceMin));
+  }
+  if (params.priceMax !== undefined) {
+    searchParams.append('priceMax', String(params.priceMax));
   }
 
   const url = `products/discounted?${searchParams.toString()}`;

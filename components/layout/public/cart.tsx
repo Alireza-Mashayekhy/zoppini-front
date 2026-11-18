@@ -65,9 +65,9 @@ export default function Cart() {
       <Sheet open={isOpen} onOpenChange={closeCart}>
         <SheetContent
           side="left"
-          className="w-full max-w-[420px] p-0 flex flex-col"
+          className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-x-hidden bg-popover p-0 data-[side=left]:h-[100dvh]! data-[side=left]:w-full! data-[side=left]:max-w-none! sm:data-[side=left]:w-[26rem]! sm:data-[side=left]:max-w-[26rem]!"
         >
-          <SheetHeader className="p-4 border-b">
+          <SheetHeader className="shrink-0 border-b p-4 pe-12">
             <SheetTitle className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />
               سبد خرید
@@ -77,8 +77,9 @@ export default function Cart() {
             </SheetTitle>
           </SheetHeader>
 
-          {/* لیست آیتم‌ها */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* لیست آیتم‌ها؛ تنها همین ناحیه اسکرول می‌شود تا خلاصه و دکمهٔ
+              تسویه همیشه پایین شیت و بیرون از ناحیهٔ اسکرول بمانند. */}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex gap-4">
@@ -102,11 +103,12 @@ export default function Cart() {
               cartItems.map(item => (
                 <div
                   key={item.id}
-                  className="flex gap-4 border-b pb-4 last:border-0"
+                  className="grid grid-cols-[4.5rem_minmax(0,1fr)_2.75rem] items-start gap-x-3 border-b pb-4 last:border-0"
+                  dir="rtl"
                 >
                   <Link
                     href={`/product/${item.variant.product.slug}`}
-                    className="relative w-20 h-20 shrink-0 rounded-md overflow-hidden bg-gray-100"
+                    className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-md bg-gray-100"
                     onClick={closeCart}
                   >
                     <Image
@@ -119,64 +121,82 @@ export default function Cart() {
                       className="object-cover"
                     />
                   </Link>
-                  <div className="flex-1 min-w-0">
+
+                  <div className="min-w-0">
                     <Link
                       href={`/product/${item.variant.product.slug}`}
-                      className="font-medium text-sm hover:underline"
+                      className="block break-words text-sm font-medium leading-6 hover:underline"
                       onClick={closeCart}
                     >
                       {item.variant.product.title}
                     </Link>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      {item.variant.color?.name} / {item.variant.size?.name}
+                    <div className="mt-0.5 break-words text-xs leading-5 text-gray-500">
+                      {item.variant.color?.name}
+                      {item.variant.size?.name
+                        ? ` / ${item.variant.size.name}`
+                        : ''}
                     </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-1 border rounded-md">
+
+                    {/* تعداد در یک گروه فشرده و مستقل؛ قیمت در خط بعدی و
+                        دقیقاً زیر همین کنترل‌ها می‌آید. */}
+                    <div className="mt-2 flex items-center">
+                      <div className="inline-flex items-center overflow-hidden rounded-md border">
                         <button
-                          className="px-2 py-1 hover:bg-gray-100"
+                          type="button"
+                          aria-label="کاهش تعداد"
+                          className="flex h-11 w-11 items-center justify-center hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900/30 disabled:opacity-40"
+                          disabled={updateItem.isPending}
                           onClick={() =>
                             handleQuantityChange(item.id, item.quantity - 1)
                           }
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="h-4 w-4" aria-hidden="true" />
                         </button>
-                        <span className="w-8 text-center text-sm">
+                        <span className="w-9 text-center text-sm">
                           {item.quantity}
                         </span>
                         <button
-                          className="px-2 py-1 hover:bg-gray-100"
+                          type="button"
+                          aria-label="افزایش تعداد"
+                          className="flex h-11 w-11 items-center justify-center hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900/30 disabled:opacity-40"
+                          disabled={updateItem.isPending}
                           onClick={() =>
                             handleQuantityChange(item.id, item.quantity + 1)
                           }
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="h-4 w-4" aria-hidden="true" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col items-end">
-                          <CartLinePrice item={item} />
+                    </div>
 
-                          {!item.promotion?.isFreeReward &&
-                            item.promotion?.labels?.map(label => (
-                              <span
-                                key={label}
-                                className="mt-1 text-[10px] font-medium text-green-700"
-                              >
-                                {label}
-                              </span>
-                            ))}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-red-500 hover:text-red-700"
-                          onClick={() => deleteItem.mutate({ id: item.id })}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                    <div className="mt-1.5 min-w-0 text-right">
+                      <CartLinePrice item={item} />
+                      {!item.promotion?.isFreeReward &&
+                        item.promotion?.labels?.map(label => (
+                          <span
+                            key={label}
+                            className="mt-1 block text-[10px] font-medium leading-4 text-green-700"
+                          >
+                            {label}
+                          </span>
+                        ))}
                     </div>
                   </div>
+
+                  {/* حذف در ستون سمت چپ فیزیکی؛ ستون عرض ثابت دارد تا همهٔ
+                      دکمه‌های حذف، مستقل از طول عنوان، هم‌تراز بمانند. */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="حذف از سبد خرید"
+                    title="حذف از سبد خرید"
+                    className="h-11 w-11 shrink-0 text-red-500 hover:bg-red-50 hover:text-red-700"
+                    disabled={deleteItem.isPending}
+                    onClick={() => deleteItem.mutate({ id: item.id })}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                 </div>
               ))
             )}
@@ -184,7 +204,7 @@ export default function Cart() {
 
           {/* پایین سایدبار */}
           {cartItems.length > 0 && (
-            <div className="border-t p-4 space-y-3">
+            <div className="shrink-0 space-y-3 border-t bg-popover p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <div className="flex justify-between text-sm">
                 <span>قیمت</span>
                 <span className="font-semibold">
@@ -304,12 +324,12 @@ function CartLinePrice({ item }: { item: CartItem }) {
 
   if (item.promotion?.isFreeReward) {
     return (
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col items-start text-right">
         <span className="bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
           رایگان
         </span>
-        <del className="text-[11px] text-gray-400">
-          {listTotal.toLocaleString()} تومان
+        <del className="whitespace-nowrap text-[11px] text-gray-400">
+          <bdi>{listTotal.toLocaleString('fa-IR')}</bdi> تومان
         </del>
       </div>
     );
@@ -318,21 +338,21 @@ function CartLinePrice({ item }: { item: CartItem }) {
   const discounted = payableTotal !== listTotal;
 
   return (
-    <div className="flex flex-col items-end">
+    <div className="flex flex-col items-start text-right">
       {discounted && (
-        <span className="text-sm font-medium">
-          {payableTotal.toLocaleString()} تومان
+        <span className="whitespace-nowrap text-[13px] font-medium sm:text-sm">
+          <bdi>{payableTotal.toLocaleString('fa-IR')}</bdi> تومان
         </span>
       )}
 
       <span
         className={
           discounted
-            ? 'text-xs font-medium line-through'
-            : 'text-sm font-medium'
+            ? 'whitespace-nowrap text-[11px] font-medium line-through sm:text-xs'
+            : 'whitespace-nowrap text-[13px] font-medium sm:text-sm'
         }
       >
-        {listTotal.toLocaleString()} تومان
+        <bdi>{listTotal.toLocaleString('fa-IR')}</bdi> تومان
       </span>
     </div>
   );

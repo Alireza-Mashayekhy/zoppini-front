@@ -1,6 +1,6 @@
 'use client';
 
-import { GitCompare, Scale } from 'lucide-react';
+import { GitCompare } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -20,6 +20,11 @@ interface CompareToggleProps {
     price: number;
   };
   className?: string;
+  /**
+   * کلاس جعبهٔ دکمه؛ پیش‌فرض کلاس کوچک کارت محصول است. صفحهٔ محصول همان
+   * قاعدهٔ مشترک ۵۰×۵۰ را می‌فرستد تا با اشتراک‌گذاری/علاقه‌مندی یکی باشد.
+   */
+  actionClassName?: string;
 }
 
 /**
@@ -29,6 +34,7 @@ interface CompareToggleProps {
 export default function CompareToggle({
   product,
   className,
+  actionClassName = cardActionButtonClass,
 }: CompareToggleProps) {
   const hydrated = useCompareStore(state => state.hydrated);
   const setHydrated = useCompareStore(state => state.setHydrated);
@@ -66,8 +72,9 @@ export default function CompareToggle({
       aria-pressed={active}
       title={label}
       className={cn(
-        cardActionButtonClass,
-        active && 'bg-primary text-background hover:bg-primary/90',
+        actionClassName,
+        active &&
+          'border-primary bg-primary text-background hover:bg-primary/90',
         className,
       )}
     >
