@@ -410,6 +410,10 @@ test('چیدمان موبایل بدون عرض ثابت و بدون اسکرو�
     cssSrc,
     /@media \(max-width: 63\.999rem\)[\s\S]*\.home-category-slide\s*\{[^}]*height:\s*auto/,
   );
+  assert.match(
+    cssSrc,
+    /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media--first\s*\{[^}]*display:\s*none/,
+  );
 });
 
 test('برچسب خانه‌های دسته‌بندی همیشه دیده می‌شود (نه فقط hover)', () => {
@@ -429,6 +433,11 @@ test('دکمه‌ی بازگشت به ابتدا از بخش دوم به بعد 
   assert.ok(scrollSrc.includes('aria-label="بازگشت به ابتدای صفحه"'));
   assert.ok(scrollSrc.includes('<ArrowUp'));
   assert.ok(scrollSrc.includes('goToSection(\'home-hero\')'));
+  assert.ok(scrollSrc.includes('home-back-to-top'));
+  assert.match(
+    cssSrc,
+    /\.home-back-to-top\s*\{[^}]*bottom:\s*calc\(var\(--zp-mobile-nav-h\) \+ 1rem\)/,
+  );
 });
 
 test('دایره‌های ناوبری از کلیک‌پذیر و دسترس‌پذیرند', () => {

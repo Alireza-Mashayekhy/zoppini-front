@@ -51,7 +51,7 @@ function CategoryTile({
         loading="lazy"
       />
 
-      <div className="pointer-events-none absolute bottom-2 right-2 max-w-[calc(100%-1rem)] truncate rounded-sm bg-white/90 px-2 py-1 text-xs leading-5 font-medium text-stone-900 shadow-sm backdrop-blur-[2px] sm:text-sm">
+      <div className="pointer-events-none absolute bottom-2 right-2 max-w-[80%] truncate rounded-sm bg-white/90 px-2 py-1 text-xs leading-5 font-medium text-stone-900 shadow-sm backdrop-blur-[2px] sm:text-sm">
         {category.name}
       </div>
     </Link>
