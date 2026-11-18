@@ -97,6 +97,14 @@ test('legacy sale rows stay single-stage in the admin table', () => {
 // نمایش قیمت مؤثر تخفیف متوالی در کارت محصول
 // =============================================================
 
+function cardStageMarkup(html: string, stage: number): string {
+  const start = html.indexOf(`data-discount-stage="${stage}"`);
+  assert.notEqual(start, -1, `stage ${stage} is missing`);
+  const end = html.indexOf('</div>', start);
+  assert.notEqual(end, -1, `stage ${stage} is not closed`);
+  return html.slice(start, end);
+}
+
 test('product card shows the combined effective price of stacked discounts (60%, not 70%)', () => {
   const html = renderToStaticMarkup(
     createElement(ProductCard, {
@@ -147,4 +155,84 @@ test('product card shows the combined effective price of stacked discounts (60%,
   assert.match(html, /۶۰٪/);
   assert.match(html, /۴٬۰۰۰٬۰۰۰/);
   assert.doesNotMatch(html, /۷۰٪/);
+
+  // زنجیرهٔ واقعی: قیمت اصلی با درصد مرحلهٔ اول، قیمت میانی با درصد مرحلهٔ دوم
+  assert.match(html, /data-stacked-discount="true"/);
+
+  const firstStage = cardStageMarkup(html, 1);
+  assert.match(firstStage, /<del/);
+  assert.match(firstStage, /۱۰٬۰۰۰٬۰۰۰/);
+  assert.match(firstStage, /۵۰٪/);
+  assert.doesNotMatch(firstStage, /۵٬۰۰۰٬۰۰۰|۲۰٪/);
+
+  const secondStage = cardStageMarkup(html, 2);
+  assert.match(secondStage, /<del/);
+  assert.match(secondStage, /۵٬۰۰۰٬۰۰۰/);
+  assert.match(secondStage, /۲۰٪/);
+  assert.doesNotMatch(secondStage, /۱۰٬۰۰۰٬۰۰۰|۵۰٪/);
+
+  // قیمت نهایی بعد از هر دو مرحله و بدون خط‌خوردگی
+  const finalPriceStart = html.lastIndexOf('data-discount-stage="2"');
+  const finalPriceBlock = html.slice(
+    html.indexOf('</div>', finalPriceStart) + 6,
+  );
+  assert.match(finalPriceBlock, /۴٬۰۰۰٬۰۰۰/);
+  assert.doesNotMatch(finalPriceBlock, /<del/);
+});
+
+test('stacked card derives each badge from the amount that stage actually removed', () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      id: 2,
+      image: '/product-example.webp',
+      title: 'کت مردانه زوپینی',
+      price: 10_000_000,
+      slug: 'example-2',
+      discount: {
+        id: 12,
+        code: null,
+        title: 'مرحلهٔ دوم',
+        type: DiscountType.FIXED,
+        value: 1_000_000,
+        maxDiscountAmount: null,
+        discountAmount: 2_000_000,
+        originalPrice: 10_000_000,
+        finalPrice: 8_000_000,
+        effectivePercent: 20,
+        stacked: true,
+        stages: [
+          {
+            discountId: 11,
+            title: 'تخفیف مبلغی اول',
+            type: DiscountType.FIXED,
+            value: 1_000_000,
+            maxDiscountAmount: null,
+            discountAmount: 1_000_000,
+            priceBefore: 10_000_000,
+            priceAfter: 9_000_000,
+          },
+          {
+            discountId: 12,
+            title: 'تخفیف مبلغی دوم',
+            type: DiscountType.FIXED,
+            value: 1_000_000,
+            maxDiscountAmount: null,
+            discountAmount: 1_000_000,
+            priceBefore: 9_000_000,
+            priceAfter: 8_000_000,
+          },
+        ],
+      },
+    }),
+  );
+
+  const firstStage = cardStageMarkup(html, 1);
+  const secondStage = cardStageMarkup(html, 2);
+
+  // «value» تخفیف مبلغی درصد نیست؛ درصد هر مرحله از مبلغ واقعیِ همان مرحله می‌آید.
+  assert.match(firstStage, /۱۰٬۰۰۰٬۰۰۰/);
+  assert.match(firstStage, /۱۰٪/);
+  assert.match(secondStage, /۹٬۰۰۰٬۰۰۰/);
+  assert.match(secondStage, /۱۱٪/);
+  assert.match(html, /۸٬۰۰۰٬۰۰۰/);
 });

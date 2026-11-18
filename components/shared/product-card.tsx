@@ -11,7 +11,10 @@ import CompareToggle, {
 import PromotionBadge from '@/components/shared/promotion-badge';
 import QuickAddDialog from '@/components/shared/quick-add-dialog';
 import { cn } from '@/lib/utils';
-import { ProductDiscount } from '@/services/features/discounts/types';
+import type {
+  ProductDiscount,
+  ProductDiscountStage,
+} from '@/services/features/discounts/types';
 import {
   PromotionProductBadge,
   PromotionType,
@@ -49,6 +52,15 @@ interface ProductProps {
 const actionsRevealClass =
   'transition-opacity duration-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:pointer-events-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:pointer-events-auto [@media(hover:hover)_and_(pointer:fine)]:focus-within:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-within:pointer-events-auto';
 
+/** درصد واقعیِ اعمال‌شده در هر مرحله (با احتساب سقف مبلغ تخفیف). */
+function appliedStagePercent(stage: ProductDiscountStage): number {
+  if (stage.priceBefore <= 0 || stage.discountAmount <= 0) return 0;
+  return Math.max(
+    0,
+    Math.round((stage.discountAmount / stage.priceBefore) * 100),
+  );
+}
+
 export default function ProductCard({
   id,
   image,
@@ -70,9 +82,26 @@ export default function ProductCard({
     discount.finalPrice > 0 &&
     discount.finalPrice < price;
 
+  const effectivePercent = discount?.effectivePercent;
   const discountPercent = hasDiscount
-    ? Math.round(((price - discount.finalPrice) / price) * 100)
+    ? Math.round(
+        effectivePercent != null && Number.isFinite(effectivePercent)
+          ? effectivePercent
+          : ((price - discount.finalPrice) / price) * 100,
+      )
     : 0;
+
+  /** مراحل واقعیِ اعمال‌شده؛ برای تخفیف تک‌مرحله‌ای از چیدمان قبلی استفاده می‌شود. */
+  const appliedStages =
+    hasDiscount && discount.stages
+      ? discount.stages.filter(
+          stage =>
+            stage.priceBefore > 0 &&
+            stage.discountAmount > 0 &&
+            stage.priceAfter < stage.priceBefore,
+        )
+      : [];
+  const hasStackedStages = hasDiscount && appliedStages.length > 1;
 
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL + image;
 
@@ -113,6 +142,7 @@ export default function ProductCard({
                 clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
               }}
               aria-label={`${discountPercent.toLocaleString('fa-IR')} درصد تخفیف`}
+              title={`تخفیف کل ${discountPercent.toLocaleString('fa-IR')}٪`}
             >
               {discountPercent.toLocaleString('fa-IR')}٪
             </span>
@@ -134,26 +164,74 @@ export default function ProductCard({
             <PromotionBadge badge={promotionBadge} compact />
           )}
 
-          {!!price && price !== 0 && (
-            <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-              <span className="inline-flex items-baseline gap-1 whitespace-nowrap text-xs font-semibold text-[#1a1a1a] sm:text-sm">
-                <bdi>
-                  {Math.trunc(
-                    hasDiscount ? discount.finalPrice : price,
-                  ).toLocaleString('fa-IR')}
-                </bdi>
-                <span>تومان</span>
-              </span>
-              {hasDiscount && (
-                <del
-                  className="whitespace-nowrap text-[10px] font-normal text-[#a6a29d] sm:text-xs"
-                  aria-label={`قیمت قبلی ${Math.trunc(price).toLocaleString('fa-IR')} تومان`}
-                >
-                  <bdi>{Math.trunc(price).toLocaleString('fa-IR')}</bdi>
-                </del>
-              )}
-            </div>
-          )}
+          {!!price &&
+            price !== 0 &&
+            (hasStackedStages ? (
+              <div
+                className="mt-1 flex flex-col items-start gap-1"
+                data-stacked-discount
+              >
+                {appliedStages.map((stage, index) => {
+                  const percent = appliedStagePercent(stage);
+                  const stageLabel =
+                    stage.title?.trim() ||
+                    `مرحله ${(index + 1).toLocaleString('fa-IR')}`;
+
+                  return (
+                    <div
+                      key={`${stage.discountId}-${index}`}
+                      className="flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5"
+                      data-discount-stage={index + 1}
+                    >
+                      <del
+                        className="whitespace-nowrap text-[10px] font-normal text-[#a6a29d] sm:text-xs"
+                        aria-label={`قیمت قبل از ${stageLabel}: ${Math.trunc(stage.priceBefore).toLocaleString('fa-IR')} تومان`}
+                      >
+                        <bdi>
+                          {Math.trunc(stage.priceBefore).toLocaleString(
+                            'fa-IR',
+                          )}
+                        </bdi>
+                      </del>
+                      {percent > 0 && (
+                        <span
+                          className="inline-flex shrink-0 items-center rounded-full bg-[#ad2e38] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white sm:text-[11px]"
+                          aria-label={`${stageLabel}: ${percent.toLocaleString('fa-IR')} درصد تخفیف`}
+                        >
+                          {percent.toLocaleString('fa-IR')}٪
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <span className="mt-0.5 inline-flex items-baseline gap-1 whitespace-nowrap text-xs font-semibold text-[#1a1a1a] sm:text-sm">
+                  <bdi>
+                    {Math.trunc(discount.finalPrice).toLocaleString('fa-IR')}
+                  </bdi>
+                  <span>تومان</span>
+                </span>
+              </div>
+            ) : (
+              <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                <span className="inline-flex items-baseline gap-1 whitespace-nowrap text-xs font-semibold text-[#1a1a1a] sm:text-sm">
+                  <bdi>
+                    {Math.trunc(
+                      hasDiscount ? discount.finalPrice : price,
+                    ).toLocaleString('fa-IR')}
+                  </bdi>
+                  <span>تومان</span>
+                </span>
+                {hasDiscount && (
+                  <del
+                    className="whitespace-nowrap text-[10px] font-normal text-[#a6a29d] sm:text-xs"
+                    aria-label={`قیمت قبلی ${Math.trunc(price).toLocaleString('fa-IR')} تومان`}
+                  >
+                    <bdi>{Math.trunc(price).toLocaleString('fa-IR')}</bdi>
+                  </del>
+                )}
+              </div>
+            ))}
         </div>
       </Link>
 

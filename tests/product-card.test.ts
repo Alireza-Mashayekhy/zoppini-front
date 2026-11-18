@@ -39,6 +39,8 @@ test('product card has full-bleed image and top-attached ribbon without moving e
   assert.match(html, /۲۰٪/);
   assert.match(html, /<del/);
   assert.match(html, /۸۰۰٬۰۰۰/);
+  // تک‌مرحله‌ای همان چیدمان قبلی را دارد و وارد حالت زنجیره‌ای نمی‌شود.
+  assert.doesNotMatch(html, /data-stacked-discount|data-discount-stage/);
   // مقایسه بالا-چپ، زیر برچسب تخفیف؛ سبد خرید بالا-راست
   assert.match(html, /left-1\.5 z-20 sm:left-3 top-\[4\.25rem\]/);
   assert.match(
