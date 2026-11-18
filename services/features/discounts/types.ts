@@ -30,6 +30,18 @@ export interface Discount {
   maxTotalUses: number | null;
   excludeSaleItems: boolean;
 
+  /**
+   * تخفیف متوالی: این فروش ویژه به‌عنوان یک مرحله روی مبلغ باقی‌ماندهٔ
+   * تخفیف‌های قبلی اعمال می‌شود (نه روی قیمت اولیه).
+   */
+  stackable: boolean;
+
+  /** ترتیب مرحله؛ عدد کوچک‌تر زودتر اعمال می‌شود (۰ تا ۱۰۰۰) */
+  stackPriority: number;
+
+  /** اعمال روی همهٔ محصولات بدون انتخاب دستی */
+  appliesToAllProducts: boolean;
+
   isActive: boolean;
 
   startsAt: string;
@@ -53,6 +65,17 @@ export interface Discount {
   updatedAt: string;
 }
 
+export interface ProductDiscountStage {
+  discountId: number;
+  title: string | null;
+  type: DiscountType;
+  value: number;
+  maxDiscountAmount: number | null;
+  discountAmount: number;
+  priceBefore: number;
+  priceAfter: number;
+}
+
 export interface ProductDiscount {
   code: string | null;
   title?: string | null;
@@ -64,6 +87,12 @@ export interface ProductDiscount {
   type: DiscountType;
   value: number;
   expiresAt?: string;
+  /** مراحل تخفیف متوالی؛ برای تک‌مرحله‌ای آرایهٔ یک‌عضوی است */
+  stages?: ProductDiscountStage[];
+  /** true اگر بیش از یک مرحله اعمال شده باشد */
+  stacked?: boolean;
+  /** درصد تخفیف مؤثر پس از همهٔ مراحل (مرجع: سرور) */
+  effectivePercent?: number;
 }
 
 export interface CreateDiscountDto {
@@ -94,6 +123,15 @@ export interface CreateDiscountDto {
 
   productIds?: number[];
   categoryIds?: number[];
+
+  /** تخفیف متوالی (فقط فروش ویژه) */
+  stackable?: boolean;
+
+  /** ترتیب مرحله؛ عدد کوچک‌تر زودتر اعمال می‌شود */
+  stackPriority?: number;
+
+  /** اعمال روی همهٔ محصولات */
+  appliesToAllProducts?: boolean;
 }
 
 export type UpdateDiscountDto = Partial<Omit<CreateDiscountDto, 'kind'>>;

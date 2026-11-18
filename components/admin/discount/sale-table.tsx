@@ -30,6 +30,8 @@ export default function SaleTable({ discounts, onEdit, onDelete }: Props) {
 
             <TableHead>عنوان</TableHead>
 
+            <TableHead>مرحله</TableHead>
+
             <TableHead>مقدار تخفیف</TableHead>
 
             <TableHead>سقف تخفیف</TableHead>
@@ -48,7 +50,7 @@ export default function SaleTable({ discounts, onEdit, onDelete }: Props) {
           {discounts.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={8}
+                colSpan={9}
                 className="h-32 text-center text-muted-foreground"
               >
                 فروش ویژه‌ای پیدا نشد
@@ -65,6 +67,20 @@ export default function SaleTable({ discounts, onEdit, onDelete }: Props) {
                       discount.code ||
                       `فروش ویژه ${discount.id}`}
                   </div>
+
+                  {discount.stackable && (
+                    <span className="mt-1 inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                      متوالی
+                    </span>
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  <span className="text-xs">
+                    {discount.stackable
+                      ? `مرحلهٔ ${formatNumber((discount.stackPriority ?? 0) + 1)}`
+                      : 'تک‌مرحله‌ای'}
+                  </span>
                 </TableCell>
 
                 <TableCell>
@@ -82,14 +98,25 @@ export default function SaleTable({ discounts, onEdit, onDelete }: Props) {
 
                 <TableCell>
                   <div className="space-y-1 text-xs">
-                    {(discount.productsCount ?? 0) > 0 && (
-                      <div>{formatNumber(discount.productsCount!)} محصول</div>
-                    )}
+                    {discount.appliesToAllProducts ? (
+                      <div className="font-medium">همهٔ محصولات</div>
+                    ) : (
+                      <>
+                        {(discount.productsCount ?? 0) > 0 && (
+                          <div>
+                            {formatNumber(discount.productsCount!)} محصول
+                          </div>
+                        )}
 
-                    {(discount.categoriesCount ?? 0) > 0 && (
-                      <div>
-                        {formatNumber(discount.categoriesCount!)} دسته‌بندی
-                      </div>
+                        {(discount.categoriesCount ?? 0) > 0 && (
+                          <div>
+                            {formatNumber(discount.categoriesCount!)} دسته‌بندی
+                          </div>
+                        )}
+
+                        {!discount.productsCount &&
+                          !discount.categoriesCount && <div>---</div>}
+                      </>
                     )}
                   </div>
                 </TableCell>

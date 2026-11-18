@@ -32,7 +32,11 @@ import {
 } from '@/services/features/discounts/types';
 
 import DiscountSelectDialog from './select-dialog';
-import { persianDateToISO, toPersianDate } from './utils';
+import {
+  formatPrice,
+  persianDateToISO,
+  toPersianDate,
+} from './utils';
 
 type SaleFormValues = {
   title: string;
@@ -52,6 +56,18 @@ type SaleFormValues = {
   productIds: number[];
 
   categoryIds: number[];
+
+  /** اعمال روی همهٔ محصولات */
+  appliesToAllProducts: boolean;
+
+  /** مرحلهٔ تخفیف متوالی */
+  stackable: boolean;
+
+  /** ترتیب مرحله (۰ = زودترین) */
+  stackPriority: number | '';
+
+  /** نمونهٔ قیمت برای پیش‌نمایش محاسبه */
+  previewPrice: number | '';
 };
 
 const EMPTY_VALUES: SaleFormValues = {
@@ -64,6 +80,10 @@ const EMPTY_VALUES: SaleFormValues = {
   isActive: true,
   productIds: [],
   categoryIds: [],
+  appliesToAllProducts: false,
+  stackable: false,
+  stackPriority: 0,
+  previewPrice: 10_000_000,
 };
 
 interface Props {
@@ -107,6 +127,19 @@ export default function SaleDialog({
 
   const isActive = useWatch({ control, name: 'isActive' });
 
+  const appliesToAllProducts = useWatch({
+    control,
+    name: 'appliesToAllProducts',
+  });
+
+  const stackable = useWatch({ control, name: 'stackable' });
+
+  const stackPriority = useWatch({ control, name: 'stackPriority' });
+
+  const previewPrice = useWatch({ control, name: 'previewPrice' });
+
+  const value = useWatch({ control, name: 'value' });
+
   // =========================================================
   // Edit / Create reset
   // =========================================================
@@ -136,6 +169,14 @@ export default function SaleDialog({
         productIds: data.products?.map(product => product.id) ?? [],
 
         categoryIds: data.categories?.map(category => category.id) ?? [],
+
+        appliesToAllProducts: data.appliesToAllProducts ?? false,
+
+        stackable: data.stackable ?? false,
+
+        stackPriority: data.stackPriority ?? 0,
+
+        previewPrice: 10_000_000,
       });
 
       return;
@@ -169,9 +210,28 @@ export default function SaleDialog({
       return;
     }
 
-    if (values.productIds.length === 0 && values.categoryIds.length === 0) {
-      toast.error('حداقل یک محصول یا دسته‌بندی انتخاب کنید.');
+    if (
+      !values.appliesToAllProducts &&
+      values.productIds.length === 0 &&
+      values.categoryIds.length === 0
+    ) {
+      toast.error(
+        'حداقل یک محصول یا دسته‌بندی انتخاب کنید یا «همهٔ محصولات» را فعال کنید.',
+      );
       return;
+    }
+
+    if (values.stackable) {
+      const priority = Number(values.stackPriority || 0);
+
+      if (
+        !Number.isInteger(priority) ||
+        priority < 0 ||
+        priority > 1000
+      ) {
+        toast.error('ترتیب مرحله باید عددی صحیح بین ۰ تا ۱۰۰۰ باشد.');
+        return;
+      }
     }
 
     if (!values.startsAt || !values.expiresAt) {
@@ -217,10 +277,37 @@ export default function SaleDialog({
       productIds: values.productIds,
 
       categoryIds: values.categoryIds,
+
+      // تخفیف متوالی: سرور هم مستقل همین قواعد را اعتبارسنجی می‌کند.
+      appliesToAllProducts: values.appliesToAllProducts,
+
+      stackable: values.stackable,
+
+      stackPriority: values.stackable
+        ? Number(values.stackPriority || 0)
+        : 0,
     };
 
     onSubmit(dto);
   };
+
+  // =========================================================
+  // پیش‌نمایش مرحله (فقط برای نمایش؛ محاسبهٔ واقعی سمت سرور است)
+  // =========================================================
+
+  const previewBase = Number(previewPrice) || 0;
+
+  const previewValue = Number(value) || 0;
+
+  const previewDiscount =
+    type === DiscountType.PERCENTAGE
+      ? (previewBase * Math.min(100, Math.max(0, previewValue))) / 100
+      : previewValue;
+
+  const previewFinal = Math.max(
+    0,
+    previewBase - Math.min(previewBase, previewDiscount),
+  );
 
   // =========================================================
   // Render
@@ -313,6 +400,117 @@ export default function SaleDialog({
                 )}
               </section>
 
+              {/* نحوهٔ اعمال: دامنه و تخفیف متوالی */}
+
+              <section className="space-y-4 rounded-lg border p-4">
+                <div>
+                  <h3 className="font-semibold">نحوهٔ اعمال تخفیف</h3>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    می‌توانید این فروش ویژه را روی همهٔ محصولات اعمال کنید یا
+                    فقط روی محصولات/دسته‌های انتخاب‌شده. با فعال‌کردن «تخفیف
+                    متوالی»، این فروش ویژه به‌عنوان یک مرحلهٔ جدید روی مبلغ
+                    باقی‌ماندهٔ مرحلهٔ قبلی اعمال می‌شود.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">اعمال روی همهٔ محصولات</div>
+
+                    <div className="text-sm text-muted-foreground">
+                      بدون نیاز به انتخاب محصول یا دسته‌بندی
+                    </div>
+                  </div>
+
+                  <Switch
+                    checked={appliesToAllProducts}
+                    onCheckedChange={checked =>
+                      setValue('appliesToAllProducts', checked, {
+                        shouldDirty: true,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">
+                      تخفیف متوالی (مرحله‌ای)
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                      هر مرحله روی مبلغ باقی‌ماندهٔ مرحلهٔ قبل اعمال می‌شود، نه
+                      روی قیمت اولیه
+                    </div>
+                  </div>
+
+                  <Switch
+                    checked={stackable}
+                    onCheckedChange={checked =>
+                      setValue('stackable', checked, { shouldDirty: true })
+                    }
+                  />
+                </div>
+
+                {stackable && (
+                  <>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="stackPriority">ترتیب مرحله</Label>
+
+                        <Input
+                          id="stackPriority"
+                          type="number"
+                          min={0}
+                          max={1000}
+                          value={stackPriority}
+                          onChange={event =>
+                            setValue(
+                              'stackPriority',
+                              event.target.value === ''
+                                ? ''
+                                : Number(event.target.value),
+                              { shouldDirty: true },
+                            )
+                          }
+                        />
+
+                        <p className="text-xs text-muted-foreground">
+                          عدد کوچک‌تر زودتر اعمال می‌شود؛ ۰ = مرحلهٔ اول،
+                          ۱ = مرحلهٔ دوم و به همین ترتیب (۰ تا ۱۰۰۰).
+                        </p>
+                      </div>
+
+                      <RHFPriceInput
+                        name="previewPrice"
+                        label="پیش‌نمایش روی مبلغ (تومان)"
+                        placeholder="10,000,000"
+                      />
+                    </div>
+
+                    <div className="space-y-1 rounded-md bg-muted p-3 text-sm">
+                      <div>
+                        اگر این مرحله روی مبلغ{' '}
+                        <span className="font-semibold">
+                          {formatPrice(previewBase)}
+                        </span>{' '}
+                        اعمال شود، مبلغ باقی‌مانده{' '}
+                        <span className="font-semibold">
+                          {formatPrice(previewFinal)}
+                        </span>{' '}
+                        می‌شود.
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+                        مثال: ۱۰٬۰۰۰٬۰۰۰ تومان با ۵۰٪ ← ۵٬۰۰۰٬۰۰۰؛ مرحلهٔ بعد
+                        با ۲۰٪ ← ۴٬۰۰۰٬۰۰۰ (تخفیف مؤثر ۶۰٪، نه ۷۰٪).
+                      </div>
+                    </div>
+                  </>
+                )}
+              </section>
+
               {/* محصولات و دسته‌ها */}
 
               <section className="space-y-4">
@@ -320,9 +518,9 @@ export default function SaleDialog({
                   <h3 className="font-semibold">محصولات مشمول</h3>
 
                   <p className="mt-1 text-sm text-muted-foreground">
-                    محصولات یا دسته‌بندی‌های مشمول فروش ویژه را انتخاب کنید
-                    (حداقل یکی). با انتخاب یک دسته، زیرمجموعه‌های آن هم شامل
-                    می‌شوند.
+                    {appliesToAllProducts
+                      ? 'این فروش ویژه روی همهٔ محصولات اعمال می‌شود؛ انتخاب محصول یا دسته لازم نیست.'
+                      : 'محصولات یا دسته‌بندی‌های مشمول فروش ویژه را انتخاب کنید (حداقل یکی). با انتخاب یک دسته، زیرمجموعه‌های آن هم شامل می‌شوند.'}
                   </p>
                 </div>
 
@@ -331,6 +529,7 @@ export default function SaleDialog({
                     type="button"
                     variant="outline"
                     className="w-full"
+                    disabled={appliesToAllProducts}
                     onClick={() => setProductDialogOpen(true)}
                   >
                     {productIds.length > 0
@@ -342,6 +541,7 @@ export default function SaleDialog({
                     type="button"
                     variant="outline"
                     className="w-full"
+                    disabled={appliesToAllProducts}
                     onClick={() => setCategoryDialogOpen(true)}
                   >
                     {categoryIds.length > 0
