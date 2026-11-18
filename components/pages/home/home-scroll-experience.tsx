@@ -723,7 +723,7 @@ export default function HomeScrollExperience() {
           onClick={() => goToSection('home-hero')}
           aria-label="بازگشت به ابتدای صفحه"
           title="بازگشت به ابتدای صفحه"
-          className="fixed bottom-20 left-1.5 z-40 flex size-11 items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-900 shadow-lg backdrop-blur transition hover:bg-white hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:bottom-6 lg:size-10"
+          className="fixed bottom-[calc(var(--zp-mobile-nav-h)+1rem)] left-1.5 z-40 flex size-11 items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-900 shadow-lg backdrop-blur transition hover:bg-white hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:bottom-6 lg:size-10"
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </button>

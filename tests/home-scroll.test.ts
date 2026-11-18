@@ -115,6 +115,10 @@ test('فوتر با ارتفاع طبیعی و بدون کشیدن به تمام
   assert.equal(stops.at(-1)?.top, maxScroll);
   assert.ok(!footerSrc.includes('home-section'));
   assert.ok(footerSrc.includes('id="site-footer"'));
+  assert.match(
+    cssSrc,
+    /html\.home-scroll #site-footer\s*\{[^}]*scroll-snap-align:\s*end/,
+  );
 });
 
 test('اگر فوتر از یک صفحه بلندتر باشد، مقصدش ابتدای فوتر است (نه ته صفحه)', () => {
