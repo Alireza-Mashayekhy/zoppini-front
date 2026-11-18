@@ -6,10 +6,10 @@ export default function Footer() {
   return (
     <footer
       id="site-footer"
-      className="w-full p-12 bg-gray-200 flex flex-col gap-10"
+      className="site-footer w-full p-12 bg-gray-200 flex flex-col gap-10"
     >
-      <div className="flex justify-between flex-wrap gap-10">
-        <div className="flex flex-col gap-5">
+      <div className="footer-columns flex justify-between flex-wrap gap-10">
+        <div className="footer-group footer-group--contact flex flex-col gap-5">
           <span className="text-sm font-semibold">اطلاعات تماس</span>
           <ul className="flex flex-col gap-4 text-sm">
             <AnimateLink href="tel:02166745521">
@@ -23,7 +23,7 @@ export default function Footer() {
             </AnimateLink>
           </ul>
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="footer-group footer-group--links flex flex-col gap-5">
           <span className="text-sm font-semibold">لینک های مفید</span>
           <ul className="flex flex-col gap-4 text-sm">
             <AnimateLink href="/blog">
@@ -43,8 +43,8 @@ export default function Footer() {
             </AnimateLink>
           </ul>
         </div>
-        <div className="flex w-full gap-4 sm:contents">
-          <div className="flex w-1/2 shrink-0 flex-col gap-5 sm:w-auto">
+        <div className="footer-help-wrap flex w-full gap-4 sm:contents">
+          <div className="footer-group footer-group--help flex w-1/2 shrink-0 flex-col gap-5 sm:w-auto">
             <span className="text-sm font-semibold">راهنما</span>
             <ul className="flex flex-col gap-4 text-sm">
               <AnimateLink href="/branches">
@@ -68,7 +68,7 @@ export default function Footer() {
             href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
             target="_blank"
             rel="noopener"
-            className="flex min-w-0 flex-1 items-center justify-center sm:hidden"
+            className="footer-enamad footer-enamad--inline flex min-w-0 flex-1 items-center justify-center sm:hidden"
           >
             <Image
               className="h-auto max-w-full"
@@ -89,9 +89,9 @@ export default function Footer() {
           </p>
           <Button>عضویت</Button>
         </div> */}
-        <div className="flex flex-col gap-5 sm:max-w-72">
+        <div className="footer-group footer-group--about flex flex-col gap-5 sm:max-w-72">
           <span className="text-sm font-semibold">درباره ما</span>
-          <p className="text-sm leading-[1.8]">
+          <p className="footer-about-text text-sm leading-[1.8]">
             زوپینی از سال ۱۳۷۷ با هدف ارائه پوشاک مردانه باکیفیت و متفاوت فعالیت
             می‌کند. ما با تکیه بر زنجیره یکپارچه طراحی، تأمین و تولید، مجموعه‌ای
             از پوشاک کلاسیک و کژوال را ارائه می‌دهیم. کت‌وشلوارهای زوپینی با
@@ -100,13 +100,13 @@ export default function Footer() {
           </p>
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-10">
-        <div className="flex items-center gap-4">
+      <div className="footer-meta flex flex-col sm:flex-row justify-between items-center gap-10">
+        <div className="footer-trust flex items-center gap-4">
           <a
             href="https://trustseal.enamad.ir/?id=623198&Code=7xRZA0dpQegx0Gn2tqPs9M4LH7bjIHMr"
             target="_blank"
             rel="noopener"
-            className="hidden sm:block"
+            className="footer-enamad footer-enamad--trust hidden sm:block"
           >
             <Image
               src="/footer/enamd_1.webp"
@@ -151,7 +151,7 @@ export default function Footer() {
           />
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="footer-social flex items-center gap-4">
           <a
             href="https://www.aparat.com/zoppini.official"
             target="_blank"
@@ -266,7 +266,7 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <p className="text-center text-xs">
+      <p className="footer-copyright text-center text-xs">
         کلیه حقوق این سایت متعلق به زوپینی می باشد.
       </p>
     </footer>

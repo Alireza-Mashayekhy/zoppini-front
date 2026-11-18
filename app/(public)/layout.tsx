@@ -39,7 +39,12 @@ export default function PublicLayout({
       <FirstPurchaseGiftAnnouncement />
       <Header />
 
-      <div className="flex-1 pb-16 lg:pb-0">
+      {/*
+        فضای پایین در موبایل دقیقاً به اندازه‌ی نوار ناوبری پایین (شامل
+        safe-area) است؛ بنابراین فوتر هرگز زیر نوار پنهان نمی‌شود و ته صفحه
+        هم برای اسنپ فوتر (scroll-margin) دقیقاً هم‌تراز می‌ماند.
+      */}
+      <div className="flex-1 pb-[var(--zp-mobile-nav-h)] lg:pb-0">
         {children}
         <Footer />
       </div>

@@ -30,6 +30,9 @@ const endSrc = source('components/pages/home/end-video.tsx');
 const headerSrc = source('components/layout/public/header-scroll.tsx');
 const footerSrc = source('components/layout/public/footer.tsx');
 const newInSrc = source('components/pages/home/new-in.tsx');
+const productCardSrc = source('components/shared/product-card.tsx');
+const homeImageSrc = source('components/shared/home-image.tsx');
+const layoutSrc = source('app/(public)/layout.tsx');
 
 /* ────────────────────────────────────────────────────────────────────────── */
 /* نقاط توقف                                                                   */
@@ -293,10 +296,17 @@ test('کلاس اسکرول فقط در همان صفحه فعال و در unmou
   assert.ok(scrollSrc.includes("root.classList.remove('home-scroll')"));
 });
 
-test('اسکرول اسنپ از proximity استفاده می‌کند تا فوتر و لنگرها گیر نکنند', () => {
-  assert.match(cssSrc, /scroll-snap-type:\s*y proximity/);
-  assert.doesNotMatch(cssSrc, /scroll-snap-type:\s*y mandatory/);
+test('اسنپ دسکتاپ proximity و موبایل mandatory است', () => {
+  assert.match(
+    cssSrc,
+    /html\.home-scroll\s*\{\s*scroll-snap-type:\s*y proximity/,
+  );
+  assert.match(
+    cssSrc,
+    /@media \(max-width: 63\.999rem\)[\s\S]*html\.home-scroll\s*\{\s*scroll-snap-type:\s*y mandatory/,
+  );
   assert.match(cssSrc, /scroll-snap-align:\s*start/);
+  assert.match(cssSrc, /scroll-snap-stop:\s*always/);
 });
 
 test('ارتفاع بخش‌ها با svh حساب می‌شود و fallback هم دارد', () => {
@@ -408,11 +418,27 @@ test('چیدمان موبایل بدون عرض ثابت و بدون اسکرو�
   );
   assert.match(
     cssSrc,
-    /@media \(max-width: 63\.999rem\)[\s\S]*\.home-category-slide\s*\{[^}]*height:\s*auto/,
+    /@media \(max-width: 63\.999rem\)[\s\S]*\.home-category-slide\s*\{[^}]*height:\s*var\(--zp-home-section-h\)/,
+  );
+  assert.match(
+    cssSrc,
+    /grid-template-rows:\s*minmax\(0, 1\.3fr\) minmax\(0, 1fr\) minmax\(0, 1fr\)/,
   );
   assert.match(
     cssSrc,
     /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media--first\s*\{[^}]*display:\s*none/,
+  );
+  assert.match(
+    cssSrc,
+    /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media\s*\{[^}]*position:\s*absolute/,
+  );
+  assert.match(
+    cssSrc,
+    /\.home-category-layout\s*\{[^}]*background:\s*transparent/,
+  );
+  assert.match(
+    cssSrc,
+    /\.home-category-layout > a\s*\{[^}]*z-index:\s*1/,
   );
 });
 
@@ -471,4 +497,100 @@ test('New In دیگر داخل wrapper تمام‌صفحه‌ی تو‌در‌ت
 test('هیچ ارتفاع ثابتی به همه‌ی بخش‌ها تحمیل نمی‌شود', () => {
   assert.match(cssSrc, /\.home-section--full \{\s*height:/);
   assert.doesNotMatch(cssSrc, /^\.home-section \{[^}]*height:/m);
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* تجربه‌ی موبایل: New In، استایل، فوتر و کنترل‌های شناور                       */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+test('New In در موبایل فقط یک کارت مربع نشان می‌دهد', () => {
+  assert.match(newInSrc, /perView:\s*1/);
+  assert.doesNotMatch(newInSrc, /perView:\s*2/);
+  assert.ok(newInSrc.includes('home-new-in-stage'));
+  assert.ok(newInSrc.includes('home-new-in-card'));
+  assert.ok(newInSrc.includes('squareImageOnMobile'));
+  assert.ok(productCardSrc.includes('data-product-card'));
+  assert.ok(productCardSrc.includes('home-product-image--square-mobile'));
+  assert.match(
+    cssSrc,
+    /\.home-product-image--square-mobile\s*\{[^}]*aspect-ratio:\s*1/,
+  );
+  assert.match(
+    cssSrc,
+    /\.home-new-in-stage\s*\{[^}]*padding-inline:\s*var\(--zp-side-clear\)/,
+  );
+  assert.ok(newInSrc.includes('prefers-reduced-motion: reduce'));
+});
+
+test('New In کارت را با ارتفاع صفحه محدود می‌کند تا کامل بماند', () => {
+  assert.match(cssSrc, /container-type:\s*size/);
+  assert.match(cssSrc, /width:\s*min\(100%, calc\(100cqh - 7rem\)\)/);
+  assert.match(cssSrc, /--zp-side-clear:\s*clamp\(3\.5rem, 14vw, 4\.25rem\)/);
+});
+
+test('پیشنهاد استایل در موبایل دو پنل مربع روی هم دارد', () => {
+  assert.ok(styleSrc.includes('home-style-panel'));
+  assert.ok(styleSrc.includes('home-style-video-panel'));
+  assert.ok(styleSrc.includes('home-style-slider'));
+  assert.ok(styleSrc.includes('home-style-slide-image'));
+  assert.ok(styleSrc.includes('home-style-slide-label'));
+  assert.ok(styleSrc.includes('home-style-control'));
+  assert.match(
+    cssSrc,
+    /@media \(max-width: 39\.999rem\)[\s\S]*#home-style \.home-style-stage\s*\{[^}]*flex-direction:\s*column/,
+  );
+  assert.match(
+    cssSrc,
+    /#home-style \.home-style-panel\s*\{[^}]*width:\s*var\(--zp-style-panel\)[^}]*height:\s*var\(--zp-style-panel\)/,
+  );
+  assert.match(
+    cssSrc,
+    /#home-style \.home-style-control\s*\{[^}]*top:\s*calc/,
+  );
+});
+
+test('فوتر موبایل فشرده، اسنپ‌پذیر و بالای نوار پایین است', () => {
+  assert.match(
+    cssSrc,
+    /html\.home-scroll #site-footer\s*\{[^}]*scroll-snap-align:\s*end/,
+  );
+  assert.match(
+    cssSrc,
+    /html\.home-scroll #site-footer\s*\{[^}]*scroll-margin-bottom:\s*var\(--zp-mobile-nav-h\)/,
+  );
+  assert.match(
+    cssSrc,
+    /html\.home-scroll #site-footer\s*\{[^}]*max-height:\s*calc/,
+  );
+  assert.match(
+    cssSrc,
+    /html\.home-scroll #site-footer\s*\{[^}]*overflow-y:\s*auto/,
+  );
+  assert.ok(footerSrc.includes('footer-columns'));
+  assert.ok(footerSrc.includes('footer-group--about'));
+  assert.ok(footerSrc.includes('footer-enamad--trust'));
+  assert.ok(layoutSrc.includes('pb-[var(--zp-mobile-nav-h)]'));
+});
+
+test('بنر موبایل از تصویر مخصوص موبایل و برش object-cover استفاده می‌کند', () => {
+  assert.ok(homeImageSrc.includes('image.mobile &&'));
+  assert.ok(homeImageSrc.includes('(max-width: 767px)'));
+  assert.ok(homeImageSrc.includes('object-cover'));
+  assert.ok(bannerSrc.includes('h-full w-full'));
+});
+
+test('کنترل‌های شناور گوشه‌ها روی کارت New In نمی‌افتند', () => {
+  assert.match(cssSrc, /--zp-float-clear:\s*5rem/);
+  assert.match(cssSrc, /--zp-side-clear:\s*clamp\(3\.5rem, 14vw, 4\.25rem\)/);
+  assert.ok(newInSrc.includes('home-new-in-stage'));
+  assert.ok(
+    newInSrc.includes(
+      'className="home-new-in-stage group relative min-h-0 flex-1 sm:px-0"',
+    ),
+  );
+  assert.match(
+    cssSrc,
+    /\.ramonai-widget-host\[data-open='false'\]\s*\{[^}]*bottom:\s*calc\(var\(--zp-mobile-nav-h\)/,
+  );
 });

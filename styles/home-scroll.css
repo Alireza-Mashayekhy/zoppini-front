@@ -63,6 +63,44 @@
 @media (max-width: 63.999rem) {
   :root {
     --zp-mobile-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px));
+
+    /**
+     * «قفسه‌ی» کنترل‌های شناور پایین صفحه (دکمه‌ی چت و بازگشت به ابتدا).
+     *
+     * محتوای اسلایدهای موبایل تا این فاصله از پایین صفحه بالا می‌آید تا دکمه‌ی
+     * چت (که بالاتر از نوار ناوبری پایین شناور است) روی آن نیفتد.
+     */
+    --zp-float-clear: 5rem;
+  }
+}
+
+/*
+ * ویجت چت RamonAI میزبان خودش را روی body می‌سازد و دکمه‌اش پیش‌فرض
+ * پایین-راست صفحه می‌نشیند؛ یعنی دقیقاً روی نوار ناوبری پایین موبایل.
+ * فقط خودِ میزبان را (نه داخل shadow root را) بالای نوار می‌بریم تا دکمه
+ * هم دیده شود و هم روی نوار نیفتد. وقتی پنل باز است، پنل تا لبه‌ی نوار
+ * پایین می‌آید تا ارتفاع بیشتری داشته باشد.
+ */
+@media (max-width: 63.999rem) {
+  .ramonai-widget-host[data-open='false'] {
+    bottom: calc(var(--zp-mobile-nav-h) + 0.75rem) !important;
+  }
+
+  .ramonai-widget-host[data-open='true'] {
+    bottom: var(--zp-mobile-nav-h) !important;
+  }
+}
+
+@media (max-width: 39.999rem) {
+  :root {
+    /**
+     * حاشیه‌ی کناری کارت New In در موبایل.
+     *
+     * دکمه‌های شناور پایین صفحه (چت و بازگشت به ابتدا) در «قفسه‌ی» پایین
+     * می‌نشینند و کارت با `--zp-float-clear` از آن‌ها فاصله‌ی عمودی دارد؛ این
+     * حاشیه‌ی متقارن فقط یک گاتر تنفس کنار کارت و فضای فلش‌های کاروسل است.
+     */
+    --zp-side-clear: clamp(3.5rem, 14vw, 4.25rem);
   }
 }
 
@@ -70,6 +108,21 @@
 
 html.home-scroll {
   scroll-snap-type: y proximity;
+}
+
+/*
+ * موبایل: هر بخش دقیقاً یک صفحه است و `mandatory` + `scroll-snap-stop: always`
+ * تضمین می‌کند یک حرکت عمودی کاربر دقیقاً روی یک بخش بایستد، نه وسط راه و
+ * نه چند بخش جلوتر. اسکرول افقی کاروسل‌ها با `touch-action: pan-y` در
+ * keen-slider از پیمایش عمودی جدا می‌ماند.
+ *
+ * دسکتاپ همان `proximity` قبلی را نگه می‌دارد؛ پیمایش «یک چرخ = یک بخش» در
+ * دسکتاپ با کنترلر چرخ انجام می‌شود.
+ */
+@media (max-width: 63.999rem) {
+  html.home-scroll {
+    scroll-snap-type: y mandatory;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -100,6 +153,7 @@ html.home-scroll {
 @media (max-width: 63.999rem) {
   .home-section--full {
     padding-block-end: var(--zp-mobile-nav-h);
+    scroll-snap-stop: always;
   }
 }
 
@@ -165,21 +219,6 @@ html.home-scroll {
 }
 
 /*
- * روی گوشی‌های باریک (زیر ۶۴۰px) مثل قبل فقط رسانه‌ی دوم نمایش داده می‌شود
- * و تمام عرض را می‌گیرد؛ رسانه‌ی اول در پنل «مخصوص دسکتاپ» علامت خورده است
- * و یک ویدیوی کمتر روی اینترنت موبایل هم صرفه‌جویی می‌کند.
- */
-@media (max-width: 39.999rem) {
-  .home-category-media--first {
-    display: none;
-  }
-
-  .home-category-media--second {
-    grid-column: 1 / -1;
-  }
-}
-
-/*
  * چیدمان دسکتاپ: دو ستون باریک کناری (هر کدام دو خانه‌ی عمودی) و دو رسانه‌ی
  * مرکزی که تمام ارتفاع صفحه را می‌گیرند. نسبت تصویر/ویدیو با `object-cover`
  * حفظ می‌شود و فقط در صورت لزوم بریده می‌شود.
@@ -239,14 +278,374 @@ html.home-scroll {
 }
 
 /*
- * موبایل: هر صفحه ارتفاعش را از محتوا می‌گیرد (نه یک صفحه‌ی اجباری) تا
- * رسانه‌ها و خانه‌ها زیر نوار ناوبری پایین گم نشوند.
+ * موبایل/تبلت: هر صفحه‌ی دسته‌بندی دقیقاً یک صفحه‌ی نمایشگر است.
+ *
+ * ترکیب «رسانه در بالا + هر چهار خانه در پایین» داخل همین یک صفحه جا
+ * می‌شود: ردیف اول رسانه، دو ردیف بعد چهار خانه (۲×۲). فضای پایین برای
+ * نوار ناوبری و کنترل‌های شناور کنار گذاشته می‌شود.
+ *
+ * زیر ۶۴۰px فقط رسانه‌ی دوم نمایش داده می‌شود و تمام عرض ردیف بالا را
+ * می‌گیرد؛ از ۶۴۰px تا ۱۰۲۴px هر دو رسانه کنار هم می‌نشینند.
  */
 @media (max-width: 63.999rem) {
   .home-category-slide {
+    height: var(--zp-home-section-h);
+    padding-block: var(--zp-header-h)
+      calc(var(--zp-mobile-nav-h) + var(--zp-float-clear));
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .home-category-layout {
+    height: 100%;
+    grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .home-category-media {
+    grid-row: 1;
+    aspect-ratio: auto;
+  }
+
+  .home-category-media--first {
+    grid-column: 1;
+  }
+
+  .home-category-media--second {
+    grid-column: 2;
+  }
+
+  .home-category-tile--start-1 {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .home-category-tile--start-2 {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .home-category-tile--end-1 {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .home-category-tile--end-2 {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .home-category-layout .aspect-square {
+    aspect-ratio: auto;
+  }
+}
+
+/*
+ * روی گوشی‌های باریک (زیر ۶۴۰px) فقط رسانه‌ی دوم می‌ماند.
+ *
+ * ویدیوهای دسته‌بندی عمودی (۹:۱۶) هستند؛ اگر آن‌ها را در یک ردیف کوتاهِ
+ * افقی بگذاریم، تقریباً نصف تصویر بریده می‌شود. بنابراین رسانه به‌صورت
+ * تمام‌قاب (full-bleed) پشتِ همان یک صفحه می‌نشیند و چهار خانه‌ی دسته‌بندی
+ * در نیمه‌ی پایین، در دو ردیف ۲×۲، روی آن قرار می‌گیرند. نسبت عمودی ویدیو
+ * تقریباً با نسبت صفحه می‌خواند، پس برشِ خشتی/نوار باریک نداریم و کل صفحه
+ * هم پر می‌شود.
+ *
+ * ردیف اولِ شبکه خالی می‌ماند تا تصویر/ویدیو از بالای صفحه دیده شود؛
+ * پس‌زمینه‌ی شبکه شفاف است تا رسانه از لای درزها و پشت خانه‌ها دیده شود.
+ */
+@media (max-width: 39.999rem) {
+  .home-category-layout {
+    background: transparent;
+    grid-template-rows: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.7fr);
+  }
+
+  .home-category-media {
+    position: absolute;
+    inset-block: var(--zp-header-h)
+      calc(var(--zp-mobile-nav-h) + var(--zp-float-clear));
+    inset-inline: 0;
+    z-index: 0;
+    grid-row: auto;
+    grid-column: auto;
+    aspect-ratio: auto;
+  }
+
+  .home-category-media--first {
+    display: none;
+  }
+
+  .home-category-media--second {
+    display: block;
+  }
+
+  .home-category-layout > a {
+    z-index: 1;
+  }
+}
+
+/* ── New In در موبایل ───────────────────────────────────────────────────── */
+
+/*
+ * کارت New In در موبایل:
+ *
+ *   • یک محصول در هر نما (perView: 1 در کامپوننت).
+ *   • تصویر مربع و بدون کشیدگی؛ متن/قیمت زیر آن می‌ماند.
+ *   • حاشیه‌ی کناری متقارن (۳.۵ تا ۴.۲۵rem) تا فلش‌ها و کنترل‌های شناور
+ *     (چت و بازگشت به ابتدا) هرگز روی کارت نیفتند.
+ *   • اگر ارتفاع صفحه کم باشد، عرض کارت از ارتفاع هم محدود می‌شود تا کارت
+ *     کامل در یک صفحه بماند (container query).
+ */
+@media (max-width: 39.999rem) {
+  .home-new-in-stage {
+    container-type: size;
+    padding-inline: var(--zp-side-clear);
+  }
+
+  .home-new-in-card {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .home-new-in-card > [data-product-card] {
+    /*
+     * ۷rem برای تصویر مربع + نام (حداکثر دو خط) + قیمت + پدینگ رزرو شده است؛
+     * بنابراین حتی با نام‌های بلند هم قیمت و دکمه‌ها از کادر بیرون نمی‌زنند.
+     */
+    width: min(100%, calc(100cqh - 7rem));
     height: auto;
-    padding-block: calc(var(--zp-header-h) + 0.5rem)
-      calc(var(--zp-mobile-nav-h) + 1rem);
+    max-height: 100%;
+  }
+
+  .home-product-image--square-mobile {
+    flex: none;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* دکمه‌های خرید/مقایسه روی لمس حداقل ۴۴px باشند */
+  .home-new-in-card [data-product-card] button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+@media (min-width: 40rem) {
+  /* در تبلت/دسکتاپ wrapper نباید چیدمان اسلایدر را عوض کند */
+  .home-new-in-card {
+    display: contents;
+  }
+}
+
+/* ── پیشنهاد استایل در موبایل ───────────────────────────────────────────── */
+
+/*
+ * دو پنل مربع روی هم: ویدیوی استایل در بالا و کاروسل افقی محصولات در پایین.
+ * اندازه‌ی پنل هم به عرض و هم به ارتفاعِ قابل استفاده گره خورده است تا هر دو
+ * پنل + عنوان در یک مقصد اسنپ جا شوند. در ≥۶۴۰px چیدمان قبلی دست‌نخورده
+ * می‌ماند.
+ */
+@media (max-width: 39.999rem) {
+  #home-style {
+    --zp-style-panel: min(
+      calc(100vw - 2rem),
+      calc(
+        (
+            var(--zp-home-section-h) - var(--zp-header-h) -
+              var(--zp-mobile-nav-h) - var(--zp-float-clear) - 4.5rem
+          ) /
+          2
+      )
+    );
+  }
+
+  #home-style .home-style-title {
+    margin: 0.5rem 0 0.75rem;
+    padding-inline: 1rem;
+  }
+
+  #home-style .home-style-stage {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding-block-end: var(--zp-float-clear);
+  }
+
+  #home-style .home-style-panel {
+    width: var(--zp-style-panel);
+    height: var(--zp-style-panel);
+    flex: none;
+  }
+
+  #home-style .home-style-video-panel {
+    min-width: 0;
+  }
+
+  #home-style .home-style-slider {
+    width: var(--zp-style-panel);
+  }
+
+  #home-style .home-style-slide {
+    display: block;
+    width: 100%;
+    min-width: 100% !important;
+    height: 100%;
+  }
+
+  #home-style .home-style-slide-image {
+    position: absolute;
+    inset: 0;
+  }
+
+  #home-style .home-style-slide-label {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 2;
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.8),
+      rgb(0 0 0 / 0.42) 70%,
+      transparent
+    );
+  }
+
+  /*
+   * دکمه‌های کاروسل کنار پنل پایینی (نه وسط کل ستون) بنشینند؛
+   * `top` از وسط ارتفاع در دسترس + نیم‌ارتفاع پنل پایین محاسبه می‌شود.
+   */
+  #home-style .home-style-control {
+    top: calc(
+      50% + (var(--zp-style-panel) + 0.65rem - var(--zp-float-clear)) / 2
+    );
+  }
+}
+
+@media (min-width: 40rem) and (max-width: 63.999rem) {
+  #home-style .home-style-stage {
+    padding-block-end: var(--zp-float-clear);
+  }
+
+  /* فلش‌ها وسطِ خودِ پنل‌ها بنشینند، نه وسطِ کلِ Stage با فضای شناور. */
+  #home-style .home-style-control {
+    top: calc(50% - var(--zp-float-clear) / 2);
+  }
+}
+
+/* ── فوتر در موبایل صفحه‌ی اصلی ─────────────────────────────────────────── */
+
+/*
+ * فوتر یک مقصد اسنپ «انتها» است؛ ارتفاعش طبیعی می‌ماند و به تمام‌صفحه
+ * کشیده نمی‌شود. فقط چیدمان موبایل فشرده‌تر و خواناتر می‌شود و اگر محتوا از
+ * فضای بین هدر و نوار پایین بلندتر باشد، داخل خود فوتر اسکرول می‌شود تا
+ * کاربر به اسلاید قبلی پرت نشود.
+ */
+@media (max-width: 63.999rem) {
+  html.home-scroll #site-footer {
+    max-height: calc(
+      var(--zp-home-section-h) - var(--zp-header-h) - var(--zp-mobile-nav-h)
+    );
+    padding: 0.875rem 1rem calc(var(--zp-float-clear) + 0.75rem);
+    gap: 0.75rem;
+    overflow-y: auto;
+    scroll-snap-align: end;
+    scroll-snap-stop: always;
+    scroll-margin-bottom: var(--zp-mobile-nav-h);
+  }
+
+  html.home-scroll #site-footer .footer-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+  }
+
+  html.home-scroll #site-footer .footer-group {
+    gap: 0.35rem;
+  }
+
+  html.home-scroll #site-footer .footer-group > span {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+  }
+
+  html.home-scroll #site-footer .footer-group ul {
+    gap: 0.3rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  html.home-scroll #site-footer .footer-help-wrap {
+    display: contents;
+  }
+
+  html.home-scroll #site-footer .footer-group--help,
+  html.home-scroll #site-footer .footer-group--about {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  html.home-scroll #site-footer .footer-group--help ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 0.75rem;
+    display: grid;
+  }
+
+  html.home-scroll #site-footer .footer-about-text {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+
+  html.home-scroll #site-footer .footer-enamad--inline {
+    display: none;
+  }
+
+  html.home-scroll #site-footer .footer-enamad--trust {
+    display: block;
+  }
+
+  html.home-scroll #site-footer .footer-enamad--trust img {
+    width: 44px;
+    height: auto;
+  }
+
+  html.home-scroll #site-footer .footer-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  html.home-scroll #site-footer .footer-trust,
+  html.home-scroll #site-footer .footer-social {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  /* آیکن‌های شبکه‌های اجتماعی/اعتماد هم هدف لمسی ۴۴px داشته باشند. */
+  html.home-scroll #site-footer .footer-trust a,
+  html.home-scroll #site-footer .footer-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  html.home-scroll #site-footer .footer-trust img {
+    width: 30px;
+    height: 30px;
+  }
+
+  html.home-scroll #site-footer .footer-social img {
+    width: 18px;
+    height: 18px;
+  }
+
+  html.home-scroll #site-footer .footer-copyright {
+    font-size: 0.75rem;
+    line-height: 1.4;
   }
 }
 

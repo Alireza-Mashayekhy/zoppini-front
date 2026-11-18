@@ -27,6 +27,14 @@ interface ProductProps {
   price: number;
   slug: string;
   slider?: boolean;
+  /**
+   * فقط در موبایل (زیر ۶۴۰px) ناحیه‌ی تصویر را مربع می‌کند.
+   *
+   * در کارت‌های داخل اسلایدر، ارتفاع تصویر از والد می‌آید؛ برای New In
+   * موبایل باید تصویر مربع و بدون کشیدگی باشد، اما چیدمان دسکتاپ همان
+   * ارتفاع کشسان قبلی بماند.
+   */
+  squareImageOnMobile?: boolean;
   discount?: ProductDiscount;
   /**
    * نشان پروموشن (متنی، بدون تغییر قیمت).
@@ -49,6 +57,7 @@ export default function ProductCard({
   price,
   slug,
   slider,
+  squareImageOnMobile,
   discount,
   promotionBadge,
   showActions = true,
@@ -71,6 +80,7 @@ export default function ProductCard({
 
   return (
     <div
+      data-product-card
       className="group relative flex h-full min-h-0 w-full flex-col overflow-hidden border border-[#e8e6e3] bg-white"
       dir="rtl"
     >
@@ -80,9 +90,11 @@ export default function ProductCard({
       >
         {/* تصویر بدون padding تا لبه‌های کارت؛ ارتفاع اسلایدر از والد می‌آید. */}
         <div
+          data-product-image
           className={cn(
             'relative w-full overflow-hidden bg-[#f7f7f7]',
             slider ? 'min-h-0 flex-1' : 'aspect-[4/5] shrink-0',
+            squareImageOnMobile && 'home-product-image--square-mobile',
           )}
         >
           <Image
