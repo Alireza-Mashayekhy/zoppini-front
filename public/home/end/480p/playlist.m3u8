@@ -5,68 +5,6 @@
 #EXT-X-PLAYLIST-TYPE:VOD
 #EXT-X-INDEPENDENT-SEGMENTS
 #EXTINF:1.000000,
-<<<<<<< HEAD
-segment_d649d871_00000.ts
-=======
-<<<<<<< HEAD
-segment_63a02af7_00000.ts
->>>>>>> 3c1becfc381ebf48c9f6eb0e8935973a25205b08
-#EXTINF:1.000000,
-segment_d649d871_00001.ts
-#EXTINF:1.000000,
-segment_d649d871_00002.ts
-#EXTINF:1.000000,
-segment_d649d871_00003.ts
-#EXTINF:1.000000,
-segment_d649d871_00004.ts
-#EXTINF:1.000000,
-segment_d649d871_00005.ts
-#EXTINF:1.000000,
-segment_d649d871_00006.ts
-#EXTINF:1.000000,
-segment_d649d871_00007.ts
-#EXTINF:1.000000,
-segment_d649d871_00008.ts
-#EXTINF:1.000000,
-segment_d649d871_00009.ts
-#EXTINF:1.000000,
-segment_d649d871_00010.ts
-#EXTINF:1.000000,
-segment_d649d871_00011.ts
-#EXTINF:1.000000,
-segment_d649d871_00012.ts
-#EXTINF:1.000000,
-segment_d649d871_00013.ts
-#EXTINF:1.000000,
-segment_d649d871_00014.ts
-#EXTINF:1.000000,
-segment_d649d871_00015.ts
-#EXTINF:1.000000,
-segment_d649d871_00016.ts
-#EXTINF:1.000000,
-segment_d649d871_00017.ts
-#EXTINF:1.000000,
-segment_d649d871_00018.ts
-#EXTINF:1.000000,
-segment_d649d871_00019.ts
-#EXTINF:1.000000,
-segment_d649d871_00020.ts
-#EXTINF:1.000000,
-segment_d649d871_00021.ts
-#EXTINF:1.000000,
-segment_d649d871_00022.ts
-#EXTINF:1.000000,
-segment_d649d871_00023.ts
-#EXTINF:1.000000,
-<<<<<<< HEAD
-segment_d649d871_00024.ts
-#EXTINF:0.791667,
-segment_d649d871_00025.ts
-=======
-segment_63a02af7_00024.ts
-#EXTINF:0.541667,
-segment_63a02af7_00025.ts
-=======
 segment_d649d871_00000.ts
 #EXTINF:1.000000,
 segment_d649d871_00001.ts
@@ -118,6 +56,4 @@ segment_d649d871_00023.ts
 segment_d649d871_00024.ts
 #EXTINF:0.791667,
 segment_d649d871_00025.ts
->>>>>>> 303adf15beef99efb9329d5bf6caaa2d9da5b30c
->>>>>>> 3c1becfc381ebf48c9f6eb0e8935973a25205b08
 #EXT-X-ENDLIST
