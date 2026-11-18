@@ -33,7 +33,7 @@ export default function SaleBanner({ image }: { image?: HomeImageData }) {
         aria-label={image.alt}
         className="relative block h-full w-full overflow-hidden bg-neutral-200"
       >
-        <HomeImage image={image} />
+        <HomeImage image={image} mobileMedia="(max-width: 1023px)" />
       </Link>
     </section>
   );

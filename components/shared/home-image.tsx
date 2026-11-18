@@ -19,16 +19,25 @@ export default function HomeImage({
   image,
   className,
   priority = false,
+  mobileMedia = '(max-width: 767px)',
 }: {
   image: HomeImageData;
   className?: string;
   /** تصویر بالای صفحه (LCP) → دانلود با اولویت بالا */
   priority?: boolean;
+  /**
+   * نقطه‌ی شکست انتخاب نسخه‌ی موبایل.
+   *
+   * پیش‌فرض ۷۶۷px است؛ بنر فروش ویژه تا ۱۰۲۳px (چون نوار ناوبری پایین و
+   * چیدمان تمام‌صفحه‌ی موبایل تا همان‌جا ادامه دارد) از تصویر موبایل
+   * استفاده می‌کند تا تصویر ۱۶:۹ دسکتاپ در قاب عمودی بریده نشود.
+   */
+  mobileMedia?: string;
 }) {
   return (
     <picture className="contents">
       {image.mobile && (
-        <source media="(max-width: 767px)" srcSet={image.mobile} />
+        <source media={mobileMedia} srcSet={image.mobile} />
       )}
 
       <img

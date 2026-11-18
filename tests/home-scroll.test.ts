@@ -372,6 +372,7 @@ test('بنر فروش تمام عرض است و قاب وسط‌چین با سق
   assert.ok(bannerSrc.includes('home-section--below-header'));
   assert.ok(bannerSrc.includes('relative block h-full w-full'));
   assert.ok(bannerSrc.includes('<HomeImage'));
+  assert.ok(bannerSrc.includes('mobileMedia="(max-width: 1023px)"'));
   assert.ok(!bannerSrc.includes('home-media-frame'));
   assert.doesNotMatch(cssSrc, /\.home-media-frame/);
   assert.doesNotMatch(cssSrc, /max-width:\s*calc\(/);
@@ -576,6 +577,7 @@ test('فوتر موبایل فشرده، اسنپ‌پذیر و بالای نو�
 test('بنر موبایل از تصویر مخصوص موبایل و برش object-cover استفاده می‌کند', () => {
   assert.ok(homeImageSrc.includes('image.mobile &&'));
   assert.ok(homeImageSrc.includes('(max-width: 767px)'));
+  assert.ok(homeImageSrc.includes('mobileMedia'));
   assert.ok(homeImageSrc.includes('object-cover'));
   assert.ok(bannerSrc.includes('h-full w-full'));
 });
