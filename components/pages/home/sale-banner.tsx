@@ -4,19 +4,17 @@ import HomeImage from '@/components/shared/home-image';
 import { HomeImage as HomeImageData } from '@/lib/home-images';
 
 /**
- * بنر فروش ویژه‌ی صفحه اصلی.
+ * بنر فروش ویژه‌ی صفحه‌ی اصلی — اسلاید سوم.
  *
  * تصویر و لینک از پنل مدیریت (`/admin/site-images`) می‌آید؛ اگر چیزی آپلود
  * نشده باشد، تصویر پیش‌فرض قبلی سایت نمایش داده می‌شود.
  *
- * نسخه‌ی موبایل/دسکتاپ با `<picture>` انتخاب می‌شود؛ پس فقط یک تصویر
- * دانلود می‌شود (قبلاً هر دو نسخه در DOM بودند).
- *
- * ── اندازه‌گیری ────────────────────────────────────────────────────────────
- * قاب هم‌نسبت با خودِ تصویر است (۱۶:۹ دسکتاپ، ۹:۱۶ موبایل) و ارتفاعش به
- * فضای واقعی صفحه محدود می‌شود (`home-banner-frame` در styles/home-scroll.css).
- * بنابراین بنر یا کامل در صفحه جا می‌شود یا اگر صفحه کوتاه‌تر از نسبت تصویر
- * باشد، حاشیه‌ی هم‌رنگ پس‌زمینه می‌گیرد — هرگز کشیده یا بریده نمی‌شود.
+ * ── اندازه ─────────────────────────────────────────────────────────────────
+ * بنر تمام عرض صفحه و تمام فضای زیر هدر را پر می‌کند (بدون قابِ وسط‌چین و
+ * بدون حاشیه‌ی کناری). تصویر با `object-cover` در همان نسبت خودش (۱۶:۹
+ * دسکتاپ، ۹:۱۶ موبایل) رندر می‌شود؛ پس هرگز کشیده نمی‌شود و فقط اگر نسبت
+ * صفحه با نسبت تصویر نخواند، بخشی از لبه‌ها بریده می‌شود. به این ترتیب
+ * محتوای اسلاید بعدی هم از پایین سرک نمی‌کشد.
  */
 export default function SaleBanner({ image }: { image?: HomeImageData }) {
   if (!image) {
@@ -28,12 +26,12 @@ export default function SaleBanner({ image }: { image?: HomeImageData }) {
       id="home-sale"
       data-home-section
       aria-label="فروش ویژه"
-      className="home-section home-section--full home-section--below-header relative flex items-center justify-center bg-background"
+      className="home-section home-section--full home-section--below-header relative w-full overflow-hidden bg-background"
     >
       <Link
         href={image.linkUrl || '/products'}
         aria-label={image.alt}
-        className="home-media-frame home-media-frame--portrait relative block overflow-hidden bg-neutral-200"
+        className="relative block h-full w-full overflow-hidden bg-neutral-200"
       >
         <HomeImage image={image} />
       </Link>
