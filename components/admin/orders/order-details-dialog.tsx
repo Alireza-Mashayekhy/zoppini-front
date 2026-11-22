@@ -466,6 +466,14 @@ export default function OrderDetailsDialog({
                   value={currentOrder.totalPrice}
                 />
 
+                {!!currentOrder.saleDiscount && (
+                  <PriceRow
+                    label="تخفیف فروش ویژه"
+                    value={currentOrder.saleDiscount}
+                    negative
+                  />
+                )}
+
                 <PriceRow
                   label="هزینه ارسال"
                   value={currentOrder.shippingCost}

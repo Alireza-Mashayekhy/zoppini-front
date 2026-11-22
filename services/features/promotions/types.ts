@@ -24,6 +24,11 @@ export enum PromotionScope {
   CATEGORIES_AND_PRODUCTS = 'categories_and_products',
 }
 
+export enum CartDiscountBase {
+  DISCOUNTED_PRICE = 'discounted_price',
+  ORIGINAL_PRICE = 'original_price',
+}
+
 export enum FreeItemSelection {
   AUTO = 'auto',
   CUSTOMER = 'customer',
@@ -85,6 +90,10 @@ export interface Promotion {
   showBadgeOnProductPage: boolean;
 
   showPreCartPopup: boolean;
+  /** صلاحیت «تخفیف عمومی سبد» روی محصولات دارای تخفیف سطح محصول */
+  applyToDiscountedProducts: boolean;
+  /** مبنای محاسبهٔ تخفیف سبد وقتی صلاحیت بالا روشن است */
+  cartDiscountBase: CartDiscountBase;
   popupTitle: string | null;
   popupDescription: string | null;
   popupAcceptLabel: string | null;
@@ -100,19 +109,18 @@ export interface Promotion {
   updatedAt: string;
 }
 
-export interface CreatePromotionDto
-  extends Omit<
-    Promotion,
-    | 'id'
-    | 'status'
-    | 'usage'
-    | 'badgeLabel'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'rewardValue'
-    | 'maxDiscountAmount'
-    | 'minCartValue'
-  > {
+export interface CreatePromotionDto extends Omit<
+  Promotion,
+  | 'id'
+  | 'status'
+  | 'usage'
+  | 'badgeLabel'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'rewardValue'
+  | 'maxDiscountAmount'
+  | 'minCartValue'
+> {
   rewardValue?: number | null;
   maxDiscountAmount?: number | null;
   minCartValue?: number;

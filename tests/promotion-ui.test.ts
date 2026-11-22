@@ -37,7 +37,10 @@ test('promotion badge is rendered but never changes the card price', () => {
   const html = renderToStaticMarkup(
     createElement(ProductCard, {
       ...cardProps,
-      promotionBadge: { promotionId: 7, text: 'خرید ۲، ۵۰٪ تخفیف روی ارزان‌تر' },
+      promotionBadge: {
+        promotionId: 7,
+        text: 'خرید ۲، ۵۰٪ تخفیف روی ارزان‌تر',
+      },
     }),
   );
 
@@ -55,6 +58,64 @@ test('a card without a promotion shows no badge at all', () => {
   const html = renderToStaticMarkup(createElement(ProductCard, cardProps));
 
   assert.doesNotMatch(html, /promotion-badge/);
+  assert.doesNotMatch(html, /extra-discount-badge/);
+});
+
+test('a sale-discounted card also eligible for cart discount shows the red extra-discount badge', () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      ...cardProps,
+      discount: {
+        id: 5,
+        code: 'SALE50',
+        title: 'فروش ویژه',
+        type: 'percentage',
+        value: 50,
+        maxDiscountAmount: null,
+        discountAmount: 500000,
+        finalPrice: 500000,
+        stacked: false,
+      },
+      promotionBadge: {
+        promotionId: 9,
+        text: '۲۰ درصد تخفیف سبد',
+        type: PromotionType.CART_DISCOUNT,
+      },
+      extraDiscountBadge: {
+        promotionId: 9,
+        text: '۲۰٪ تخفیف بیشتر',
+      },
+    } as any),
+  );
+
+  // نشان پروموشن متنی دیده می‌شود
+  assert.match(html, /data-testid="promotion-badge"/);
+  // نشان قرمز «تخفیف بیشتر» دیده می‌شود
+  assert.match(html, /data-testid="extra-discount-badge"/);
+  assert.match(html, /تخفیف بیشتر/);
+  // قیمت کارت همچنان بدون تغییر نمایش داده می‌شود (همان قیمت فروش ویژه)
+  assert.match(html, /۵۰۰٬۰۰۰/);
+});
+
+test('extra-discount badge is not rendered without eligibility', () => {
+  const html = renderToStaticMarkup(
+    createElement(ProductCard, {
+      ...cardProps,
+      discount: {
+        id: 5,
+        code: 'SALE50',
+        title: 'فروش ویژه',
+        type: 'percentage',
+        value: 50,
+        maxDiscountAmount: null,
+        discountAmount: 500000,
+        finalPrice: 500000,
+        stacked: false,
+      },
+    } as any),
+  );
+
+  assert.doesNotMatch(html, /extra-discount-badge/);
 });
 
 /* =========================================================
@@ -63,7 +124,12 @@ test('a card without a promotion shows no badge at all', () => {
 
 const preview = {
   lines: [],
-  promotions: { applied: [], rejected: [], notices: ['یک کالا رایگان شد'], suggestions: [] },
+  promotions: {
+    applied: [],
+    rejected: [],
+    notices: ['یک کالا رایگان شد'],
+    suggestions: [],
+  },
   totals: {
     originalPrice: 1_000_000,
     saleDiscount: 100_000,
@@ -309,11 +375,14 @@ test('popup is shown once per cart state and never after dismissal', () => {
 
   // سبد تغییر کرده: وضعیت تازه، دوباره مجاز است
   assert.equal(
-    shouldShowSuggestion({ stateKey: '5:3:1', promotionId: 5 }, {
-      popupShownFor: '5:2:1',
-      dismissedStateKey: null,
-      dismissedPromotionIds: [],
-    }),
+    shouldShowSuggestion(
+      { stateKey: '5:3:1', promotionId: 5 },
+      {
+        popupShownFor: '5:2:1',
+        dismissedStateKey: null,
+        dismissedPromotionIds: [],
+      },
+    ),
     true,
   );
 

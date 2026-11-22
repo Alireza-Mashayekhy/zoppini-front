@@ -1,4 +1,5 @@
 import {
+  CartDiscountBase,
   CreatePromotionDto,
   FreeItemSelection,
   PromotionRewardType,
@@ -65,6 +66,10 @@ export interface PromotionFormValues {
   showBadgeOnProductPage: boolean;
 
   showPreCartPopup: boolean;
+  /** صلاحیت «تخفیف عمومی سبد» روی محصولات دارای تخفیف سطح محصول */
+  applyToDiscountedProducts: boolean;
+  /** مبنای محاسبهٔ تخفیف سبد (فقط وقتی صلاحیت بالا روشن است) */
+  cartDiscountBase: CartDiscountBase;
   popupTitle: string;
   popupDescription: string;
   popupAcceptLabel: string;
@@ -128,6 +133,8 @@ export const EMPTY_PROMOTION_FORM: PromotionFormValues = {
   showBadgeOnProductPage: true,
 
   showPreCartPopup: false,
+  applyToDiscountedProducts: false,
+  cartDiscountBase: CartDiscountBase.DISCOUNTED_PRICE,
   popupTitle: '',
   popupDescription: '',
   popupAcceptLabel: 'افزودن به سبد',
@@ -219,6 +226,8 @@ export function toPromotionDto(
     showBadgeOnProductPage: values.showBadgeOnProductPage,
 
     showPreCartPopup: values.showPreCartPopup,
+    applyToDiscountedProducts: values.applyToDiscountedProducts,
+    cartDiscountBase: values.cartDiscountBase,
     popupTitle: values.popupTitle.trim() || null,
     popupDescription: values.popupDescription.trim() || null,
     popupAcceptLabel: values.popupAcceptLabel.trim() || null,

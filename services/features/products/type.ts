@@ -89,7 +89,24 @@ export interface ProductsResponse {
     hint: string;
   }[];
   /** نشان پروموشن روی کارت محصول (در لیست‌ها) */
-  promotionBadge?: { promotionId: number; text: string } | null;
+  promotionBadge?: {
+    promotionId: number;
+    text: string;
+    /** نوع پروموشن؛ برای آیکون نشان استفاده می‌شود */
+    type?: import('../promotions/types').PromotionType;
+    /** آیا این پروموشن روی محصولات دارای تخفیف اعمال می‌شود */
+    appliesToDiscounted?: boolean;
+  } | null;
+  /**
+   * نشان قرمز «تخفیف بیشتر» — وقتی محصول از قبل تخفیف سطح محصول دارد و
+   * تخفیف سبد هم (با تنظیم ادمین) روی آن اعمال می‌شود. قیمت کارت تغییر
+   * نمی‌کند؛ این فقط سیگنال «در سبد بیشتر هم تخفیف می‌گیری» است.
+   */
+  extraDiscountBadge?: {
+    promotionId: number;
+    text: string;
+    type?: import('../promotions/types').PromotionType;
+  } | null;
   careInstructionsHtml: string;
   careInstructionsTitle?: CareInstructionsTitle;
   createdAt: string;

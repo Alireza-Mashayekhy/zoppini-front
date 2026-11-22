@@ -24,6 +24,14 @@ import {
 } from './promotion-suggestion-action';
 import PromotionVariantPicker from './promotion-variant-picker';
 
+/** لاگ توسعه‌دهنده‌ها — فقط در محیط توسعه؛ در production چیزی چاپ نمی‌شود */
+const devLog = (...args: unknown[]) => {
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.debug('[promotion-suggestion]', ...args);
+  }
+};
+
 /**
  * کارت پیشنهاد «پیش از سبد».
  *
@@ -61,7 +69,11 @@ export default function PromotionSuggestionPopup() {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const popupShownFor = data?.data?.popupShownFor ?? null;
-  const acceptedPromotions = data?.data?.acceptedPromotions ?? [];
+  /** ارجاع پایدار تا اثر لاگ با هر رندر تکرار نشود */
+  const acceptedPromotions = useMemo(
+    () => data?.data?.acceptedPromotions ?? [],
+    [data?.data?.acceptedPromotions],
+  );
 
   /**
    * وضعیت‌هایی که در همین نشست بسته شده‌اند؛ تا پروموشن تازهٔ دیگری سر نرسد،
@@ -72,8 +84,9 @@ export default function PromotionSuggestionPopup() {
   const first = suggestions[0] ?? null;
 
   const active: PromotionSuggestionView | null =
+    first &&
     !isOpen &&
-    !acceptedPromotions.includes(first?.promotionId ?? -1) &&
+    !acceptedPromotions.includes(first.promotionId) &&
     shouldShowSuggestion(first, {
       popupShownFor,
       dismissedStateKey: closedStateKey,
@@ -81,6 +94,53 @@ export default function PromotionSuggestionPopup() {
     })
       ? first
       : null;
+
+  /* لاگ توسعه‌دهنده: چرا پیشنهاد نمایش داده نشد (هر تغییر فقط یک بار) */
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') {
+      return;
+    }
+
+    if (suggestions.length > 1) {
+      devLog(
+        `${suggestions.length} پیشنهاد فعال است؛ فقط اولین نمایش داده می‌شود.`,
+        suggestions.map(item => item.promotionId),
+      );
+    }
+
+    if (active) {
+      devLog('پیشنهاد نمایش داده می‌شود:', {
+        promotionId: active.promotionId,
+        stateKey: active.stateKey,
+        action: active.action,
+      });
+      return;
+    }
+
+    if (!first) {
+      devLog('پیشنهاد نمایش داده نمی‌شود: سبد/سرور پیشنهادی ندارد.');
+    } else if (isOpen) {
+      devLog('پیشنهاد نمایش داده نمی‌شود: کشوی سبد باز است.');
+    } else if (acceptedPromotions.includes(first.promotionId)) {
+      devLog('پیشنهاد نمایش داده نمی‌شود: مشتری قبلاً پذیرفته است.');
+    } else if (popupShownFor === first.stateKey) {
+      devLog(
+        'پیشنهاد نمایش داده نمی‌شود: برای همین وضعیت سبد قبلاً نشان داده شده است.',
+      );
+    } else if (closedStateKey === first.stateKey) {
+      devLog('پیشنهاد نمایش داده نمی‌شود: این نشست رد شده است.');
+    } else {
+      devLog('پیشنهاد نمایش داده نمی‌شود: رد شده توسط سرور.');
+    }
+  }, [
+    suggestions,
+    first,
+    active,
+    isOpen,
+    acceptedPromotions,
+    popupShownFor,
+    closedStateKey,
+  ]);
 
   const activeStateKey = active?.stateKey ?? null;
 

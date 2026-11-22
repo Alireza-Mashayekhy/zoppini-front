@@ -23,9 +23,16 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const guestId = config.url?.startsWith('/cart')
-    ? getGuestId()
-    : Cookies.get('guestId');
+  /*
+   * پاپ‌آپ پیشنهاد و رد/پذیرش آن روی endpointهای پروموشن هم برای سبد مهمان
+   * کار می‌کنند؛ بدون ساخت guestId، این درخواست‌ها بدون شناسهٔ سبد می‌رفتند
+   * و سرور هیچ سبدی را نمی‌شناخت (یا بدتر: مقدار ناموجود از سمت کلاینت).
+   */
+  const mintsGuestId =
+    config.url?.startsWith('/cart') || config.url?.startsWith('/promotions');
+
+  const guestId = mintsGuestId ? getGuestId() : Cookies.get('guestId');
+
   if (guestId) {
     config.headers['x-guest-id'] = guestId;
   }

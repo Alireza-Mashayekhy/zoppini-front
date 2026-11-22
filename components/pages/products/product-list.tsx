@@ -154,7 +154,10 @@ export default function ProductList({
 
     if (!prices.length) return { min: 0, max: 0 };
 
-    return { min: Math.floor(Math.min(...prices)), max: Math.floor(Math.max(...prices)) };
+    return {
+      min: Math.floor(Math.min(...prices)),
+      max: Math.floor(Math.max(...prices)),
+    };
   })();
 
   const priceBounds = {
@@ -490,6 +493,7 @@ export default function ProductList({
                   slug={product.slug}
                   discount={product?.discount}
                   promotionBadge={product.promotionBadge ?? null}
+                  extraDiscountBadge={product.extraDiscountBadge ?? null}
                 />
               ))}
 

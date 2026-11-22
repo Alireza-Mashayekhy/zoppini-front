@@ -47,6 +47,7 @@ function ProductSection({
             slug={product.slug}
             discount={product.discount}
             promotionBadge={product.promotionBadge ?? null}
+            extraDiscountBadge={product.extraDiscountBadge ?? null}
           />
         ))}
       </div>

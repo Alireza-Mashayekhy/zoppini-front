@@ -40,6 +40,8 @@ export interface OrderItem {
   totalPrice: number;
   /** تخفیف پروموشن روی این ردیف (تومان) */
   promotionDiscount?: number;
+  /** تخفیف سطح محصول (فروش ویژه) روی این ردیف (تومان) */
+  saleDiscount?: number;
   /** آیا این ردیف کالای رایگان پروموشن است */
   isPromotionReward?: boolean;
   /** پروموشنی که این ردیف را رایگان کرده */
@@ -69,6 +71,10 @@ export interface OrderPromotionSnapshotEntry {
   discountAmount: number;
   freeItemValue: number;
   grantsFreeShipping: boolean;
+  /** مبنای محاسبهٔ تخفیف سبد (فقط cart_discount) */
+  cartDiscountBase?: 'discounted_price' | 'original_price' | null;
+  /** آیا تخفیف روی محصولات دارای تخفیف اعمال شده */
+  applyToDiscountedProducts?: boolean | null;
   qualifyingVariantIds: number[];
   rewardVariantIds: number[];
   rewardProductIds: number[];
@@ -100,6 +106,8 @@ export interface OrderResponse {
   promotionFreeItemValue?: number;
   /** آیا ارسال رایگان از پروموشن گرفته شده */
   promotionFreeShipping?: boolean;
+  /** جمع تخفیف سطح محصول (فروش ویژه) */
+  saleDiscount?: number;
   /** قاعده‌های اعمال‌شده در لحظهٔ ثبت سفارش */
   promotionSnapshot?: OrderPromotionSnapshotEntry[] | null;
   user?: {
@@ -122,6 +130,8 @@ export interface CheckoutPreviewLine {
   quantity: number;
   originalPrice: number;
   salePrice: number;
+  /** تخفیف سطح محصول (فروش ویژه) روی این ردیف (تومان) */
+  saleDiscount?: number;
   promotionDiscount: number;
   isFreeReward: boolean;
   promotionRewardId: number | null;

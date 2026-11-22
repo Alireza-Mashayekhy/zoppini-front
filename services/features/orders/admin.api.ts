@@ -56,6 +56,8 @@ export interface AdminOrder {
   discount: number | string;
   shippingCost: number | string;
   finalPrice: number | string;
+  /** جمع تخفیف سطح محصول (فروش ویژه) */
+  saleDiscount?: number | string | null;
 
   shippingMethod?: string | null;
   note?: string | null;

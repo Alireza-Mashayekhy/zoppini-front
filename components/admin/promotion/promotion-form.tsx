@@ -19,6 +19,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  CartDiscountBase,
   FreeItemSelection,
   Promotion,
   PromotionRewardType,
@@ -154,6 +155,9 @@ function toFormValues(promotion: Promotion): PromotionFormValues {
     showBadgeOnProductPage: promotion.showBadgeOnProductPage,
 
     showPreCartPopup: promotion.showPreCartPopup,
+    applyToDiscountedProducts: promotion.applyToDiscountedProducts ?? false,
+    cartDiscountBase:
+      promotion.cartDiscountBase ?? CartDiscountBase.DISCOUNTED_PRICE,
     popupTitle: promotion.popupTitle ?? '',
     popupDescription: promotion.popupDescription ?? '',
     popupAcceptLabel: promotion.popupAcceptLabel ?? '',
@@ -231,6 +235,7 @@ export default function PromotionForm({
     type === PromotionType.CART_DISCOUNT ||
     needsTriggerReward;
   const needsBundleFields = type === PromotionType.FIXED_PRICE_BUNDLE;
+  const needsCartDiscountFields = type === PromotionType.CART_DISCOUNT;
   const needsRewardValue =
     values.rewardType === PromotionRewardType.PERCENTAGE ||
     values.rewardType === PromotionRewardType.FIXED ||
@@ -619,6 +624,95 @@ export default function PromotionForm({
             </Field>
           )}
         </Section>
+
+        {/* =====================================================
+          صلاحیت و مبنای تخفیف سبد
+      ====================================================== */}
+
+        {needsCartDiscountFields && (
+          <Section
+            title="صلاحیت روی محصولات دارای تخفیف"
+            description="اگر کالایی از قبل تخفیف سطح محصول (فروش ویژه) دارد، آیا تخفیف عمومی سبد هم روی آن اعمال شود؟"
+          >
+            <label className="flex items-center justify-between gap-2 border p-2 text-xs">
+              <span>
+                اعمال تخفیف سبد روی محصولات دارای تخفیف
+                <span className="block text-[10px] text-muted-foreground">
+                  پیش‌فرض خاموش است؛ کالای دارای تخفیف فقط یک بار تخفیف می‌خورد.
+                </span>
+              </span>
+
+              <Switch
+                checked={values.applyToDiscountedProducts}
+                onCheckedChange={checked =>
+                  setValue('applyToDiscountedProducts', checked)
+                }
+              />
+            </label>
+
+            {values.applyToDiscountedProducts && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-700">
+                  مبنای محاسبهٔ تخفیف سبد
+                </p>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(
+                    [
+                      {
+                        value: CartDiscountBase.DISCOUNTED_PRICE,
+                        title: 'قیمت پس از تخفیف محصول',
+                        hint: 'متوالی: قیمت فهرست × (۱ − تخفیف محصول) × (۱ − تخفیف سبد). مثال با ۵۰٪ و ۲۰٪: ۱۰٬۰۰۰٬۰۰۰ ← ۴٬۰۰۰٬۰۰۰ تومان',
+                      },
+                      {
+                        value: CartDiscountBase.ORIGINAL_PRICE,
+                        title: 'قیمت اصلی (قیمت فهرست)',
+                        hint: 'جمعی: قیمت فهرست × (۱ − تخفیف محصول − تخفیف سبد). مثال با ۵۰٪ و ۲۰٪: ۱۰٬۰۰۰٬۰۰۰ ← ۳٬۰۰۰٬۰۰۰ تومان',
+                      },
+                    ] as const
+                  ).map(option => {
+                    const selected = values.cartDiscountBase === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() =>
+                          setValue('cartDiscountBase', option.value)
+                        }
+                        className={`rounded-lg border p-3 text-right text-xs transition ${
+                          selected
+                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 font-bold text-gray-900">
+                          <span
+                            className={`flex size-4 items-center justify-center rounded-full border ${
+                              selected
+                                ? 'border-primary bg-primary'
+                                : 'border-gray-300'
+                            }`}
+                          >
+                            {selected && (
+                              <span className="size-1.5 rounded-full bg-white" />
+                            )}
+                          </span>
+                          {option.title}
+                        </span>
+                        <span className="mt-1.5 block leading-5 text-muted-foreground">
+                          {option.hint}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </Section>
+        )}
 
         {/* =====================================================
           شرط‌های حداقلی

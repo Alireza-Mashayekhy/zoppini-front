@@ -5,8 +5,7 @@ import {
 } from '@/services/features/promotions/types';
 
 export const PROMOTION_TYPE_LABELS: Record<PromotionType, string> = {
-  [PromotionType.CHEAPER_ITEM_PAIR]:
-    'خرید تعداد زوج و تخفیف ارزان‌ترها',
+  [PromotionType.CHEAPER_ITEM_PAIR]: 'خرید تعداد زوج و تخفیف ارزان‌ترها',
   [PromotionType.BUY_X_GET_Y_SAME_GROUP]:
     'خرید X، دریافت Y رایگان از همان گروه',
   [PromotionType.BUY_TRIGGER_GET_REWARD]:
@@ -121,7 +120,7 @@ export function describeConfiguration(promotion: {
       return `ارسال رایگان از ${promotion.minCartValue.toLocaleString('fa-IR')} تومان`;
 
     case PromotionType.CART_DISCOUNT:
-      return `${percent}٪ تخفیف سبد`;
+      return `${percent.toLocaleString('fa-IR')} درصد تخفیف سبد`;
 
     default:
       return '';

@@ -43,7 +43,17 @@ interface ProductProps {
    * نشان پروموشن (متنی، بدون تغییر قیمت).
    * قیمت کارت هرگز بر اساس این نشان عوض نمی‌شود.
    */
-  promotionBadge?: PromotionProductBadge & { type?: PromotionType } | null;
+  promotionBadge?:
+    | (PromotionProductBadge & {
+        type?: PromotionType;
+        appliesToDiscounted?: boolean;
+      })
+    | null;
+  /**
+   * نشان قرمز «تخفیف بیشتر» — محصول خودش تخفیف سطح محصول دارد و تخفیف
+   * سبد هم روی آن اعمال می‌شود. قیمت نمایش داده‌شده تغییر نمی‌کند.
+   */
+  extraDiscountBadge?: { promotionId: number; text: string } | null;
   /** نمایش دکمه‌های کوچک روی کارت (پیش‌فرض روشن؛ بدون id پنهان است) */
   showActions?: boolean;
 }
@@ -72,6 +82,7 @@ export default function ProductCard({
   squareImageOnMobile,
   discount,
   promotionBadge,
+  extraDiscountBadge,
   showActions = true,
 }: ProductProps) {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -160,8 +171,21 @@ export default function ProductCard({
             </span>
           )}
 
-          {promotionBadge?.text && (
-            <PromotionBadge badge={promotionBadge} compact />
+          {(promotionBadge?.text || extraDiscountBadge?.text) && (
+            <div className="flex flex-wrap items-center gap-1">
+              {promotionBadge?.text && (
+                <PromotionBadge badge={promotionBadge} compact />
+              )}
+              {extraDiscountBadge?.text && (
+                <span
+                  data-testid="extra-discount-badge"
+                  className="inline-flex items-center gap-1 bg-[#ad2e38] px-1.5 py-0.5 text-[10px] font-semibold leading-4 text-white"
+                  dir="rtl"
+                >
+                  {extraDiscountBadge.text}
+                </span>
+              )}
+            </div>
           )}
 
           {!!price &&
