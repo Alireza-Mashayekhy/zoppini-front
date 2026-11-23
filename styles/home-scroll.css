@@ -292,18 +292,50 @@ html.home-scroll {
     height: var(--zp-home-section-h);
     padding-block: var(--zp-header-h)
       calc(var(--zp-mobile-nav-h) + var(--zp-float-clear));
+    /*
+     * حاشیه‌ی کناری متقارن: رسانه و خانه‌ها یک‌اندازه از دو طرف فاصله
+     * می‌گیرند و هیچ‌کدام به لبه‌ی صفحه نمی‌چسبند.
+     */
+    padding-inline: clamp(0.75rem, 3vw, 1.25rem);
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
 
+  /*
+   * ردیف اول «ارتفاع خودش را از نسبت ۱۶:۹ می‌گیرد» (auto) و دو ردیف بعد
+   * فضای باقی‌مانده را بین خانه‌های دسته‌بندی تقسیم می‌کنند. این‌طور رسانه
+   * همیشه بالای خانه‌ها می‌نشیند و هرگز زیر/پشت آن‌ها نمی‌رود.
+   */
   .home-category-layout {
     height: 100%;
-    grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 0.5rem;
+    row-gap: clamp(0.5rem, 2vw, 0.75rem);
+    background: #fff;
   }
 
+  /*
+   * رسانه‌ی بالای صفحه: افقی ۱۶:۹ (نه عمودی ۹:۱۶).
+   * `align-self: start` تضمین می‌کند ارتفاع از نسبت ابعاد بیاید و شبکه
+   * آن را به ارتفاع ردیف نکشد.
+   */
   .home-category-media {
     grid-row: 1;
-    aspect-ratio: auto;
+    align-self: start;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 0.25rem;
+  }
+
+  /*
+   * منبع تصویر/ویدیوی دسته‌بندی‌ها عمودی است؛ در قاب افقی ۱۶:۹ با
+   * `object-fit: cover` بریده می‌شود. نقطهٔ تمرکز کمی بالاتر از مرکز است تا
+   * سوژه (سر و بالاتنه) داخل کادر بماند و کشیدگی هم رخ ندهد.
+   */
+  .home-category-media img,
+  .home-category-media video {
+    object-position: center 35%;
   }
 
   .home-category-media--first {
@@ -342,43 +374,24 @@ html.home-scroll {
 /*
  * روی گوشی‌های باریک (زیر ۶۴۰px) فقط رسانه‌ی دوم می‌ماند.
  *
- * ویدیوهای دسته‌بندی عمودی (۹:۱۶) هستند؛ اگر آن‌ها را در یک ردیف کوتاهِ
- * افقی بگذاریم، تقریباً نصف تصویر بریده می‌شود. بنابراین رسانه به‌صورت
- * تمام‌قاب (full-bleed) پشتِ همان یک صفحه می‌نشیند و چهار خانه‌ی دسته‌بندی
- * در نیمه‌ی پایین، در دو ردیف ۲×۲، روی آن قرار می‌گیرند. نسبت عمودی ویدیو
- * تقریباً با نسبت صفحه می‌خواند، پس برشِ خشتی/نوار باریک نداریم و کل صفحه
- * هم پر می‌شود.
- *
- * ردیف اولِ شبکه خالی می‌ماند تا تصویر/ویدیو از بالای صفحه دیده شود؛
- * پس‌زمینه‌ی شبکه شفاف است تا رسانه از لای درزها و پشت خانه‌ها دیده شود.
+ * هر دو رسانه در حالت قبل تمام‌قاب و پشتِ خانه‌های دسته‌بندی می‌نشستند؛
+ * نتیجه این بود که رسانه زیر جعبه‌ها گم می‌شد و نسبت ابعادش هم ثابت نبود.
+ * حالا رسانه یک ردیف مستقل در بالای همان یک صفحه است (۱۶:۹ افقی) و
+ * خانه‌ها با ترتیب قبلی زیرش می‌آیند؛ هیچ همپوشانی‌ای وجود ندارد.
  */
 @media (max-width: 39.999rem) {
-  .home-category-layout {
-    background: transparent;
-    grid-template-rows: minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.7fr);
-  }
-
-  .home-category-media {
-    position: absolute;
-    inset-block: var(--zp-header-h)
-      calc(var(--zp-mobile-nav-h) + var(--zp-float-clear));
-    inset-inline: 0;
-    z-index: 0;
-    grid-row: auto;
-    grid-column: auto;
-    aspect-ratio: auto;
-  }
-
+  /*
+   * روی گوشی یک رسانه (همان رسانه‌ی دوم) تمام عرضِ ردیف اول را می‌گیرد و
+   * همچنان ۱۶:۹ افقی می‌ماند؛ خانه‌ها زیرش می‌آیند و هیچ‌چیز روی رسانه
+   * نمی‌افتد.
+   */
   .home-category-media--first {
     display: none;
   }
 
   .home-category-media--second {
     display: block;
-  }
-
-  .home-category-layout > a {
-    z-index: 1;
+    grid-column: 1 / -1;
   }
 }
 
@@ -439,23 +452,32 @@ html.home-scroll {
 /* ── پیشنهاد استایل در موبایل ───────────────────────────────────────────── */
 
 /*
- * دو پنل مربع روی هم: ویدیوی استایل در بالا و کاروسل افقی محصولات در پایین.
- * اندازه‌ی پنل هم به عرض و هم به ارتفاعِ قابل استفاده گره خورده است تا هر دو
- * پنل + عنوان در یک مقصد اسنپ جا شوند. در ≥۶۴۰px چیدمان قبلی دست‌نخورده
- * می‌ماند.
+ * موبایل: ویدیوی افقی ۱۶:۹ در بالا و کاروسل مربعی محصولات در پایین.
+ *
+ * ── چطور اندازه‌ها حساب می‌شوند ────────────────────────────────────────────
+ * «عرض مشترک» (`--zp-style-media-w`) هم به عرض صفحه و هم به ارتفاعِ قابل
+ * استفاده گره خورده است؛ نسبت ارتفاع کل دو بلوک به عرض برابر است با:
+ *      ویدیو ۹/۱۶ + کارت مربع ۱ = ۱.۵۶۲۵
+ * پس تقسیم فضای عمودی بر ۱.۵۶۲۵ تضمین می‌کند ویدیوی ۱۶:۹ و کارت مربع
+ * کامل، همراه با عنوان و فاصله‌ها، در یک مقصد اسنپ جا شوند.
+ *
+ * ویدیو ۱۶:۹ افقی است (نه مربع) و کارت محصول ۱:۱. هر دو با حاشیه‌ی کناری
+ * متقارن و وسط‌چین‌اند؛ کاروسل هم دقیقاً یک کارت کامل نشان می‌دهد.
  */
 @media (max-width: 39.999rem) {
   #home-style {
-    --zp-style-panel: min(
+    --zp-style-media-w: min(
       calc(100vw - 2rem),
       calc(
         (
             var(--zp-home-section-h) - var(--zp-header-h) -
-              var(--zp-mobile-nav-h) - var(--zp-float-clear) - 4.5rem
+              var(--zp-mobile-nav-h) - var(--zp-float-clear) - 4.75rem
           ) /
-          2
+          1.5625
       )
     );
+    /* ارتفاع ویدیو با نسبت ۱۶:۹ از همان عرض مشترک */
+    --zp-style-video-h: calc(var(--zp-style-media-w) * 9 / 16);
   }
 
   #home-style .home-style-title {
@@ -467,22 +489,39 @@ html.home-scroll {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.65rem;
+    gap: 0.75rem;
+    padding-inline: 1rem;
     padding-block-end: var(--zp-float-clear);
   }
 
   #home-style .home-style-panel {
-    width: var(--zp-style-panel);
-    height: var(--zp-style-panel);
     flex: none;
+    align-self: center;
   }
 
+  /* پنل ویدیو: افقی ۱۶:۹ */
   #home-style .home-style-video-panel {
+    width: var(--zp-style-media-w);
+    height: var(--zp-style-video-h);
     min-width: 0;
+    overflow: hidden;
+    border-radius: 0.25rem;
   }
 
+  /* برشِ ملایم به سمت بالای کادر (سوژه در قاب افقی بماند) */
+  #home-style .home-style-video-panel video {
+    object-position: center 30%;
+  }
+
+  /*
+   * کارت محصول: مربع ۱:۱. اسلایدها هم عرضِ کاملِ همین پنل‌اند تا هیچ
+   * سرکِ کشیدنِ کارت بعدی دیده نشود.
+   */
   #home-style .home-style-slider {
-    width: var(--zp-style-panel);
+    width: var(--zp-style-media-w);
+    height: var(--zp-style-media-w);
+    overflow: hidden;
+    border-radius: 0.25rem;
   }
 
   #home-style .home-style-slide {
@@ -511,12 +550,13 @@ html.home-scroll {
   }
 
   /*
-   * دکمه‌های کاروسل کنار پنل پایینی (نه وسط کل ستون) بنشینند؛
-   * `top` از وسط ارتفاع در دسترس + نیم‌ارتفاع پنل پایین محاسبه می‌شود.
+   * دکمه‌های کاروسل کنار کارت مربعی محصولات (نه وسط کل ستون) بنشینند؛
+   * `top` از وسط ارتفاع در دسترس + نیم‌ارتفاع کارت پایین + فاصلهٔ بین دو
+   * بلوک محاسبه می‌شود.
    */
   #home-style .home-style-control {
     top: calc(
-      50% + (var(--zp-style-panel) + 0.65rem - var(--zp-float-clear)) / 2
+      50% + (var(--zp-style-media-w) + 0.75rem - var(--zp-float-clear)) / 2
     );
   }
 }

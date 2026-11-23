@@ -23,8 +23,18 @@ export default function SuggestedStyle({
       loop: true,
       rtl: true,
       slides: {
-        perView: 'auto',
-        spacing: 2,
+        /*
+         * موبایل (پیش‌فرض): دقیقاً یک کارت کامل مربعی در هر نما، بدون فاصله و
+         * بدون سرکِ کارت بعدی. از ۶۴۰px به بالا همان چیدمان قبلی
+         * (`perView: 'auto'`) با فاصلهٔ ۲px برمی‌گردد تا دسکتاپ عوض نشود.
+         */
+        perView: 1,
+        spacing: 0,
+      },
+      breakpoints: {
+        '(min-width: 640px)': {
+          slides: { perView: 'auto', spacing: 2 },
+        },
       },
       created() {
         setLoaded(true);
@@ -116,7 +126,7 @@ export default function SuggestedStyle({
       </LuxuryTitle>
 
       <div className="home-style-stage group relative min-h-0 flex flex-1">
-        {/* پنل ویدیو — در موبایل مربع و بالای کاروسل */}
+        {/* پنل ویدیو — در موبایل افقی ۱۶:۹ و بالای کاروسل */}
         <div className="home-style-panel home-style-video-panel relative h-full min-w-[45vw] shrink-0 overflow-hidden lg:min-w-[32vw]">
           <HlsVideo
             src="/home/style/master.m3u8"
@@ -125,7 +135,7 @@ export default function SuggestedStyle({
           />
         </div>
 
-        {/* پنل کاروسل محصولات — در موبایل مربع و پایین ویدیو */}
+        {/* پنل کاروسل محصولات — در موبایل مربع ۱:۱ و پایین ویدیو */}
         <div
           ref={sliderRef}
           className="home-style-panel home-style-slider keen-slider h-full"

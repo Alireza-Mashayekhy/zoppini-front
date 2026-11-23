@@ -423,23 +423,52 @@ test('چیدمان موبایل بدون عرض ثابت و بدون اسکرو�
   );
   assert.match(
     cssSrc,
-    /grid-template-rows:\s*minmax\(0, 1\.3fr\) minmax\(0, 1fr\) minmax\(0, 1fr\)/,
-  );
-  assert.match(
-    cssSrc,
     /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media--first\s*\{[^}]*display:\s*none/,
   );
+  // رسانه دیگر تمام‌قاب و پشت خانه‌ها نیست
+  assert.doesNotMatch(cssSrc, /\.home-category-media\s*\{[^}]*position:\s*absolute/);
+  assert.doesNotMatch(cssSrc, /inset-block:\s*var\(--zp-header-h\)/);
+});
+
+test('اسلاید ۴ و ۵ در موبایل: رسانه‌ی ۱۶:۹ بالای خانه‌های دسته‌بندی', () => {
+  // فقط بلوک CSS دسته‌بندی‌ها (بین دو نشانگر بخش) بررسی می‌شود
+  const mobileBlock = cssSrc
+    .slice(cssSrc.indexOf('دسته‌بندی‌ها: دو صفحه'), undefined)
+    .slice(0, cssSrc.indexOf('New In در موبایل') - cssSrc.indexOf('دسته‌بندی‌ها: دو صفحه'));
+
+  assert.ok(mobileBlock.length > 0, 'category css block must exist');
+
+  // ردیف اول با ارتفاع خودکار (از نسبت ۱۶:۹) و دو ردیف خانه زیرش
   assert.match(
-    cssSrc,
-    /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media\s*\{[^}]*position:\s*absolute/,
+    mobileBlock,
+    /\.home-category-layout\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) minmax\(0, 1fr\)/,
   );
+  // نسبت افقی ۱۶:۹ برای تصویر و ویدیو
   assert.match(
-    cssSrc,
-    /\.home-category-layout\s*\{[^}]*background:\s*transparent/,
+    mobileBlock,
+    /\.home-category-media\s*\{[^}]*aspect-ratio:\s*16 \/ 9/,
   );
+  // رسانه در ردیف اول و هم‌تراز بالا (نه کشیده به ارتفاع ردیف)
+  assert.match(mobileBlock, /\.home-category-media\s*\{[^}]*grid-row:\s*1/);
+  assert.match(mobileBlock, /\.home-category-media\s*\{[^}]*align-self:\s*start/);
+  // حاشیه‌ی افقی متقارن روی خود اسلاید
+  assert.match(
+    mobileBlock,
+    /\.home-category-slide\s*\{[^}]*padding-inline:\s*clamp\(/,
+  );
+  // فاصله‌ی عمودی بین رسانه و شبکه‌ی خانه‌ها
+  assert.match(mobileBlock, /\.home-category-layout\s*\{[^}]*row-gap:/);
+  // ترتیب خانه‌ها همان ترتیب قبلی است (۲×۲ زیر رسانه)
+  assert.match(mobileBlock, /\.home-category-tile--start-1\s*\{[^}]*grid-row:\s*2/);
+  assert.match(mobileBlock, /\.home-category-tile--start-2\s*\{[^}]*grid-row:\s*2/);
+  assert.match(mobileBlock, /\.home-category-tile--end-1\s*\{[^}]*grid-row:\s*3/);
+  assert.match(mobileBlock, /\.home-category-tile--end-2\s*\{[^}]*grid-row:\s*3/);
+  // برش با cover و نقطه‌ی تمرکز مشخص، نه کشیدگی
+  assert.match(mobileBlock, /object-position:\s*center 35%/);
+  // روی گوشی، همان رسانه‌ی دوم تمام عرض ردیف اول را می‌گیرد
   assert.match(
     cssSrc,
-    /\.home-category-layout > a\s*\{[^}]*z-index:\s*1/,
+    /@media \(max-width: 39\.999rem\)[\s\S]*\.home-category-media--second\s*\{[^}]*grid-column:\s*1 \/ -1/,
   );
 });
 
@@ -530,7 +559,7 @@ test('New In کارت را با ارتفاع صفحه محدود می‌کند �
   assert.match(cssSrc, /--zp-side-clear:\s*clamp\(3\.5rem, 14vw, 4\.25rem\)/);
 });
 
-test('پیشنهاد استایل در موبایل دو پنل مربع روی هم دارد', () => {
+test('پیشنهاد استایل در موبایل: ویدیوی ۱۶:۹ بالای کارت مربعی محصول', () => {
   assert.ok(styleSrc.includes('home-style-panel'));
   assert.ok(styleSrc.includes('home-style-video-panel'));
   assert.ok(styleSrc.includes('home-style-slider'));
@@ -541,13 +570,40 @@ test('پیشنهاد استایل در موبایل دو پنل مربع روی 
     cssSrc,
     /@media \(max-width: 39\.999rem\)[\s\S]*#home-style \.home-style-stage\s*\{[^}]*flex-direction:\s*column/,
   );
+  // ویدیو: ارتفاع = عرض × ۹/۱۶ ⇒ افقی ۱۶:۹
   assert.match(
     cssSrc,
-    /#home-style \.home-style-panel\s*\{[^}]*width:\s*var\(--zp-style-panel\)[^}]*height:\s*var\(--zp-style-panel\)/,
+    /--zp-style-video-h:\s*calc\(var\(--zp-style-media-w\) \* 9 \/ 16\)/,
   );
   assert.match(
     cssSrc,
+    /#home-style \.home-style-video-panel\s*\{[^}]*width:\s*var\(--zp-style-media-w\)[^}]*height:\s*var\(--zp-style-video-h\)/,
+  );
+  // کارت محصول: مربع ۱:۱
+  assert.match(
+    cssSrc,
+    /#home-style \.home-style-slider\s*\{[^}]*width:\s*var\(--zp-style-media-w\)[^}]*height:\s*var\(--zp-style-media-w\)/,
+  );
+  // هیچ پنل مربعیِ قدیمی نمانده باشد
+  assert.doesNotMatch(cssSrc, /--zp-style-panel/);
+  assert.match(
+    cssSrc,
     /#home-style \.home-style-control\s*\{[^}]*top:\s*calc/,
+  );
+});
+
+test('کاروسل محصولات در موبایل دقیقاً یک کارت کامل نشان می‌دهد', () => {
+  // پیش‌فرض (موبایل): یک اسلاید در هر نما و بدون فاصله ⇒ بدون سرکِ کارت بعدی
+  assert.match(styleSrc, /perView:\s*1,\s*spacing:\s*0,/);
+  // از ۶۴۰px به بالا همان چیدمان قبلی برمی‌گردد (دسکتاپ دست‌نخورده)
+  assert.match(
+    styleSrc,
+    /'\(min-width: 640px\)':\s*\{\s*slides:\s*\{\s*perView:\s*'auto',\s*spacing:\s*2\s*\}/,
+  );
+  // اسلایدها هم عرضِ کامل پنل‌اند
+  assert.match(
+    cssSrc,
+    /#home-style \.home-style-slide\s*\{[^}]*min-width:\s*100% !important/,
   );
 });
 
