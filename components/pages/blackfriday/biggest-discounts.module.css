@@ -1,0 +1,105 @@
+.section {
+  background: #efeeec;
+  color: #080808;
+  padding: clamp(2.75rem, 5vw, 4.5rem) 0 clamp(3rem, 5vw, 4.75rem);
+}
+
+.inner {
+  width: min(1280px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.65rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(8, 8, 8, 0.2);
+}
+
+.header h2,
+.aside {
+  margin: 0;
+}
+
+.header h2 {
+  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.aside {
+  color: #d20b35;
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.25rem 1.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 767px) {
+  .section {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    height: calc(100dvh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    padding: 1.15rem 0 1.2rem;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: min(1280px, calc(100% - 1.5rem));
+    min-height: 0;
+  }
+
+  .header {
+    flex-shrink: 0;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .grid {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: 1fr 1fr;
+    gap: 0.7rem 0.55rem;
+  }
+
+  .grid > li {
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* کارت مشترک فروشگاه: تصویر کشسان و متن ثابت، تا هر خانه دقیقاً پر شود */
+  .grid > li :global([data-product-card]),
+  .grid > li :global([data-product-card] > a) {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .grid > li :global([data-product-card] > a > div:first-child) {
+    flex: 1 1 auto;
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+
+  /* موبایل: چهار کارت اول، دو در دو */
+  .grid > :nth-child(n + 5) {
+    display: none;
+  }
+}

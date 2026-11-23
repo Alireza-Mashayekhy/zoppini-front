@@ -1,67 +1,99 @@
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
 import { connection } from 'next/server';
 
 import Footer from '@/components/layout/public/footer';
+import { BiggestDiscounts } from '@/components/pages/blackfriday/biggest-discounts';
+import { CampaignScroll } from '@/components/pages/blackfriday/campaign-scroll';
+import { CategoryGrid } from '@/components/pages/blackfriday/category-grid';
+import { Countdown } from '@/components/pages/blackfriday/countdown';
+import { Hero } from '@/components/pages/blackfriday/hero';
+import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
+import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
+import CompareBar from '@/components/shared/compare-bar';
+import { resolveBlackFridaySubcategories } from '@/lib/blackfriday/campaign';
+import { loadBlackFridayCatalog } from '@/lib/blackfriday/catalog';
+import { selectBiggestDiscounts } from '@/lib/blackfriday/products';
+import { getAllCategories } from '@/services/features/categories/server.api';
 
 import styles from './blackfriday.module.css';
-import { CategoryTeaser } from './category-teaser';
-import { ComingSoonHero } from './coming-soon-hero';
-import { ComingSoonWait } from './coming-soon-wait';
-import { CampaignClock } from './countdown';
 
-const vazir = localFont({
-  src: './fonts/Vazir-Medium-FD-WOL.woff2',
-  weight: '500',
-  variable: '--font-bf-vazir',
-  display: 'swap',
-});
-
-const cormorant = localFont({
-  src: './fonts/cormorant-garamond-latin-500-normal.woff2',
-  weight: '500',
-  variable: '--font-bf-cormorant',
-  display: 'swap',
-});
-
-const oswald = localFont({
-  src: [
-    { path: './fonts/oswald-latin-500-normal.woff2', weight: '500' },
-    { path: './fonts/oswald-latin-700-normal.woff2', weight: '700' },
-  ],
-  variable: '--font-bf-oswald',
-  display: 'swap',
-});
+/**
+ * لندینگ بلک فرایدی — نسخهٔ تأییدشدهٔ کمپین، داخل پوستهٔ واقعی فروشگاه.
+ *
+ * چیدمان و ظاهر از نسخهٔ تأییدشدهٔ کمپین آمده‌اند؛ هدر/فوتر/ناوبری و همهٔ
+ * داده‌ها از خود فروشگاه: محصولات از دستهٔ ۱۳۷ خوانده می‌شوند و کارت‌ها همان
+ * کارت مشترک محصول هستند.
+ */
 
 export const metadata: Metadata = {
   title: 'BLACK FRIDAY | زوپینی',
   description:
-    'آغاز کمپین بلک‌فرایدی زوپینی: یکم آذر ۱۴۰۵، ساعت ۰۰:۰۰ به وقت تهران.',
+    'بلک فرایدی زوپینی؛ تا ۷۰٪ تخفیف پوشاک مردانه. مهلت کمپین: ۸ آذر ۱۴۰۵.',
   alternates: { canonical: '/landing/blackfriday' },
+  openGraph: {
+    title: 'BLACK FRIDAY | زوپینی',
+    description: 'بلک فرایدی زوپینی؛ تا ۷۰٪ تخفیف پوشاک مردانه.',
+    url: '/landing/blackfriday',
+    type: 'website',
+    locale: 'fa_IR',
+    images: [
+      {
+        url: '/campaign/blackfriday/hero-desktop.jpg',
+        width: 2048,
+        height: 1152,
+        alt: 'بلک‌فرایدی زوپینی؛ پوشاک مردانهٔ کلاسیک',
+      },
+    ],
+  },
 };
 
-async function getRequestTime() {
-  // Use a fresh server clock for each render, not a build-time timestamp.
-  await connection();
-  return Date.now();
-}
-
 export default async function BlackFridayPage() {
-  const serverNowMs = await getRequestTime();
+  /**
+   * رندر در هر درخواست: زمان و موجودی/قیمت‌ها نباید در build یا کشِ CDN
+   * قفل شوند. این همان الگوی صفحهٔ قبلیِ لندینگ است.
+   */
+  await connection();
+
+  const [catalog, categoriesResponse] = await Promise.all([
+    loadBlackFridayCatalog().catch(error => {
+      console.error('Black Friday catalog request failed', error);
+      return null;
+    }),
+    getAllCategories().catch(() => null),
+  ]);
+
+  const subcategories = resolveBlackFridaySubcategories(
+    categoriesResponse?.data,
+  );
+  // شش محصول با بالاترین تخفیف واقعیِ کل دسته؛ انتخاب در هر درخواست تازه
+  // می‌تواند عوض شود ولی HTMLِ سرور و hydration کلاینت یکی است.
+  const biggestDiscounts = catalog
+    ? selectBiggestDiscounts(catalog.products, 6)
+    : [];
 
   return (
     <div className="flex-1 pb-[var(--zp-mobile-nav-h)] lg:pb-0">
-      <main
-        className={`${styles.campaign} ${vazir.variable} ${cormorant.variable} ${oswald.variable}`}
-        dir="rtl"
-      >
-        <CampaignClock key={serverNowMs} serverNowMs={serverNowMs}>
-          <ComingSoonHero />
-          <ComingSoonWait />
-        </CampaignClock>
-        <CategoryTeaser />
+      <main className={styles.campaign} dir="rtl">
+        <CampaignScroll />
+        <Hero />
+        <BiggestDiscounts products={biggestDiscounts} />
+        <Countdown />
+        <CategoryGrid categories={subcategories} />
+        <ProductCollection
+          initialItems={catalog?.initialPage ?? []}
+          initialPagination={catalog?.pagination ?? null}
+          subcategories={subcategories}
+          unavailable={catalog === null}
+        />
+        <ScrollHint />
       </main>
       <Footer />
+      {/*
+        نوار مقایسهٔ مشترک فروشگاه: کارت محصول دکمهٔ مقایسه دارد، پس مثل
+        بقیهٔ صفحه‌ها نوار هم باید در دسترس باشد (لِی‌اوت این مسیر فقط هدر
+        را می‌آورد).
+      */}
+      <CompareBar />
     </div>
   );
 }

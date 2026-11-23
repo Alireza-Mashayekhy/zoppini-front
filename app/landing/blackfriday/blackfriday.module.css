@@ -1,31 +1,39 @@
+/*
+ * پوستهٔ صفحهٔ کمپین.
+ *
+ * فقط چیزهایی که به صفحه مربوط‌اند اینجا هستند: شروع محتوا زیر هدر ثابت و
+ * رفتار اسکرول بخش‌به‌بخشِ موبایل. رنگ/فونت/چیدمان بخش‌ها در CSS Module
+ * خودشان است و `globals.css` دست نخورده است.
+ */
 .campaign {
-  --cs-black: #080808;
-  --cs-onyx: #171717;
-  --cs-crimson: #c8102e;
-  --cs-burgundy: #690d25;
-  --cs-ivory: #f3ede2;
-  --cs-studio: #eae8e5;
-  --cs-white: #ffffff;
-
   padding-block-start: var(--zp-header-h);
-  background: var(--cs-black);
-  color: var(--cs-ivory);
+  background: #080808;
+  color: #efeeec;
 }
 
-.condensed {
-  font-family: var(--font-bf-oswald), 'Arial Narrow', sans-serif;
+/*
+ * موبایل: هر بخش یک صفحه است و با `scroll-snap-stop: always` یک حرکت، یک
+ * بخش جابه‌جا می‌شود — همان رفتار نسخهٔ تأییدشده.
+ *
+ * کلاس روی `html` فقط تا وقتی این صفحه باز است می‌نشیند (CampaignScroll)،
+ * پس اسکرول بقیهٔ صفحه‌ها عوض نمی‌شود.
+ */
+@media (max-width: 767px) {
+  :global(html.blackfriday-scroll) {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: var(--zp-header-h);
+  }
 }
 
-.serif {
-  font-family: var(--font-bf-cormorant), Georgia, serif;
+@media (prefers-reduced-motion: no-preference) {
+  :global(html.blackfriday-scroll) {
+    scroll-behavior: smooth;
+  }
 }
 
-.persian {
-  font-family: var(--font-bf-vazir), Tahoma, sans-serif;
-  font-weight: 500;
-}
-
-.unit {
-  background: var(--cs-onyx);
-  box-shadow: inset 0 -3px 0 var(--cs-crimson);
+@media (prefers-reduced-motion: reduce) {
+  :global(html.blackfriday-scroll) {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
 }

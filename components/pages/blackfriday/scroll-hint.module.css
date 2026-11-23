@@ -1,0 +1,78 @@
+.hint {
+  position: fixed;
+  z-index: 30;
+  right: 0;
+  left: 0;
+  bottom: 1.15rem;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-inline: auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.55);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.mouse {
+  position: relative;
+  display: block;
+  width: 0.95rem;
+  height: 1.45rem;
+  border: 1.5px solid #ffffff;
+  border-radius: 0.7rem;
+  direction: ltr;
+}
+
+.wheel {
+  position: absolute;
+  top: 0.28rem;
+  left: 50%;
+  width: 2px;
+  height: 0.32rem;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: #ffffff;
+  animation: wheel 1.15s ease-in-out infinite;
+}
+
+@keyframes wheel {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  70% {
+    transform: translateY(0.42rem);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* نوار ناوبری پایین تا ۱۰۲۴px دیده می‌شود؛ نشانگر بالای آن می‌ماند. */
+@media (max-width: 1023.98px) {
+  .hint {
+    bottom: calc(var(--zp-mobile-nav-h) + 0.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel {
+    animation: none;
+  }
+
+  .hint {
+    transition: none;
+  }
+}

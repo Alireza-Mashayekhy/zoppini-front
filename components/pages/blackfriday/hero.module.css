@@ -1,0 +1,280 @@
+/*
+ * بخش یکم — هیروی کمپین.
+ *
+ * عکس، فقط پس‌زمینه است و همهٔ متن‌ها HTML روی آن هستند؛ به همین دلیل
+ * اندازه‌ها با clamp کنترل می‌شوند و ارتفاع در همهٔ عرض‌ها داخل یک محدودهٔ
+ * ثابت می‌ماند (بدون پرش چیدمان و بدون هیروی بلندتر از صفحه).
+ *
+ * روی دسکتاپ متن در ستون راست می‌نشیند (RTL) و پردهٔ تیره از راست به چپ
+ * محو می‌شود؛ روی موبایل بنر کل صفحهٔ دید را می‌گیرد و متن از پایین
+ * می‌آید.
+ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: clamp(28rem, 68vh, 46rem);
+  overflow: hidden;
+  background: #080808;
+  isolation: isolate;
+}
+
+.picture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.banner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to left,
+      rgba(8, 8, 8, 0.9) 0%,
+      rgba(8, 8, 8, 0.72) 26%,
+      rgba(8, 8, 8, 0.24) 52%,
+      rgba(8, 8, 8, 0) 72%
+    ),
+    linear-gradient(to top, rgba(8, 8, 8, 0.55) 0%, rgba(8, 8, 8, 0) 34%);
+}
+
+.content {
+  position: absolute;
+  z-index: 2;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  width: min(38rem, 54%);
+  padding-inline: clamp(1.5rem, 4vw, 4rem);
+  padding-block: 2rem;
+  color: #efeeec;
+  text-align: start;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #d9b25f;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 4.4vw, 3.5rem);
+  /* فونت فروشگاه تا ۷۰۰ دارد؛ ۸۰۰ فقط جعلی و کدر می‌شود */
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  max-width: 33rem;
+  color: rgba(239, 238, 236, 0.88);
+  font-size: clamp(0.98rem, 1.15vw, 1.12rem);
+  line-height: 1.9;
+  text-wrap: balance;
+}
+
+.highlight {
+  color: #f0cd8b;
+  font-weight: 700;
+}
+
+.deadline {
+  /* کوتاه به اندازهٔ متن تا خط طلایی کنار خودِ جمله بنشیند، نه لبهٔ ستون */
+  align-self: flex-start;
+  margin: 0;
+  padding-inline-start: 0.7rem;
+  border-inline-start: 2px solid #d9b25f;
+  color: rgba(239, 238, 236, 0.78);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-block-start: 0.5rem;
+}
+
+.perks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.4rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(239, 238, 236, 0.66);
+  font-size: 0.82rem;
+}
+
+.perks li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.perks li::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  background: #d9b25f;
+}
+
+.primaryCta,
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.1rem;
+  padding: 0.7rem 1.6rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.primaryCta {
+  background: #efeeec;
+  color: #080808;
+}
+
+.secondaryCta {
+  border: 1px solid rgba(239, 238, 236, 0.6);
+  color: #efeeec;
+}
+
+.primaryCta:focus-visible,
+.secondaryCta:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryCta:hover {
+    background: #d9b25f;
+  }
+
+  .secondaryCta:hover {
+    background: rgba(239, 238, 236, 0.14);
+  }
+}
+
+.skipLink {
+  position: absolute;
+  z-index: 3;
+  inset-inline-start: 1rem;
+  top: 1rem;
+  padding: 0.55rem 1rem;
+  background: #080808;
+  color: #efeeec;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-decoration: none;
+  transform: translateY(-300%);
+  transition: transform 160ms ease;
+}
+
+.skipLink:focus-visible {
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  .hero {
+    height: calc(100vh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    height: calc(100dvh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .banner {
+    object-position: 50% 18%;
+  }
+
+  .scrim {
+    background: linear-gradient(
+      to top,
+      rgba(8, 8, 8, 0.94) 0%,
+      rgba(8, 8, 8, 0.78) 30%,
+      rgba(8, 8, 8, 0.28) 58%,
+      rgba(8, 8, 8, 0) 82%
+    );
+  }
+
+  .content {
+    inset-block-start: auto;
+    inset-block-end: 0;
+    width: 100%;
+    gap: 0.5rem;
+    padding: 1.25rem 1.15rem 1.5rem;
+    justify-content: flex-end;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+  }
+
+  .title {
+    font-size: clamp(1.85rem, 8.4vw, 2.4rem);
+  }
+
+  .lede {
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .deadline {
+    font-size: 0.84rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-block-start: 0.35rem;
+  }
+
+  .primaryCta,
+  .secondaryCta {
+    width: 100%;
+    min-height: 2.9rem;
+    padding-block: 0.6rem;
+  }
+
+  .perks {
+    display: none;
+  }
+
+  .skipLink:focus-visible {
+    top: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryCta,
+  .secondaryCta,
+  .skipLink {
+    transition: none;
+  }
+}

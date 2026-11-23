@@ -12,12 +12,82 @@ const categories = [
   { id: 2, name: 'دسته فرزند', slug: 'پیراهن', parentId: 1 },
   { id: 3, name: 'غیرفعال', slug: 'inactive', parentId: null, isActive: false },
   { id: 4, name: 'اسلاگ ویژه', slug: 'special?#%', parentId: null },
+  // دستهٔ واقعی کمپین و پنج زیردستهٔ آن (همان شناسه/اسلاگ فروشگاه)
+  { id: 137, name: 'زوپینی بلک فرایدی', slug: 'zoppini-black-friday', parentId: null },
+  { id: 138, name: 'پیراهن کلاسیک', slug: 'mens-classic-shirts', parentId: 137 },
+  { id: 139, name: 'پیراهن کژوال', slug: 'mens-casual-shirts', parentId: 137 },
+  { id: 140, name: 'شلوار', slug: 'mens-trousers', parentId: 137 },
+  { id: 141, name: 'کت تک', slug: 'mens-blazers', parentId: 137 },
+  { id: 142, name: 'پالتو', slug: 'mens--coats', parentId: 137 },
 ].map(item => ({
   description: '<p>توضیح آزمایشی</p>',
   isActive: true,
   image: '',
   ...item,
 }));
+/**
+ * محصولات آزمایشی کمپین (۲۷ عدد → دو صفحهٔ ۲۴تایی).
+ *
+ * چند محصول بدون موجودی و با تخفیف بالا هم عمداً هست تا رفتار «فقط محصول
+ * موجود» در مسیر واقعی بررسی شود؛ API عمومی فروشگاه این‌ها را برنمی‌گرداند.
+ */
+const blackFridaySubcategories = [
+  { id: 138, name: 'پیراهن کلاسیک', slug: 'mens-classic-shirts' },
+  { id: 139, name: 'پیراهن کژوال', slug: 'mens-casual-shirts' },
+  { id: 140, name: 'شلوار', slug: 'mens-trousers' },
+  { id: 141, name: 'کت تک', slug: 'mens-blazers' },
+  { id: 142, name: 'پالتو', slug: 'mens--coats' },
+];
+const blackFridayProducts = Array.from({ length: 27 }, (_, index) => {
+  const subcategory = blackFridaySubcategories[index % 5];
+  const id = 1000 + index;
+  const price = 1000000 + index * 100000;
+  const percent = index < 4 ? 70 : index === 4 ? 90 : index === 6 ? 75 : 20;
+  const finalPrice = Math.round(price * (1 - percent / 100));
+  const stock = index === 4 || index === 6 ? 0 : 2;
+
+  return {
+    id,
+    productCode: `BF-${id}`,
+    title: `محصول بلک فرایدی ${index + 1}`,
+    slug: `black-friday-product-${index + 1}`,
+    image: '/test.webp',
+    description: '',
+    careInstructionsHtml: '',
+    createdAt: `2026-11-${String(10 + (index % 10)).padStart(2, '0')}T00:00:00.000Z`,
+    updatedAt: '2026-11-10T00:00:00.000Z',
+    suggestedProducts: [],
+    comments: [],
+    colorImages: [],
+    sameColorProducts: [],
+    categories: [subcategory, { id: 137, name: 'زوپینی بلک فرایدی', slug: 'zoppini-black-friday' }],
+    variants: [
+      {
+        id,
+        price,
+        stock,
+        color: { id: 1, name: 'مشکی', hexCode: '#000000' },
+        size: { id: 1, name: 'M' },
+      },
+    ],
+    discount: {
+      id: 7,
+      code: null,
+      title: null,
+      type: 'percentage',
+      value: percent,
+      maxDiscountAmount: null,
+      discountAmount: price - finalPrice,
+      originalPrice: price,
+      finalPrice,
+      expiresAt: '2026-11-30T20:30:00.000Z',
+      stages: [],
+      stacked: false,
+      effectivePercent: percent,
+    },
+  };
+});
+
 const api = createServer((req, res) => {
   const url = new URL(req.url, 'http://fixture');
   requests.push(url.pathname + url.search);
@@ -42,8 +112,44 @@ const api = createServer((req, res) => {
     return send(category ?? null, category ? 200 : 404);
   }
   if (url.pathname === '/api/products') {
+    const requestedCategories = (url.searchParams.get('categoryIds') || '')
+      .split(',')
+      .filter(Boolean);
+    if (requestedCategories.includes('137')) {
+      const page = Number(url.searchParams.get('page') || 1);
+      const limit = Number(url.searchParams.get('limit') || 24);
+      // همان قاعدهٔ API عمومی: فقط محصولاتی که واریانت موجود دارند
+      const inStock = blackFridayProducts.filter(product =>
+        product.variants.some(variant => Number(variant.stock) > 0),
+      );
+      const requestedSubcategories = requestedCategories.filter(
+        id => id !== '137',
+      );
+      const filtered = requestedSubcategories.length
+        ? inStock.filter(product =>
+            product.categories.some(category =>
+              requestedSubcategories.includes(String(category.id)),
+            ),
+          )
+        : inStock;
+      const slice = filtered.slice((page - 1) * limit, page * limit);
+      res.statusCode = 200;
+      res.end(
+        JSON.stringify({
+          status: 200,
+          data: slice,
+          pagination: {
+            page,
+            limit,
+            total: filtered.length,
+            totalPages: Math.ceil(filtered.length / limit),
+          },
+        }),
+      );
+      return;
+    }
     return send(
-      url.searchParams.get('categoryIds') === '1'
+      requestedCategories.includes('1')
         ? [
             {
               id: 10,
@@ -206,48 +312,112 @@ test('product category listing renders actual product cards', async () => {
   assert.match(html, /href="\/landing\/blackfriday"[^>]*>بلک فرایدی<\/a>/);
 });
 
-test('Black Friday uses the production storefront shell and serves its campaign assets', async () => {
+test('Black Friday landing replaces the old page and keeps the storefront shell', async () => {
   const before = requests.length;
   const { res, html } = await page('/landing/blackfriday');
   assert.equal(res.status, 200, logs);
   assert.match(res.headers.get('cache-control') ?? '', /no-store/);
-  assert.match(html, /<main[^>]*dir="rtl"/);
-  assert.match(html, /BLACK FRIDAY/);
-  assert.match(html, /Up To 70% OFF/);
-  assert.match(html, /role="timer"|کمپین آغاز شده است\./);
-  assert.match(html, /<header\b/);
-  assert.match(html, /<footer[^>]*id="site-footer"/);
-  assert.match(html, /href="\/login"/);
-  assert.doesNotMatch(requests.slice(before).join('\n'), /\/api\/products/);
 
-  const assets = [
-    ...[
-      'blazer-black',
-      'blazer-linen-cream',
-      'clutch-black',
-      'knit-fullzip-black',
-      'trousers-classic',
-    ].map(name => [`/campaign/studio/${name}.webp`, /image\/webp/]),
-    [
-      '/_next/image?url=%2Fcampaign%2Fstudio%2Fblazer-black.webp&w=640&q=75',
-      /image\//,
-    ],
-  ];
+  // پوستهٔ واقعی سایت: هدر/فوتر مشترک، بدون هدر یا فوتر دوم
+  assert.match(html, /<main[^>]*dir="rtl"/);
+  assert.match(html, /<header class="w-full bg-background/);
+  assert.equal((html.match(/<header class="w-full bg-background/g) ?? []).length, 1);
+  assert.equal((html.match(/aria-label="ناوبری موبایل"/g) ?? []).length, 1);
+  assert.match(html, /<footer[^>]*id="site-footer"/);
+  assert.equal((html.match(/<footer[^>]*id="site-footer"/g) ?? []).length, 1);
+  assert.match(html, /href="\/landing\/blackfriday"/);
+
+  // بخش‌های تأییدشده، به همان ترتیب
+  assert.match(html, /بیشترین تخفیف‌ها/);
+  assert.match(html, /تا ۷۰٪ تخفیف/);
+  assert.match(html, /تا آخرین لحظه بلک‌فرایدی/);
+  assert.match(html, /role="timer"/);
+  assert.match(html, /خرید بر اساس دسته‌بندی/);
+  assert.match(html, /تمام محصولات بلک‌فرایدی/);
+  const order = [
+    /aria-label="کمپین بلک فرایدی زوپینی"/,
+    /aria-labelledby="discounts-heading"/,
+    /aria-labelledby="countdown-heading"/,
+    /aria-labelledby="categories-heading"/,
+    /id="collection"/,
+  ].map(pattern => html.search(pattern));
+  assert.ok(order.every(index => index > -1), order.join(','));
+  assert.deepEqual([...order].sort((a, b) => a - b), order);
+
+  // کارت محصولِ مشترک فروشگاه، با محصولات واقعیِ همین API
+  assert.match(html, /data-product-card/);
+  assert.match(html, /href="\/product\/black-friday-product-1"/);
+  assert.match(html, /محصول بلک فرایدی 1/);
+  assert.match(html, /href="\/product\/black-friday-product-24"/);
+
+  // صفحهٔ اول (۲۴ محصول) محتوای اولیهٔ بند محصولات است؛ صفحهٔ بعد هنگام
+  // اسکرول از کلاینت خوانده می‌شود و در HTML اولیه نمی‌آید.
+  const collectionSection = html.slice(html.indexOf('id="collection"'));
+  assert.equal(
+    (collectionSection.match(/data-product-card/g) ?? []).length,
+    24,
+  );
+  // (محصول‌های صفحهٔ دوم فقط در بخش «بیشترین تخفیف‌ها» ممکن است دیده شوند،
+  // چون رتبه‌بندی از کل دستهٔ خوانده‌شده انتخاب می‌شود.)
+
+  // محصولات ناموجود (طبق قاعدهٔ فروشگاه) در هیچ بخشی نمی‌آیند
+  assert.doesNotMatch(html, /محصول بلک فرایدی 5</);
+  assert.doesNotMatch(html, /محصول بلک فرایدی 7</);
+
+  // دقیقاً شش محصول در بخش «بیشترین تخفیف‌ها» (موبایل چهارتای اول را CSS
+  // نشان می‌دهد و بقیه را پنهان می‌کند)
+  const discountsSection = html.slice(
+    html.indexOf('aria-labelledby="discounts-heading"'),
+    html.indexOf('id="countdown-heading"'),
+  );
+  assert.equal((discountsSection.match(/data-product-card/g) ?? []).length, 6);
+
+  // کاشی دسته‌ها به مسیرهای واقعی فروشگاه لینک می‌دهد
+  for (const slug of [
+    'mens-classic-shirts',
+    'mens-casual-shirts',
+    'mens-trousers',
+    'mens-blazers',
+    'mens--coats',
+  ]) {
+    assert.match(html, new RegExp(`href="/product-category/${slug}"`));
+  }
+
+  // بدون ارجاع به سورس استندالون یا فونت‌های کمپین قبلی
+  assert.doesNotMatch(html, /landing-blackfriday/);
   const preload = `${html} ${res.headers.get('link') ?? ''}`;
-  const fonts = [
-    ...new Set(
-      preload.match(
-        /\/_next\/static\/media\/(?:Vazir|cormorant|oswald)[\w.~\-]+\.woff2/g,
-      ),
-    ),
-  ];
-  assert.equal(fonts.length, 4, 'SSR preloads all four campaign font files');
-  assets.push(...fonts.map(font => [font, /woff2/]));
+  assert.doesNotMatch(preload, /Vazir|cormorant|oswald/);
+
+  // دارایی‌های تأییدشده از مسیر نهایی و با بهینه‌سازی next/image
+  assert.match(html, /campaign%2Fblackfriday%2Fhero-desktop\.jpg/);
+  assert.match(html, /campaign%2Fblackfriday%2Fhero-mobile\.jpg/);
+  // تیتر صفحه متن واقعی است، نه متنِ پخته‌شده داخل عکس
+  assert.match(html, /<h1[^>]*>[^<]*بلک‌فرایدی زوپینی[^<]*<\/h1>/);
+  for (const image of [
+    'category-classic-shirts',
+    'category-casual-shirts',
+    'category-trousers',
+    'category-blazers',
+    'category-coats',
+  ]) {
+    assert.match(html, new RegExp(`campaign%2Fblackfriday%2F${image}\\.jpg`));
+  }
 
   const css = html.match(/href="(\/_next\/static\/[^" ]+\.css)"/);
   const script = html.match(/src="(\/_next\/static\/[^" ]+\.js)"/);
   assert.ok(css && script, 'SSR links to the compiled CSS and JS assets');
-  assets.push([css[1], /text\/css/], [script[1], /javascript/]);
+
+  const assets = [
+    ['/campaign/blackfriday/hero-desktop.jpg', /image\/jpeg/],
+    ['/campaign/blackfriday/hero-mobile.jpg', /image\/jpeg/],
+    ['/campaign/blackfriday/category-classic-shirts.jpg', /image\/jpeg/],
+    [
+      `/_next/image?url=${encodeURIComponent('/campaign/blackfriday/hero-desktop.jpg')}&w=1920&q=75`,
+      /image\//,
+    ],
+    [css[1], /text\/css/],
+    [script[1], /javascript/],
+  ];
 
   for (const [path, contentType] of assets) {
     const asset = await fetch(`${origin}${path}`);
@@ -255,4 +425,39 @@ test('Black Friday uses the production storefront shell and serves its campaign 
     assert.match(asset.headers.get('content-type') ?? '', contentType, path);
     assert.ok((await asset.arrayBuffer()).byteLength > 0, path);
   }
+});
+
+test('Black Friday products come from category 137 across every API page', async () => {
+  const before = requests.length;
+  const { res } = await page('/landing/blackfriday');
+  assert.equal(res.status, 200, logs);
+
+  const productRequests = requests
+    .slice(before)
+    .filter(url => url.startsWith('/api/products?'));
+
+  assert.ok(productRequests.length >= 2, productRequests.join('\n'));
+  assert.ok(
+    productRequests.some(
+      url =>
+        url.includes('categoryIds=137') &&
+        url.includes('limit=24') &&
+        url.includes('page=1'),
+    ),
+    productRequests.join('\n'),
+  );
+  // رتبه‌بندی «بیشترین تخفیف» فقط از صفحهٔ اول نیست
+  assert.ok(
+    productRequests.some(
+      url => url.includes('categoryIds=137') && url.includes('page=2'),
+    ),
+    productRequests.join('\n'),
+  );
+  // پارامترهایی که API با آن‌ها فیلتر نمی‌کند هرگز فرستاده نمی‌شوند
+  assert.ok(
+    productRequests.every(
+      url => !/[?&]category=/.test(url) && !url.includes('categorySlug='),
+    ),
+    productRequests.join('\n'),
+  );
 });
