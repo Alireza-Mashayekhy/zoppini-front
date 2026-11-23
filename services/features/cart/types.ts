@@ -11,11 +11,21 @@ export interface CartItem {
     product: ProductsResponse;
     /** قیمت قابل پرداخت هر واحد پس از فروش ویژه و پروموشن */
     payablePrice?: number;
+    /**
+     * قیمت هر واحد پس از تخفیف سطح محصول و **پیش از** پروموشن سبد.
+     * (فیلد افزودنی سرور؛ برای نمایش قیمت محصول در خلاصهٔ سفارش)
+     */
+    salePrice?: number;
   };
   /** وضعیت تخفیف پروموشن این ردیف (از سرور) */
   promotion?: CartLinePromotion;
   payablePrice?: number;
   payableTotal?: number;
+  /**
+   * جمع ردیف بر پایهٔ قیمت سطح محصول (پس از فروش ویژه، پیش از پروموشن سبد).
+   * فیلد افزودنی سرور؛ برای نمایش قیمت محصول در خلاصهٔ سفارش.
+   */
+  saleTotal?: number;
   /** اگر ردیف هدیهٔ رایگان باشد */
   freeReason?: string;
   freePromotionId?: number | null;

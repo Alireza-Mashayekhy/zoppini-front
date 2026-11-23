@@ -7,8 +7,12 @@ import { formatPriceFa } from '@/lib/discount';
 import { cn } from '@/lib/utils';
 import { CartItem, CartResponse } from '@/services/features/cart/types';
 import { ApplyDiscountResponse } from '@/services/features/discounts/types';
-import { CheckoutPreviewResponse } from '@/services/features/orders/type';
+import {
+  CheckoutPreviewLine,
+  CheckoutPreviewResponse,
+} from '@/services/features/orders/type';
 
+import { resolveCheckoutLinePrice } from './line-price';
 import { resolvePromotionTotals } from './promotion-totals';
 
 interface OrderSummaryProps {
@@ -79,6 +83,7 @@ export default function OrderSummary({
 
       <CheckoutItemsList
         items={items}
+        previewLines={checkoutPreview?.lines ?? null}
         onQuantityChange={onQuantityChange}
         onRemoveItem={onRemoveItem}
         isUpdatingCart={isUpdatingCart}
@@ -123,6 +128,11 @@ export interface CheckoutItemsListProps {
    * قیمت واحد. حالت پیش‌فرض (کامپکت) همان ظاهر قبلی خلاصه سفارش است.
    */
   detailed?: boolean;
+  /**
+   * ردیف‌های پیش‌نمایش سرور؛ وقتی موجود باشند قیمت هر ردیف از همین منبع
+   * خوانده می‌شود تا با عدد لحظهٔ ثبت سفارش یکی باشد.
+   */
+  previewLines?: CheckoutPreviewLine[] | null;
 }
 
 export function CheckoutItemsList({
@@ -131,14 +141,35 @@ export function CheckoutItemsList({
   onRemoveItem,
   isUpdatingCart = false,
   detailed = false,
+  previewLines = null,
 }: CheckoutItemsListProps) {
+  const previewByLineId = new Map(
+    (previewLines ?? []).map(line => [line.lineId, line]),
+  );
+
   return (
     <div
       className={cn(
         detailed ? 'space-y-4' : 'space-y-3 max-h-60 overflow-y-auto',
       )}
     >
-      {items.map(item => (
+      {items.map(item => {
+        const linePrice = resolveCheckoutLinePrice({
+          quantity: item.quantity,
+          listUnitPrice: Number(item.variant.originalPrice ?? item.variant.price),
+          previewLine: previewByLineId.get(item.id) ?? null,
+          saleTotal: item.saleTotal ?? null,
+          variantSaleUnitPrice: item.variant.salePrice ?? null,
+          payableTotal:
+            item.payableTotal ??
+            (item.payablePrice != null
+              ? Number(item.payablePrice) * item.quantity
+              : null),
+          cartPromotionDiscount: item.promotion?.promotionDiscount ?? 0,
+          isFreeReward: !!item.promotion?.isFreeReward,
+        });
+
+        return (
           <div
             key={item.id}
             className={cn(
@@ -174,15 +205,7 @@ export function CheckoutItemsList({
 
               {detailed && (
                 <p className="mt-1 text-xs text-gray-500">
-                  قیمت واحد:{' '}
-                  {formatPriceFa(
-                    Number(
-                      item.variant.discountedPrice ??
-                        item.variant.originalPrice ??
-                        item.variant.price,
-                    ),
-                  )}{' '}
-                  تومان
+                  قیمت واحد: {formatPriceFa(linePrice.unitProductPrice)} تومان
                 </p>
               )}
 
@@ -237,25 +260,32 @@ export function CheckoutItemsList({
                     رایگان
                   </span>
                   <del className="text-[11px] text-gray-400">
-                    {(
-                      Number(item.variant.price) * item.quantity
-                    ).toLocaleString()}{' '}
-                    تومان
+                    {linePrice.listTotal.toLocaleString()} تومان
                   </del>
                 </>
               ) : (
                 <>
-                  {!!item.promotion?.promotionDiscount && (
-                    <span className="text-sm font-semibold whitespace-nowrap">
-                      {(
-                        Number(
-                          item.variant.originalPrice ?? item.variant.price,
-                        ) *
-                          item.quantity -
-                        item.promotion.promotionDiscount
-                      ).toLocaleString()}{' '}
-                      تومان
-                    </span>
+                  {/**
+                   * قیمت ردیف = قیمت سطح محصول (پس از فروش ویژه).
+                   * تخفیف پروموشن سبد عمداً این‌جا کم نمی‌شود؛ آن تخفیف
+                   * جداگانه در جمع‌های همین خلاصه نمایش داده می‌شود.
+                   */}
+                  {linePrice.hasProductDiscount &&
+                    linePrice.productDiscountPercent !== null && (
+                      <span className="text-[10px] font-medium text-green-700">
+                        {linePrice.productDiscountPercent.toLocaleString(
+                          'fa-IR',
+                        )}
+                        ٪ تخفیف
+                      </span>
+                    )}
+                  <span className="text-sm font-semibold whitespace-nowrap">
+                    {linePrice.productTotal.toLocaleString()} تومان
+                  </span>
+                  {linePrice.hasProductDiscount && (
+                    <del className="text-xs font-medium whitespace-nowrap text-gray-400">
+                      {linePrice.listTotal.toLocaleString()} تومان
+                    </del>
                   )}
                 </>
               )}
@@ -269,40 +299,10 @@ export function CheckoutItemsList({
                     {label}
                   </span>
                 ))}
-
-              {!item.promotion?.promotionDiscount &&
-                !item.promotion?.isFreeReward &&
-                !!item.variant.discount &&
-                item.variant?.discountedPrice !==
-                  item.variant.originalPrice && (
-                  <span className="text-sm font-semibold whitespace-nowrap">
-                    {(
-                      Number(item.variant.discountedPrice) * item.quantity
-                    ).toLocaleString()}{' '}
-                    تومان
-                  </span>
-                )}
-              {!item.promotion?.isFreeReward && (
-                <span
-                  className={
-                    (item.variant.discount &&
-                      item.variant?.discountedPrice !==
-                        item.variant.originalPrice) ||
-                    !!item.promotion?.promotionDiscount
-                      ? 'text-xs font-semibold whitespace-nowrap line-through'
-                      : 'text-sm font-semibold whitespace-nowrap'
-                  }
-                >
-                  {(
-                    Number(item.variant.originalPrice ?? item.variant.price) *
-                    item.quantity
-                  ).toLocaleString()}{' '}
-                  تومان
-                </span>
-              )}
             </div>
           </div>
-        ))}
+        );
+      })}
       </div>
   );
 }

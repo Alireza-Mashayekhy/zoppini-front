@@ -1212,6 +1212,7 @@ export default function CheckoutForm() {
       </h2>
       <CheckoutItemsList
         items={cartItems}
+        previewLines={checkoutPreviewData?.data?.lines ?? null}
         onQuantityChange={handleQuantityChange}
         onRemoveItem={handleRemoveCartItem}
         isUpdatingCart={isUpdatingCart}
