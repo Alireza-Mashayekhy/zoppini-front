@@ -51,20 +51,25 @@ test('landing does not load its own fonts or global element styles', () => {
   assert.doesNotMatch(pageCss, /^\s*body\s*\{/m);
 });
 
-test('hero uses photographic art direction and real HTML copy', () => {
-  // عکس واقعی، دو نسخهٔ جدا با <picture> و بهینه‌سازی next/image
-  assert.match(hero, /\/campaign\/blackfriday\/hero-desktop\.jpg/);
-  assert.match(hero, /\/campaign\/blackfriday\/hero-mobile\.jpg/);
+test('hero shows the approved campaign poster without extra overlay copy', () => {
+  // همان دو فایل تأییدشدهٔ کمپین؛ نسخهٔ دسکتاپ و موبایل با <picture> جابه‌جا می‌شوند
+  assert.match(hero, /\/campaign\/blackfriday\/hero-banner-desktop\.png/);
+  assert.match(hero, /\/campaign\/blackfriday\/hero-banner-mobile\.png/);
   assert.match(hero, /<picture/);
   assert.match(hero, /media="\(max-width: 767px\)"/);
 
-  // همهٔ متن‌ها HTML واقعی‌اند (نه متنِ داخل عکس): تیتر، توضیح و دکمه‌ها
+  // پوستر خودش تیتر و «۷۰٪ تخفیف» را دارد؛ متن یا پردهٔ اضافه روی آن نمی‌نشیند
+  assert.doesNotMatch(
+    hero,
+    /styles\.(scrim|title|lede|eyebrow|deadline|actions|primaryCta|secondaryCta|perks)/,
+  );
+  // ساختار صفحه و صفحه‌خوان از دست نمی‌رود: h1 واقعی (نامرئی) و میان‌بر به فهرست
   assert.match(hero, /<h1[^>]*>[^<]+<\/h1>/);
+  assert.match(hero, /styles\.visuallyHidden/);
   assert.match(hero, /href="#collection"/);
-  assert.match(hero, /href="#categories"/);
 
-  assert.match(heroCss, /object-fit:\s*cover/);
-  assert.match(heroCss, /linear-gradient/);
+  assert.match(heroCss, /object-fit:\s*contain/);
+  assert.doesNotMatch(heroCss, /linear-gradient/);
   assert.match(heroCss, /scroll-snap-align:\s*start/);
   assert.match(
     heroCss,

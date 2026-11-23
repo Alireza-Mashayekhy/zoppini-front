@@ -38,10 +38,10 @@ export const metadata: Metadata = {
     locale: 'fa_IR',
     images: [
       {
-        url: '/campaign/blackfriday/hero-desktop.jpg',
-        width: 2048,
-        height: 1152,
-        alt: 'بلک‌فرایدی زوپینی؛ پوشاک مردانهٔ کلاسیک',
+        url: '/campaign/blackfriday/og-blackfriday.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'پوستر بلک‌فرایدی زوپینی؛ تا ۷۰٪ تخفیف پوشاک مردانهٔ کلاسیک',
       },
     ],
   },

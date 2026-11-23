@@ -5,34 +5,33 @@ import styles from './hero.module.css';
 /**
  * بخش یکم — هیروی کمپین.
  *
- * عکس ادیتوریال واقعی (پوشاک مردانهٔ کلاسیک) پس‌زمینه است و همهٔ متن‌ها
- * HTML واقعی روی آن هستند: تیتر، توضیح و دکمهٔ اصلی. بنابراین متن‌ها در هر
- * اندازه‌ای تیز و خوانا می‌مانند، با فونت خود فروشگاه رندر می‌شوند، در
- * جست‌وجو و صفحه‌خوان دیده می‌شوند و با بزرگ‌نمایی مرورگر خراب نمی‌شوند.
+ * دقیقاً همان هنر تأییدشدهٔ کمپین: پوستر «BLACK FRIDAY» زوپینی، بدون هیچ
+ * متن یا پردهٔ اضافه روی آن. دو فایل مستقل با `<picture>` جابه‌جا می‌شوند
+ * (دسکتاپ ۱۶:۹ و موبایل ۹:۱۶) تا در هر اندازه هیچ بخشی از پوستر بریده نشود.
  *
- * نسخهٔ موبایل و دسکتاپ دو فایل جدا هستند و با `<picture>` عوض می‌شوند؛
- * `getImageProps` همان بهینه‌سازیِ `next/image` (AVIF/WebP و srcset
- * واکنش‌گرا) را روی هر دو اعمال می‌کند، بدون اینکه فایل پنهان هم دانلود شود.
+ * `getImageProps` همان بهینه‌سازی `next/image` (WebP/AVIF و srcset واکنش‌گرا)
+ * را روی هر دو فایل اعمال می‌کند، بدون اینکه مرورگر فایل پنهان را دانلود کند.
+ * عکس تنها محتوای دیداری این بخش است، پس `alt` معنای پوستر را می‌رساند و
+ * برای ساختار صفحه یک `h1` واقعی (فقط برای صفحه‌خوان/سئو، نامرئی) هم هست.
  */
-const DESKTOP_IMAGE = {
-  src: '/campaign/blackfriday/hero-desktop.jpg',
-  width: 2048,
-  height: 1152,
+const DESKTOP_BANNER = {
+  src: '/campaign/blackfriday/hero-banner-desktop.png',
+  width: 6666,
+  height: 3750,
 };
 
-const MOBILE_IMAGE = {
-  src: '/campaign/blackfriday/hero-mobile.jpg',
-  width: 1242,
-  height: 2208,
+const MOBILE_BANNER = {
+  src: '/campaign/blackfriday/hero-banner-mobile.png',
+  width: 1152,
+  height: 2048,
 };
 
-/** توضیح عکس، نه تکرار متن تیتر (تیتر و دکمه متن مستقل دارند) */
 const ALT =
-  'دو مدل مرد در پالتوی دوتیکهٔ خاکستری و کت‌وشلوار زغالی زوپینی در استودیوی تاریک';
+  'پوستر بلک‌فرایدی زوپینی؛ نوشتهٔ BLACK FRIDAY و تا ۷۰٪ تخفیف پوشاک مردانهٔ کلاسیک';
 
 export function Hero() {
   const { props: desktopProps } = getImageProps({
-    ...DESKTOP_IMAGE,
+    ...DESKTOP_BANNER,
     alt: ALT,
     sizes: '100vw',
     loading: 'eager',
@@ -40,13 +39,17 @@ export function Hero() {
   });
 
   const { props: mobileProps } = getImageProps({
-    ...MOBILE_IMAGE,
+    ...MOBILE_BANNER,
     alt: ALT,
     sizes: '100vw',
   });
 
   return (
     <section className={styles.hero} aria-label="کمپین بلک فرایدی زوپینی">
+      <h1 id="blackfriday-heading" className={styles.visuallyHidden}>
+        بلک‌فرایدی زوپینی؛ تا ۷۰٪ تخفیف پوشاک مردانهٔ کلاسیک
+      </h1>
+
       <picture className={styles.picture}>
         <source
           media="(max-width: 767px)"
@@ -57,40 +60,6 @@ export function Hero() {
         />
         <img {...desktopProps} alt={ALT} className={styles.banner} />
       </picture>
-
-      {/* پردهٔ تیره تا متن روی عکس همیشه کنتراست کافی داشته باشد */}
-      <div className={styles.scrim} aria-hidden="true" />
-
-      <div className={styles.content}>
-        <p className={styles.eyebrow} dir="ltr" lang="en">
-          Black Friday
-        </p>
-
-        <h1 className={styles.title}>بلک‌فرایدی زوپینی</h1>
-
-        <p className={styles.lede}>
-          تا <span className={styles.highlight}>۷۰٪ تخفیف</span> روی پوشاک
-          مردانهٔ کلاسیک
-        </p>
-
-        <p className={styles.deadline}>مهلت کمپین: ۸ آذر ۱۴۰۵</p>
-
-        <div className={styles.actions}>
-          <a className={styles.primaryCta} href="#collection">
-            مشاهده محصولات بلک‌فرایدی
-          </a>
-          <a className={styles.secondaryCta} href="#categories">
-            خرید بر اساس دسته‌بندی
-          </a>
-        </div>
-
-        {/* همان قول‌های همیشگی فروشگاه؛ فقط روی دسکتاپ برای شلوغ نشدن موبایل */}
-        <ul className={styles.perks}>
-          <li>ارسال سریع</li>
-          <li>ضمانت اصالت کالا</li>
-          <li>پرداخت امن</li>
-        </ul>
-      </div>
 
       {/* میان‌بر کیبورد برای رفتن مستقیم به فهرست محصولات */}
       <a className={styles.skipLink} href="#collection">

@@ -389,9 +389,9 @@ test('Black Friday landing replaces the old page and keeps the storefront shell'
   assert.doesNotMatch(preload, /Vazir|cormorant|oswald/);
 
   // دارایی‌های تأییدشده از مسیر نهایی و با بهینه‌سازی next/image
-  assert.match(html, /campaign%2Fblackfriday%2Fhero-desktop\.jpg/);
-  assert.match(html, /campaign%2Fblackfriday%2Fhero-mobile\.jpg/);
-  // تیتر صفحه متن واقعی است، نه متنِ پخته‌شده داخل عکس
+  assert.match(html, /campaign%2Fblackfriday%2Fhero-banner-desktop\.png/);
+  assert.match(html, /campaign%2Fblackfriday%2Fhero-banner-mobile\.png/);
+  // پوستر تأییدشده تنها محتوای دیداری هیرو است؛ تیتر ساختاری صفحه هم هست
   assert.match(html, /<h1[^>]*>[^<]*بلک‌فرایدی زوپینی[^<]*<\/h1>/);
   for (const image of [
     'category-classic-shirts',
@@ -408,11 +408,12 @@ test('Black Friday landing replaces the old page and keeps the storefront shell'
   assert.ok(css && script, 'SSR links to the compiled CSS and JS assets');
 
   const assets = [
-    ['/campaign/blackfriday/hero-desktop.jpg', /image\/jpeg/],
-    ['/campaign/blackfriday/hero-mobile.jpg', /image\/jpeg/],
+    ['/campaign/blackfriday/hero-banner-desktop.png', /image\/png/],
+    ['/campaign/blackfriday/hero-banner-mobile.png', /image\/png/],
+    ['/campaign/blackfriday/og-blackfriday.jpg', /image\/jpeg/],
     ['/campaign/blackfriday/category-classic-shirts.jpg', /image\/jpeg/],
     [
-      `/_next/image?url=${encodeURIComponent('/campaign/blackfriday/hero-desktop.jpg')}&w=1920&q=75`,
+      `/_next/image?url=${encodeURIComponent('/campaign/blackfriday/hero-banner-desktop.png')}&w=1920&q=75`,
       /image\//,
     ],
     [css[1], /text\/css/],
