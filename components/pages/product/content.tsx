@@ -18,6 +18,7 @@ import {
   findSelectedVariant,
   resolveDisplayVariant,
 } from '@/lib/product-price';
+import { selectCartPromotionBanner } from '@/lib/promotion-banner';
 import { useAddToCart } from '@/services/features/cart/hooks';
 import { ProductGuidesForCustomer } from '@/services/features/product-guides/type';
 import {
@@ -29,6 +30,7 @@ import { useCartStore } from '@/store/cart.store';
 
 import InstallmentInfo from './installment-info';
 import { selectedProductPrice } from './installment-price';
+import ProductPromotionBanner from './promotion-banner';
 import RelatedSlider from './relatedSlider';
 import ProductShareButton from './share-button';
 import TrustStrip from './trust-strip';
@@ -176,6 +178,19 @@ export default function ProductContent({
     );
   };
 
+  /*
+   * بنر بلک‌فرایدی فقط از روی نشان‌هایی ساخته می‌شود که بک‌اند قبلاً
+   * صلاحیتشان را تأیید کرده است (promotionBadges). هیچ قاعدهٔ صلاحیت یا
+   * محاسبهٔ قیمتی این‌جا تکرار/بازنویسی نمی‌شود و درصد هم از
+   * rewardValue واقعی پروموشن می‌آید.
+   */
+  const cartPromotionBanner = selectCartPromotionBanner(product.promotionBadges);
+
+  const otherPromotionBadges =
+    product.promotionBadges?.filter(
+      badge => badge.promotionId !== cartPromotionBanner?.promotionId,
+    ) ?? [];
+
   return (
     <div className="flex flex-col gap-6 pt-1 sm:pt-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -202,9 +217,16 @@ export default function ProductContent({
               onSizeSelect={setSelectedSizeId}
             />
 
-            {!!product.promotionBadges?.length && (
+            {cartPromotionBanner && (
+              <ProductPromotionBanner
+                name={cartPromotionBanner.name}
+                percent={cartPromotionBanner.percent}
+              />
+            )}
+
+            {!!otherPromotionBadges.length && (
               <div className="mt-4 flex flex-col gap-2">
-                {product.promotionBadges.map(badge => (
+                {otherPromotionBadges.map(badge => (
                   <div
                     key={badge.promotionId}
                     className="border border-[#ad2e38]/25 bg-[#ad2e38]/5 p-3"

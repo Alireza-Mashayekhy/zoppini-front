@@ -83,9 +83,15 @@ export interface ProductsResponse {
   /** نشان‌های پروموشن (بدون تغییر قیمت، فقط توضیح پیشنهاد) */
   promotionBadges?: {
     promotionId: number;
+    /** نام واقعی پروموشن (برای بنر صفحهٔ محصول) */
+    name?: string;
     badgeText: string;
     description: string | null;
     type: string;
+    /** نوع پاداش پروموشن؛ برای نمایش درصد واقعی در بنر */
+    rewardType?: import('../promotions/types').PromotionRewardType;
+    /** مقدار پاداش پروموشن (درصد یا مبلغ) از بک‌اند */
+    rewardValue?: number | null;
     hint: string;
   }[];
   /** نشان پروموشن روی کارت محصول (در لیست‌ها) */
