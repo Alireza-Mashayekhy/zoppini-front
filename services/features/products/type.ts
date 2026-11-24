@@ -24,6 +24,9 @@ export interface CreateSizeDto {
 
 export interface VariantResponse {
   id: number;
+  productId: number;
+  colorId: number;
+  sizeId: number;
   price: number;
   stock: number;
   sku?: string;
@@ -190,8 +193,12 @@ export interface FeaturedProductResponse {
     slug: string;
     productCode: string;
     description: string;
-    variants: any[];
+    variants: VariantResponse[];
     colorImages: ProductColorImage[];
+    /** Same product-level sale data as GET /products, attached by the public featured endpoint. */
+    discount?: ProductDiscount | null;
+    promotionBadge?: ProductsResponse['promotionBadge'];
+    extraDiscountBadge?: ProductsResponse['extraDiscountBadge'];
   };
   color: {
     id: number;

@@ -127,7 +127,7 @@ export default function NewIn({ products }: NewInProps) {
       {/* Title — در موبایل فشرده‌تر تا کارت بزرگ‌تر و کامل‌تر دیده شود. */}
       <div className="shrink-0 pt-3 sm:pt-5">
         <LuxuryTitle className="px-4 pb-1 sm:p-10" left>
-          New In
+          Black Friday
         </LuxuryTitle>
       </div>
 
@@ -158,7 +158,8 @@ export default function NewIn({ products }: NewInProps) {
               variant => variant?.colorId === product?.colorId,
             );
 
-            const price = variant?.price || 0;
+            const discount = product.product.discount ?? undefined;
+            const price = discount?.originalPrice ?? variant?.price ?? 0;
 
             return (
               <div
@@ -177,6 +178,11 @@ export default function NewIn({ products }: NewInProps) {
                     title={product.product.title}
                     price={price}
                     slug={product.product.slug}
+                    discount={discount}
+                    promotionBadge={product.product.promotionBadge ?? null}
+                    extraDiscountBadge={
+                      product.product.extraDiscountBadge ?? null
+                    }
                   />
                 </div>
               </div>

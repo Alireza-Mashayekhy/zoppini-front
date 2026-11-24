@@ -73,7 +73,9 @@ export default async function HomePage() {
       */}
       <HomeScrollExperience />
 
-      {/* Hero → New In Transition */}
+      {/* ابتدا بنر فروش ویژه، سپس هیرو و بخش محصولات جدید */}
+      <SaleBanner image={homeImages['home.sale-banner']} />
+
       <HeroNewInTransition
         categories={HeroSectionCategories?.data ?? []}
         products={FeaturedProducts?.data ?? []}
@@ -82,8 +84,6 @@ export default async function HomePage() {
           second: homeImages['home.hero-2-poster'],
         }}
       />
-
-      <SaleBanner image={homeImages['home.sale-banner']} />
 
       {/* دسته‌بندی‌ها، پیشنهاد استایل و ویدیوی پایانی — هر کدام یک بخش */}
       <CategoriesSection

@@ -102,6 +102,13 @@ test('platforms and standalone detection', () => {
   assert.equal(isSafePromotionPath('/products'), true);
 });
 
+test('PWA install modal is temporarily disabled without changing PWA setup', () => {
+  const providers = readFileSync('app/providers.tsx', 'utf8');
+  assert.match(providers, /\/\* <PWAModal \/> \*\//);
+  assert.match(providers, /\/\/ import PWAModal from/);
+  assert.match(providers, /QueryClientProvider/);
+});
+
 test('manifest icon files have the promised dimensions', () => {
   const data = manifest();
   assert.equal(data.display, 'standalone');

@@ -7,7 +7,8 @@ import {
 } from '@tanstack/react-query';
 import NextTopLoader from 'nextjs-toploader';
 
-import PWAModal from '@/components/shared/pwa-modal';
+// Temporarily disabled: uncomment this import and render below to re-enable the PWA install modal.
+// import PWAModal from '@/components/shared/pwa-modal';
 import ScrollTriggerLayoutGuard from '@/components/shared/scroll-trigger-layout-guard';
 import { DirectionProvider } from '@/components/ui/direction';
 import { Toaster } from '@/components/ui/sonner';
@@ -51,7 +52,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <>
       <NextTopLoader color="#1E2939" showSpinner={false} />
       <ScrollTriggerLayoutGuard />
-      <PWAModal />
+      {/* Temporary PWA modal disablement; restore this component when the campaign ends. */}
+      {/* <PWAModal /> */}
       <Toaster theme="light" richColors position="top-right" />
 
       <QueryClientProvider client={queryClient}>

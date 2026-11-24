@@ -42,9 +42,9 @@ const VIEWPORT = 900;
 
 /** پنج بخش تمام‌صفحه، دو صفحه‌ی دسته‌بندی و یک ویدیوی پایانی */
 const sections = [
-  { id: 'home-hero', top: 0, height: VIEWPORT },
-  { id: 'home-new-in', top: 900, height: VIEWPORT },
-  { id: 'home-sale', top: 1800, height: VIEWPORT },
+  { id: 'home-sale', top: 0, height: VIEWPORT },
+  { id: 'home-hero', top: 900, height: VIEWPORT },
+  { id: 'home-new-in', top: 1800, height: VIEWPORT },
   { id: 'home-categories', top: 2700, height: VIEWPORT * 2 },
   { id: 'home-categories', top: 3600, height: VIEWPORT },
   { id: 'home-style', top: 4500, height: VIEWPORT },
@@ -214,9 +214,9 @@ test('دایره‌ی فعال از موقعیت واقعی اسکرول حسا�
       })
     ]?.sectionId;
 
-  assert.equal(activeAt(0), 'home-hero');
-  assert.equal(activeAt(900), 'home-new-in');
-  assert.equal(activeAt(1800), 'home-sale');
+  assert.equal(activeAt(0), 'home-sale');
+  assert.equal(activeAt(900), 'home-hero');
+  assert.equal(activeAt(1800), 'home-new-in');
   assert.equal(activeAt(2700), 'home-categories');
   assert.equal(activeAt(3600), 'home-categories');
   assert.equal(activeAt(4500), 'home-style');
@@ -249,6 +249,14 @@ test('دایره‌ی فعال هیچ‌وقت از محدوده‌ی نقاط �
 /* ────────────────────────────────────────────────────────────────────────── */
 /* ساختار صفحه و بخش‌ها                                                        */
 /* ────────────────────────────────────────────────────────────────────────── */
+
+test('ترتیب DOM و ناوبری با جابه‌جایی SaleBanner قبل از Hero هماهنگ است', () => {
+  assert.ok(pageSrc.indexOf('<SaleBanner') < pageSrc.indexOf('<HeroNewInTransition'));
+  assert.deepEqual(
+    HOME_SECTIONS.slice(0, 3).map(section => section.id),
+    ['home-sale', 'home-hero', 'home-new-in'],
+  );
+});
 
 test('هر بخش ثبت‌شده در ناوبری یک المان واقعی روی صفحه دارد', () => {
   for (const section of HOME_SECTIONS as HomeSectionMeta[]) {
@@ -592,6 +600,16 @@ test('پیشنهاد استایل در موبایل: ویدیوی ۱۶:۹ بال
   );
 });
 
+test('عنوان نمایشی بخش New In به Black Friday تغییر یافته و ساختار داده ثابت است', () => {
+  assert.match(newInSrc, /Black Friday/);
+  assert.doesNotMatch(newInSrc, /New In/);
+  assert.ok(newInSrc.includes('products.map'));
+  assert.ok(newInSrc.includes('useKeenSlider'));
+  assert.ok(newInSrc.includes('discount={discount}'));
+  assert.ok(newInSrc.includes('promotionBadge={product.product.promotionBadge'));
+  assert.ok(newInSrc.includes('extraDiscountBadge={'));
+});
+
 test('کاروسل محصولات در موبایل دقیقاً یک کارت کامل نشان می‌دهد', () => {
   // پیش‌فرض (موبایل): یک اسلاید در هر نما و بدون فاصله ⇒ بدون سرکِ کارت بعدی
   assert.match(styleSrc, /perView:\s*1,\s*spacing:\s*0,/);
@@ -605,6 +623,10 @@ test('کاروسل محصولات در موبایل دقیقاً یک کارت �
     cssSrc,
     /#home-style \.home-style-slide\s*\{[^}]*min-width:\s*100% !important/,
   );
+  // حذف حداقل عرضِ ثابت موبایل تا Keen هندسه را از عرض واقعی کانتینر بگیرد.
+  assert.match(styleSrc, /min-w-0! sm:min-w-\[45vw\]!/);
+  assert.ok(styleSrc.includes('useSliderResize(sliderRef, instanceRef)'));
+  assert.ok(styleSrc.includes('ref={resizeRef}'));
 });
 
 test('فوتر موبایل فشرده، اسنپ‌پذیر و بالای نوار پایین است', () => {

@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
 import LuxuryTitle from '@/components/shared/luxury-title';
+import { useSliderResize } from '@/hooks/use-slider-resize';
 import { FeaturedProductResponse } from '@/services/features/products/type';
 
 const AUTOPLAY_DELAY_MS = 4000;
@@ -113,6 +114,8 @@ export default function SuggestedStyle({
 
   // ویدیو اسلاید جدا و بالای کاروسل است؛ تعداد اسلایدهای کاروسل فقط محصولات‌اند.
   const totalSlides = products.length;
+  // Recompute Keen's geometry when a responsive parent changes size without a window resize.
+  const resizeRef = useSliderResize(sliderRef, instanceRef);
 
   return (
     <section
@@ -137,7 +140,7 @@ export default function SuggestedStyle({
 
         {/* پنل کاروسل محصولات — در موبایل مربع ۱:۱ و پایین ویدیو */}
         <div
-          ref={sliderRef}
+          ref={resizeRef}
           className="home-style-panel home-style-slider keen-slider h-full"
           dir="rtl"
           role="region"
@@ -155,7 +158,7 @@ export default function SuggestedStyle({
               <Link
                 href={`/product/${product.product.slug}`}
                 key={product.id}
-                className="home-style-slide keen-slider__slide h-full! min-w-[50vw]! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+                className="home-style-slide keen-slider__slide h-full! min-w-0! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
                 aria-label={`${product.product.title} — محصول ${index + 1} از ${products.length}`}
               >
                 <div className="home-style-slide-image relative min-h-0 flex-1">
