@@ -26,6 +26,7 @@ import {
   OTP_TTL_SECONDS,
   otpErrorMessage,
   readOtpWindow,
+  sanitizeOtpCodeInput,
 } from '@/lib/otp-window';
 import { phoneField } from '@/lib/phone-field';
 import {
@@ -225,7 +226,9 @@ function ForgotPasswordContent() {
             <InputOTP
               maxLength={5}
               value={methodsStep2.watch('code')}
-              onChange={value => methodsStep2.setValue('code', value)}
+              onChange={value =>
+                methodsStep2.setValue('code', sanitizeOtpCodeInput(value))
+              }
               dir="ltr"
               id="input-otp-ltr"
             >

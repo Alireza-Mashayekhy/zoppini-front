@@ -26,6 +26,7 @@ import {
   OTP_TTL_SECONDS,
   otpErrorMessage,
   readOtpWindow,
+  sanitizeOtpCodeInput,
 } from '@/lib/otp-window';
 import { phoneField } from '@/lib/phone-field';
 import {
@@ -120,6 +121,7 @@ function LoginContent() {
 
   const onSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (loginMutation.isPending || code.length !== 5) return;
     try {
       const result = await loginMutation.mutateAsync({
         code,
@@ -150,6 +152,7 @@ function LoginContent() {
   };
 
   const onSubmitSignUp = async (data: LoginSignUpDetails) => {
+    if (signUpMutation.isPending) return;
     const payload = buildSignUpPayload(
       data,
       methods.getValues('phone'),
@@ -251,7 +254,7 @@ function LoginContent() {
           <InputOTP
             maxLength={5}
             value={code}
-            onChange={value => setCode(value)}
+            onChange={value => setCode(sanitizeOtpCodeInput(value))}
             dir="ltr"
             id="input-otp-ltr"
           >

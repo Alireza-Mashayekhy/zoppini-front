@@ -44,18 +44,74 @@ export function readOtpWindow(payload: unknown): OtpWindow {
   };
 }
 
-/** پیام خطای قابل نمایش (پاسخ نست، ValidationPipe یا خطای شبکه). */
+const INTERNAL_ERROR_PATTERN =
+  /internal server error|request failed with status code|queryfailederror|unknown column|er_[a-z0-9_]+|sqlstate|syntaxerror|typeerror|referenceerror|econnrefused|secretorprivatekey/i;
+
+function hasPersianText(value: string): boolean {
+  return /[\u0600-\u06FF]/.test(value);
+}
+
+export function sanitizeOtpCodeInput(value: string): string {
+  return value
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660))
+    .replace(/\D/g, '')
+    .slice(0, 5);
+}
+
+/** پیام خطای قابل نمایش (پاسخ نست، ValidationPipe یا خطای شبکه) بدون افشای جزئیات داخلی سرور. */
 export function otpErrorMessage(
   error: unknown,
   fallback = 'خطا در ارسال کد',
 ): string {
-  const response = (error as { response?: { data?: { message?: unknown } } })
-    ?.response;
-  const raw = Array.isArray(response?.data?.message)
-    ? (response?.data?.message as unknown[]).join(' ')
-    : (response?.data?.message ?? (error as { message?: unknown })?.message);
+  const errObj = error as {
+    code?: string;
+    message?: unknown;
+    response?: { status?: number; data?: { message?: unknown } };
+  };
+  const status = errObj?.response?.status;
+  const responseData = errObj?.response?.data;
+  const raw = Array.isArray(responseData?.message)
+    ? (responseData.message as unknown[]).join(' ')
+    : (responseData?.message ?? errObj?.message);
 
-  return typeof raw === 'string' && raw ? raw : fallback;
+  const text = typeof raw === 'string' ? raw.trim() : '';
+
+  if (
+    !errObj?.response &&
+    (errObj?.code === 'ERR_NETWORK' ||
+      errObj?.code === 'ECONNABORTED' ||
+      /^network error$/i.test(text) ||
+      /^timeout of \d+ms exceeded$/i.test(text))
+  ) {
+    return 'ارتباط با سرور برقرار نشد؛ لطفاً اتصال اینترنت خود را بررسی کنید';
+  }
+
+  if (status === 429 && (!text || !hasPersianText(text))) {
+    return 'تعداد درخواست‌های شما بیش از حد مجاز است؛ لطفاً کمی صبر کنید';
+  }
+
+  if (status === 401 && (!text || !hasPersianText(text))) {
+    return 'احراز هویت ناموفق بود؛ لطفاً دوباره تلاش کنید';
+  }
+
+  if (
+    (typeof status === 'number' && status >= 500) ||
+    (text && INTERNAL_ERROR_PATTERN.test(text))
+  ) {
+    if (
+      (status === 502 || status === 503) &&
+      text &&
+      hasPersianText(text) &&
+      !INTERNAL_ERROR_PATTERN.test(text)
+    ) {
+      return text;
+    }
+
+    return 'خطایی در سرور رخ داده است؛ لطفاً چند لحظه دیگر دوباره تلاش کنید';
+  }
+
+  return text ? text : fallback;
 }
 
 /**

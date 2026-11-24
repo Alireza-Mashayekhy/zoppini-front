@@ -9,6 +9,7 @@ import {
   OTP_TTL_SECONDS,
   otpErrorMessage,
   readOtpWindow,
+  sanitizeOtpCodeInput,
 } from '../lib/otp-window';
 import {
   buildSignUpPayload,
@@ -133,4 +134,76 @@ test('اعتبارسنجی دو فرم ثبتنام یکسان است و مرح�
   const parsed = loginSignUpDetailsSchema.parse(valid);
   assert.equal('phone' in parsed, false);
   assert.equal(loginSignUpDetailsSchema.safeParse({ ...valid, email: '' }).success, true);
+});
+
+test('مدیریت خطاهای 400، 401، 429، 500 و خطای شبکه بدون افشای جزئیات داخلی سرور', () => {
+  // 500 پیش‌فرض نست یا متن SQL داخلی هرگز نباید به کاربر نهایی نشان داده شود
+  assert.equal(
+    otpErrorMessage({
+      response: { status: 500, data: { message: 'Internal server error' } },
+    }),
+    'خطایی در سرور رخ داده است؛ لطفاً چند لحظه دیگر دوباره تلاش کنید',
+  );
+  assert.equal(
+    otpErrorMessage({
+      response: {
+        status: 500,
+        data: {
+          message:
+            "Unknown column 'User.loyalty_member_synced_at' in 'field list'",
+        },
+      },
+    }),
+    'خطایی در سرور رخ داده است؛ لطفاً چند لحظه دیگر دوباره تلاش کنید',
+  );
+  assert.equal(
+    otpErrorMessage(new Error('Request failed with status code 500')),
+    'خطایی در سرور رخ داده است؛ لطفاً چند لحظه دیگر دوباره تلاش کنید',
+  );
+
+  // پیام فارسی سرویس پیامک (502) یا در دسترس نبودن سرویس (503) حفظ می‌شود
+  assert.equal(
+    otpErrorMessage({
+      response: {
+        status: 502,
+        data: { message: 'ارسال پیامک ناموفق بود؛ لطفاً دوباره تلاش کنید' },
+      },
+    }),
+    'ارسال پیامک ناموفق بود؛ لطفاً دوباره تلاش کنید',
+  );
+  assert.equal(
+    otpErrorMessage({
+      response: {
+        status: 503,
+        data: {
+          message:
+            'سرویس موقتاً در دسترس نیست؛ لطفاً چند لحظه دیگر تلاش کنید',
+        },
+      },
+    }),
+    'سرویس موقتاً در دسترس نیست؛ لطفاً چند لحظه دیگر تلاش کنید',
+  );
+
+  // 429 از Throttler انگلیسی به پیام فارسی تبدیل می‌شود
+  assert.equal(
+    otpErrorMessage({
+      response: {
+        status: 429,
+        data: { message: 'ThrottlerException: Too Many Requests' },
+      },
+    }),
+    'تعداد درخواست‌های شما بیش از حد مجاز است؛ لطفاً کمی صبر کنید',
+  );
+
+  // خطای شبکه
+  assert.equal(
+    otpErrorMessage({ code: 'ERR_NETWORK', message: 'Network Error' }),
+    'ارتباط با سرور برقرار نشد؛ لطفاً اتصال اینترنت خود را بررسی کنید',
+  );
+});
+
+test('نرمال‌سازی ارقام فارسی و عربی کد OTP', () => {
+  assert.equal(sanitizeOtpCodeInput('۱۲۳۴۵'), '12345');
+  assert.equal(sanitizeOtpCodeInput('١٢٣٤٥'), '12345');
+  assert.equal(sanitizeOtpCodeInput('12a۳۴56'), '12345');
 });

@@ -63,11 +63,19 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // اگر درخواست قبلاً retry شده یا درخواست refresh است، reject کن
+    const requestUrl = originalRequest?.url ?? '';
+    const isAuthCredentialEndpoint =
+      requestUrl.includes('/auth/refresh') ||
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/sign-up') ||
+      requestUrl.includes('/auth/login-password') ||
+      requestUrl.includes('/auth/logout');
+
+    // اگر درخواست قبلاً retry شده یا مربوط به اندپوینت‌های ورود/رفرش است، reject کن
     if (
       error.response?.status !== 401 ||
-      originalRequest._retry ||
-      originalRequest.url?.includes('/auth/refresh')
+      originalRequest?._retry ||
+      isAuthCredentialEndpoint
     ) {
       return Promise.reject(error);
     }

@@ -25,6 +25,7 @@ import {
   OTP_TTL_SECONDS,
   otpErrorMessage,
   readOtpWindow,
+  sanitizeOtpCodeInput,
 } from '@/lib/otp-window';
 import {
   buildSignUpPayload,
@@ -103,6 +104,7 @@ function SignUpContent() {
   // مرحله دوم: تأیید کد و ثبت‌نام
   const onSubmitStep2 = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (signUpMutation.isPending || code.length !== 5) return;
     const formData = methods.getValues();
     const payload = buildSignUpPayload(formData, formData.phone, code);
 
@@ -202,7 +204,7 @@ function SignUpContent() {
           <InputOTP
             maxLength={5}
             value={code}
-            onChange={value => setCode(value)}
+            onChange={value => setCode(sanitizeOtpCodeInput(value))}
             dir="ltr"
             id="input-otp-ltr"
           >

@@ -1,4 +1,4 @@
-import { normalizeIranMobile } from '@/lib/phone';
+import { normalizeIranMobile, toLatinDigits } from '@/lib/phone';
 import { api } from '@/services/api/client';
 import { endpoints } from '@/services/api/endpoints';
 import { ApiSingleResponse } from '@/services/api/types';
@@ -22,10 +22,20 @@ function withNormalizedPhone<T extends { phone: string }>(dto: T): T {
   return { ...dto, phone: normalizeIranMobile(dto.phone) };
 }
 
+function withNormalizedOtpPayload<T extends { phone: string; code: string }>(
+  dto: T,
+): T {
+  return {
+    ...dto,
+    phone: normalizeIranMobile(dto.phone),
+    code: toLatinDigits(dto.code).trim(),
+  };
+}
+
 export async function login(dto: LoginDto) {
   const { data } = await api.post<ApiSingleResponse<LoginResponse>>(
     endpoints.auth.login,
-    withNormalizedPhone(dto),
+    withNormalizedOtpPayload(dto),
   );
 
   return data;
@@ -48,7 +58,7 @@ export async function logout() {
 export async function signUp(formData: SignUpDto) {
   const { data } = await api.post(
     endpoints.auth.signUp,
-    withNormalizedPhone(formData),
+    withNormalizedOtpPayload(formData),
   );
   return data;
 }
@@ -72,7 +82,7 @@ export async function forgotPassword(formData: ForgetPasswordDto) {
 export async function resetPassword(formData: ResetPasswordDto) {
   const { data } = await api.post(
     endpoints.auth.resetPassword,
-    withNormalizedPhone(formData),
+    withNormalizedOtpPayload(formData),
   );
   return data;
 }
