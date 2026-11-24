@@ -17,7 +17,8 @@ interface HeroNewInTransitionProps {
 }
 
 /**
- * هدر (دو ویدیوی کنار هم) و سپس New In — هر کدام دقیقاً یک بخش تمام‌صفحه.
+ * اسلایدر New In (Black Friday) و سپس بخش هیرو (دو ویدیوی کنار هم) — هر کدام
+ * دقیقاً یک بخش تمام‌صفحه.
  *
  * ── چرا این‌طور شد ─────────────────────────────────────────────────────────
  * قبلاً این دو با یک تایم‌لاین GSAP `pin` روی هم سوار می‌شدند: صفحه ۱۶۰۰px
@@ -37,21 +38,21 @@ export default function HeroNewInTransition({
   return (
     <>
       <section
-        id="home-hero"
-        data-home-section
-        aria-label="کالکشن جدید"
-        className="home-section home-section--full relative overflow-hidden bg-black"
-      >
-        <HeroSection categories={categories} posters={heroPosters} />
-      </section>
-
-      <section
         id="home-new-in"
         data-home-section
         aria-label="جدیدترین محصولات"
         className="home-section home-section--full home-section--below-header relative bg-white"
       >
         <NewIn products={products} />
+      </section>
+
+      <section
+        id="home-hero"
+        data-home-section
+        aria-label="کالکشن جدید"
+        className="home-section home-section--full relative overflow-hidden bg-black"
+      >
+        <HeroSection categories={categories} posters={heroPosters} />
       </section>
     </>
   );

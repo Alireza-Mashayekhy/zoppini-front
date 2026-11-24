@@ -1,10 +1,16 @@
 'use client';
 
-import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
+
+import {
+  type KeenSliderInstance,
+  type KeenSliderPlugin,
+  useKeenSlider,
+} from 'keen-slider/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import HlsVideo from '@/components/shared/hls-video';
 import LuxuryTitle from '@/components/shared/luxury-title';
@@ -13,15 +19,136 @@ import { FeaturedProductResponse } from '@/services/features/products/type';
 
 const AUTOPLAY_DELAY_MS = 4000;
 
+function isSingleSlidePerView(slider: KeenSliderInstance): boolean {
+  const slidesOpt = slider.options.slides;
+
+  return (
+    typeof slidesOpt === 'object' &&
+    slidesOpt !== null &&
+    slidesOpt.perView === 1
+  );
+}
+
+/**
+ * پلاگین کنترل ورق‌زدن تک‌کارت در موبایل + همگام‌سازی هندسه در تغییر بریک‌پوینت.
+ *
+ * • در حالت موبایل (`perView: 1`)، جابه‌جایی زندهٔ انگشت به حداکثر یک کارت
+ *   از نقطهٔ شروع محدود می‌شود تا حتی وقتی عرض کارت از عرض کل صفحه کمتر است
+ *   (گوشی‌های کوتاه)، با یک حرکت بیش از یک کارت رد نشود.
+ * • پس از رها شدن انگشت، مقصد نهایی دقیقاً یکی از `{startIdx - 1, startIdx,
+ *   startIdx + 1}` (محدود به `minIdx..maxIdx`) انتخاب و روی ابتدای کارت اسنپ
+ *   می‌شود؛ هیچ پرش چندتایی یا توقف بین دو اسلاید رخ نمی‌دهد.
+ * • هنگام گذار از موبایل به تبلت/دسکتاپ (`perView: 'auto'`)، پس از پاک شدن
+ *   عرض‌های اینلاین قبلی یک بار `slider.update()` اجرا می‌شود تا عرض واقعی
+ *   کارت‌های دسکتاپ بدون خطا محاسبه شود.
+ */
+export const suggestedStyleMobileSwipePlugin: KeenSliderPlugin = slider => {
+  let dragStartIdx: number | null = null;
+  let dragStartPos: number | null = null;
+
+  slider.on('dragStarted', () => {
+    const details = slider.track.details;
+    if (!details) {
+      dragStartIdx = null;
+      dragStartPos = null;
+      return;
+    }
+
+    dragStartIdx = Math.round(details.position);
+    dragStartPos = details.position;
+  });
+
+  slider.on('dragged', () => {
+    if (!isSingleSlidePerView(slider) || dragStartIdx === null || !slider.track.details) {
+      return;
+    }
+
+    const pos = slider.track.details.position;
+    const minPos = dragStartIdx - 0.999;
+    const maxPos = dragStartIdx + 0.999;
+
+    if (pos < minPos) {
+      slider.track.to(minPos);
+    } else if (pos > maxPos) {
+      slider.track.to(maxPos);
+    }
+  });
+
+  slider.on('dragEnded', () => {
+    if (!isSingleSlidePerView(slider) || dragStartIdx === null || !slider.track.details) {
+      dragStartIdx = null;
+      dragStartPos = null;
+      return;
+    }
+
+    const startIdx = dragStartIdx;
+    const startPos = dragStartPos ?? startIdx;
+    dragStartIdx = null;
+    dragStartPos = null;
+
+    const details = slider.track.details;
+    const posDelta = details.position - startPos;
+    const vel = slider.track.velocity();
+
+    let step = 0;
+    if (
+      Math.abs(vel) > 0 &&
+      Math.abs(posDelta) > 0.02 &&
+      Math.sign(vel) === Math.sign(posDelta)
+    ) {
+      step = Math.sign(vel);
+    } else if (Math.abs(posDelta) >= 0.5) {
+      step = Math.sign(posDelta);
+    }
+
+    const minAllowed = Math.max(details.minIdx, startIdx - 1);
+    const maxAllowed = Math.min(details.maxIdx, startIdx + 1);
+    const targetIdx = Math.min(
+      Math.max(startIdx + step, minAllowed),
+      maxAllowed,
+    );
+
+    if (slider.animator.targetIdx !== targetIdx || !slider.animator.active) {
+      slider.animator.stop();
+      const dist = slider.track.idxToDist(targetIdx, true);
+      if (dist) {
+        slider.moveToIdx(targetIdx, true);
+      } else {
+        slider.track.to(targetIdx);
+      }
+    }
+  });
+
+  slider.on('optionsChanged', () => {
+    const slidesOpt = slider.options.slides;
+    if (
+      typeof slidesOpt === 'object' &&
+      slidesOpt !== null &&
+      slidesOpt.perView === 'auto'
+    ) {
+      slider.slides.forEach(slide => {
+        slide.style.removeProperty('min-width');
+        slide.style.removeProperty('max-width');
+      });
+      slider.update();
+    }
+  });
+};
+
 export default function SuggestedStyle({
   products,
 }: {
   products: FeaturedProductResponse[];
 }) {
   const [loaded, setLoaded] = useState(false);
+  const totalSlides = products.length;
+  const canSlide = totalSlides > 1;
+
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>(
     {
-      loop: true,
+      loop: canSlide,
+      drag: canSlide,
+      mode: 'snap',
       rtl: true,
       slides: {
         /*
@@ -31,10 +158,11 @@ export default function SuggestedStyle({
          */
         perView: 1,
         spacing: 0,
+        origin: 'auto',
       },
       breakpoints: {
         '(min-width: 640px)': {
-          slides: { perView: 'auto', spacing: 2 },
+          slides: { perView: 'auto', spacing: 2, origin: 'auto' },
         },
       },
       created() {
@@ -42,6 +170,7 @@ export default function SuggestedStyle({
       },
     },
     [
+      suggestedStyleMobileSwipePlugin,
       slider => {
         let timeout: ReturnType<typeof setTimeout> | undefined;
         let hovered = false;
@@ -57,6 +186,7 @@ export default function SuggestedStyle({
         function nextTimeout() {
           clearNextTimeout();
 
+          if (slider.slides.length <= 1) return;
           if (hovered || held || reducedMotion()) return;
 
           timeout = setTimeout(() => {
@@ -112,10 +242,13 @@ export default function SuggestedStyle({
     ],
   );
 
-  // ویدیو اسلاید جدا و بالای کاروسل است؛ تعداد اسلایدهای کاروسل فقط محصولات‌اند.
-  const totalSlides = products.length;
   // Recompute Keen's geometry when a responsive parent changes size without a window resize.
   const resizeRef = useSliderResize(sliderRef, instanceRef);
+
+  // همگام‌سازی هندسه و تعداد اسلایدها در صورت تغییر آرایه محصولات
+  useEffect(() => {
+    instanceRef.current?.update();
+  }, [instanceRef, totalSlides]);
 
   return (
     <section
@@ -158,7 +291,7 @@ export default function SuggestedStyle({
               <Link
                 href={`/product/${product.product.slug}`}
                 key={product.id}
-                className="home-style-slide keen-slider__slide h-full! min-w-0! sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+                className="home-style-slide keen-slider__slide h-full! w-full shrink-0 min-w-0! sm:w-auto sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
                 aria-label={`${product.product.title} — محصول ${index + 1} از ${products.length}`}
               >
                 <div className="home-style-slide-image relative min-h-0 flex-1">

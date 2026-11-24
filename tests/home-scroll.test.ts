@@ -43,8 +43,8 @@ const VIEWPORT = 900;
 /** پنج بخش تمام‌صفحه، دو صفحه‌ی دسته‌بندی و یک ویدیوی پایانی */
 const sections = [
   { id: 'home-sale', top: 0, height: VIEWPORT },
-  { id: 'home-hero', top: 900, height: VIEWPORT },
-  { id: 'home-new-in', top: 1800, height: VIEWPORT },
+  { id: 'home-new-in', top: 900, height: VIEWPORT },
+  { id: 'home-hero', top: 1800, height: VIEWPORT },
   { id: 'home-categories', top: 2700, height: VIEWPORT * 2 },
   { id: 'home-categories', top: 3600, height: VIEWPORT },
   { id: 'home-style', top: 4500, height: VIEWPORT },
@@ -215,8 +215,8 @@ test('دایره‌ی فعال از موقعیت واقعی اسکرول حسا�
     ]?.sectionId;
 
   assert.equal(activeAt(0), 'home-sale');
-  assert.equal(activeAt(900), 'home-hero');
-  assert.equal(activeAt(1800), 'home-new-in');
+  assert.equal(activeAt(900), 'home-new-in');
+  assert.equal(activeAt(1800), 'home-hero');
   assert.equal(activeAt(2700), 'home-categories');
   assert.equal(activeAt(3600), 'home-categories');
   assert.equal(activeAt(4500), 'home-style');
@@ -250,11 +250,17 @@ test('دایره‌ی فعال هیچ‌وقت از محدوده‌ی نقاط �
 /* ساختار صفحه و بخش‌ها                                                        */
 /* ────────────────────────────────────────────────────────────────────────── */
 
-test('ترتیب DOM و ناوبری با جابه‌جایی SaleBanner قبل از Hero هماهنگ است', () => {
-  assert.ok(pageSrc.indexOf('<SaleBanner') < pageSrc.indexOf('<HeroNewInTransition'));
+test('ترتیب DOM و ناوبری صفحه اصلی: SaleBanner، سپس New In (Black Friday) و بعد Hero (۲ ویدیو)', () => {
+  assert.ok(
+    pageSrc.indexOf('<SaleBanner') < pageSrc.indexOf('<HeroNewInTransition'),
+  );
+  assert.ok(heroSrc.indexOf('<NewIn') < heroSrc.indexOf('<HeroSection'));
+  assert.ok(
+    heroSrc.indexOf('id="home-new-in"') < heroSrc.indexOf('id="home-hero"'),
+  );
   assert.deepEqual(
     HOME_SECTIONS.slice(0, 3).map(section => section.id),
-    ['home-sale', 'home-hero', 'home-new-in'],
+    ['home-sale', 'home-new-in', 'home-hero'],
   );
 });
 
@@ -493,10 +499,10 @@ test('برچسب خانه‌های دسته‌بندی همیشه دیده می�
 
 test('دکمه‌ی بازگشت به ابتدا از بخش دوم به بعد با aria-label دیده می‌شود', () => {
   assert.ok(scrollSrc.includes('const showBackToTop = activeIndex > 0;'));
-  assert.ok(scrollSrc.includes('{showBackToTop && ('));
+  assert.ok(scrollSrc.includes('{showBackToTop && sections[0] && ('));
   assert.ok(scrollSrc.includes('aria-label="بازگشت به ابتدای صفحه"'));
   assert.ok(scrollSrc.includes('<ArrowUp'));
-  assert.ok(scrollSrc.includes('goToSection(\'home-hero\')'));
+  assert.ok(scrollSrc.includes('goToSection(sections[0].id)'));
   assert.ok(scrollSrc.includes('home-back-to-top'));
   assert.match(
     cssSrc,
@@ -611,20 +617,31 @@ test('عنوان نمایشی بخش New In به Black Friday تغییر یاف�
 });
 
 test('کاروسل محصولات در موبایل دقیقاً یک کارت کامل نشان می‌دهد', () => {
+  // استایل پایهٔ keen-slider (flex, flex-direction: row-reverse در RTL, touch-action: pan-y)
+  assert.ok(styleSrc.includes("import 'keen-slider/keen-slider.min.css';"));
+  // حالت snap تا هر ورق زدن دقیقاً یک اسلاید جلو/عقب برود
+  assert.match(styleSrc, /mode:\s*'snap'/);
   // پیش‌فرض (موبایل): یک اسلاید در هر نما و بدون فاصله ⇒ بدون سرکِ کارت بعدی
-  assert.match(styleSrc, /perView:\s*1,\s*spacing:\s*0,/);
+  assert.match(styleSrc, /perView:\s*1,\s*spacing:\s*0,\s*origin:\s*'auto'/);
   // از ۶۴۰px به بالا همان چیدمان قبلی برمی‌گردد (دسکتاپ دست‌نخورده)
   assert.match(
     styleSrc,
-    /'\(min-width: 640px\)':\s*\{\s*slides:\s*\{\s*perView:\s*'auto',\s*spacing:\s*2\s*\}/,
+    /'\(min-width: 640px\)':\s*\{\s*slides:\s*\{\s*perView:\s*'auto',\s*spacing:\s*2,\s*origin:\s*'auto'\s*\}/,
   );
-  // اسلایدها هم عرضِ کامل پنل‌اند
+  // اسلایدها بدون !important که استایل اینلاین Keen را در تغییر بریک‌پوینت خراب کند
   assert.match(
     cssSrc,
-    /#home-style \.home-style-slide\s*\{[^}]*min-width:\s*100% !important/,
+    /#home-style \.home-style-slide\s*\{[^}]*flex:\s*0 0 100%;[^}]*width:\s*100%;[^}]*min-width:\s*100%;[^}]*max-width:\s*100%;/,
+  );
+  assert.doesNotMatch(
+    cssSrc,
+    /#home-style \.home-style-slide\s*\{[^}]*!important/,
   );
   // حذف حداقل عرضِ ثابت موبایل تا Keen هندسه را از عرض واقعی کانتینر بگیرد.
-  assert.match(styleSrc, /min-w-0! sm:min-w-\[45vw\]!/);
+  assert.match(
+    styleSrc,
+    /w-full shrink-0 min-w-0! sm:w-auto sm:min-w-\[45vw\]!/,
+  );
   assert.ok(styleSrc.includes('useSliderResize(sliderRef, instanceRef)'));
   assert.ok(styleSrc.includes('ref={resizeRef}'));
 });

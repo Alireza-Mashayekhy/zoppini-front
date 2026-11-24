@@ -73,7 +73,7 @@ export default async function HomePage() {
       */}
       <HomeScrollExperience />
 
-      {/* ابتدا بنر فروش ویژه، سپس هیرو و بخش محصولات جدید */}
+      {/* ابتدا بنر فروش ویژه، سپس اسلایدر Black Friday (New In) و بعد بخش هیرو (۲ ویدیو) */}
       <SaleBanner image={homeImages['home.sale-banner']} />
 
       <HeroNewInTransition

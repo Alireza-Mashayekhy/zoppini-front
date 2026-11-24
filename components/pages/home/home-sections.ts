@@ -18,8 +18,8 @@ export interface HomeSectionMeta {
 
 export const HOME_SECTIONS: HomeSectionMeta[] = [
   { id: 'home-sale', label: 'فروش ویژه' },
-  { id: 'home-hero', label: 'کالکشن' },
   { id: 'home-new-in', label: 'جدیدترین‌ها' },
+  { id: 'home-hero', label: 'کالکشن' },
   { id: 'home-categories', label: 'دسته‌بندی‌ها' },
   { id: 'home-style', label: 'پیشنهاد استایل' },
   { id: 'home-end', label: 'ویدیوی پایانی' },

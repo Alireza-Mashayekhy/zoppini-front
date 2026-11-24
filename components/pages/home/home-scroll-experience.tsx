@@ -717,11 +717,11 @@ export default function HomeScrollExperience() {
       </div>
 
       {/* دکمه‌ی بازگشت به ابتدای صفحه — از بخش دوم به بعد */}
-      {showBackToTop && (
+      {showBackToTop && sections[0] && (
         <button
           type="button"
           data-home-controls
-          onClick={() => goToSection('home-hero')}
+          onClick={() => goToSection(sections[0].id)}
           aria-label="بازگشت به ابتدای صفحه"
           title="بازگشت به ابتدای صفحه"
           className="home-back-to-top fixed left-1.5 z-40 flex size-11 items-center justify-center rounded-full border border-stone-200 bg-white/90 text-stone-900 shadow-lg backdrop-blur transition hover:bg-white hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:size-10"
