@@ -58,7 +58,10 @@ import OrderSummary, {
   CheckoutTotals,
 } from './order-summary';
 import { resolvePromotionTotals } from './promotion-totals';
-import { calculateCheckoutShipping } from './shipping';
+import {
+  calculateCheckoutShipping,
+  POST_SHIPPING_COST_TOMAN,
+} from './shipping';
 
 export default function CheckoutForm() {
   const router = useRouter();
@@ -159,16 +162,26 @@ export default function CheckoutForm() {
    * هنگام ثبت سفارش دوباره بررسی می‌شود.
    */
   const { data: checkoutPreviewData } = useCheckoutPreview({
-    shippingMethod: selectedShipping,
+    shippingMethod:
+      isPickup || selectedAddressId ? selectedShipping : undefined,
     discountCode: appliedDiscount?.discount?.code,
     useFirstPurchaseGift,
   });
 
-  const { isFreeShipping, shippingCost } = calculateCheckoutShipping(
+  const { shippingCost: fallbackShippingCost } = calculateCheckoutShipping(
     cartItems,
     selectedShipping,
     !!selectedAddressId,
   );
+
+  const isFreeShipping =
+    selectedShipping === ShippingMethod.POST &&
+    (checkoutPreviewData?.data?.totals.freeShipping ??
+      cartData?.data?.pricing?.freeShipping ??
+      false);
+  const shippingCost =
+    checkoutPreviewData?.data?.totals.shippingCost ??
+    (isFreeShipping ? 0 : fallbackShippingCost);
 
   const giftEligibility = giftEligibilityResponse?.data;
   const giftCanStackWithCode =
@@ -843,7 +856,9 @@ export default function CheckoutForm() {
                     <div className="font-medium">پست</div>
 
                     <div className="text-xs text-gray-500">
-                      {isFreeShipping ? 'رایگان' : '۱۷۰,۰۰۰ تومان'}
+                      {promotionTotals.freeShipping
+                        ? 'رایگان'
+                        : `${POST_SHIPPING_COST_TOMAN.toLocaleString('fa-IR')} تومان`}
                     </div>
                   </div>
                 </label>
@@ -861,9 +876,7 @@ export default function CheckoutForm() {
                   <div>
                     <div className="font-medium">پیک</div>
 
-                    <div className="text-xs text-green-600">
-                      {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                    </div>
+                    <div className="text-xs text-green-600">هزینه با مشتری</div>
                   </div>
                 </label>
               )}
@@ -880,9 +893,7 @@ export default function CheckoutForm() {
                   <div>
                     <div className="font-medium">تیباکس</div>
 
-                    <div className="text-xs text-green-600">
-                      {isFreeShipping ? 'رایگان' : 'هزینه با مشتری'}
-                    </div>
+                    <div className="text-xs text-green-600">هزینه با مشتری</div>
                   </div>
                 </label>
               )}
@@ -1227,7 +1238,10 @@ export default function CheckoutForm() {
         isPickup={isPickup}
         promotionDiscount={promotionTotals.promotionDiscount}
         freeItemTotal={promotionTotals.freeItemValue}
-        freeShippingFromPromotion={promotionTotals.freeShipping}
+        freeShippingFromPromotion={
+          selectedShipping === ShippingMethod.POST &&
+          promotionTotals.freeShipping
+        }
         promotionNotices={promotionTotals.notices}
         firstPurchaseGiftDiscount={Number(
           checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0,
@@ -1284,7 +1298,10 @@ export default function CheckoutForm() {
           isPickup={isPickup}
           promotionDiscount={promotionTotals.promotionDiscount}
           freeItemTotal={promotionTotals.freeItemValue}
-          freeShippingFromPromotion={promotionTotals.freeShipping}
+          freeShippingFromPromotion={
+            selectedShipping === ShippingMethod.POST &&
+            promotionTotals.freeShipping
+          }
           promotionNotices={promotionTotals.notices}
           firstPurchaseGiftDiscount={Number(
             checkoutPreviewData?.data?.totals.firstPurchaseGiftDiscount ?? 0,

@@ -17,7 +17,7 @@ test('pickup has no shipping charge whether or not an address is selected', () =
   );
   assert.equal(
     calculateCheckoutShipping(items, ShippingMethod.POST, true).shippingCost,
-    170000,
+    250000,
   );
   assert.equal(
     calculateCheckoutShipping(items, ShippingMethod.COURIER, true).shippingCost,
@@ -45,5 +45,25 @@ test('checkout requires an address only for delivery', () => {
       addressId: 1,
     }).success,
     true,
+  );
+});
+
+test('postal cost is fixed across cart changes and only applies after address selection', () => {
+  const items = [{ quantity: 10, variant: { price: 2_000_000 } }];
+  assert.equal(
+    calculateCheckoutShipping(items, ShippingMethod.POST, true).shippingCost,
+    250_000,
+  );
+  assert.equal(
+    calculateCheckoutShipping(items, ShippingMethod.POST, false).shippingCost,
+    0,
+  );
+  assert.equal(
+    calculateCheckoutShipping([], ShippingMethod.POST, true).shippingCost,
+    0,
+  );
+  assert.equal(
+    calculateCheckoutShipping(items, ShippingMethod.TIBAX, true).shippingCost,
+    0,
   );
 });

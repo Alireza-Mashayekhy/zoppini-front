@@ -1,8 +1,8 @@
 import { ShippingMethod } from '@/services/features/orders/type';
 
-export const FREE_SHIPPING_THRESHOLD = 10_000_000; // تومان
+// Fallback while the authoritative checkout preview is loading (toman).
+export const POST_SHIPPING_COST_TOMAN = 250_000;
 
-/** The order API uses variant.price × quantity before coupon discounts. */
 export function calculateCheckoutShipping(
   items: ReadonlyArray<{
     quantity: number;
@@ -11,20 +11,11 @@ export function calculateCheckoutShipping(
   shippingMethod: ShippingMethod,
   hasSelectedAddress: boolean,
 ) {
-  const subtotal = items.reduce(
-    (sum, item) =>
-      sum +
-      Number(item.variant.discountedPrice ?? item.variant.price) *
-        item.quantity,
-    0,
-  );
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const shippingCost =
+    items.length > 0 &&
     hasSelectedAddress &&
-    shippingMethod === ShippingMethod.POST &&
-    !isFreeShipping
-      ? 170000
+    shippingMethod === ShippingMethod.POST
+      ? POST_SHIPPING_COST_TOMAN
       : 0;
-
-  return { isFreeShipping, shippingCost };
+  return { shippingCost };
 }

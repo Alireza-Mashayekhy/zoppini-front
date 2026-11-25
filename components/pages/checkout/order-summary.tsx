@@ -98,7 +98,7 @@ export default function OrderSummary({
         isPickup={isPickup}
         promotionDiscount={promotionTotals.promotionDiscount}
         freeItemTotal={promotionTotals.freeItemValue}
-        freeShippingFromPromotion={promotionTotals.freeShipping}
+        freeShippingFromPromotion={isFreeShipping && promotionTotals.freeShipping}
         promotionNotices={promotionTotals.notices}
         firstPurchaseGiftDiscount={Number(
           checkoutPreview?.totals.firstPurchaseGiftDiscount ?? 0,
