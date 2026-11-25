@@ -1,125 +1,195 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import ProductCard from '@/components/shared/product-card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { BLACK_FRIDAY_PAGE_SIZE } from '@/lib/blackfriday/campaign';
 import {
-  BLACK_FRIDAY_API_SORT,
-  BLACK_FRIDAY_CATEGORY_ID,
-  BLACK_FRIDAY_PAGE_SIZE,
-  blackFridayCategoryFilter,
-  type BlackFridaySubcategory,
-} from '@/lib/blackfriday/campaign';
-import { productDiscountPercent, toProductCardData } from '@/lib/blackfriday/products';
-import { useInfiniteProducts } from '@/lib/hooks/use-infinite-products';
-import type { PaginationMeta } from '@/services/api/types';
+  type BlackFridayFilters,
+  type BlackFridaySortValue,
+  deriveBlackFridayFilterOptions,
+  EMPTY_BLACK_FRIDAY_FILTERS,
+  filterBlackFridayProducts,
+  hasActiveBlackFridayFilters,
+  sortBlackFridayProducts,
+} from '@/lib/blackfriday/filtering';
+import {
+  buildCategoryIndex,
+  toProductCardData,
+} from '@/lib/blackfriday/products';
+import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 
 import styles from './product-collection.module.css';
 
 /**
- * بخش پنجم — همهٔ محصولات بلک فرایدی.
+ * بخش پنجم — همهٔ محصولات بلک فرایدی (۷۰٪ + ۲۰٪).
  *
- * - دادهٔ اولیه همان صفحهٔ اولی است که سرور برای رتبه‌بندی تخفیف‌ها خوانده
- *   است؛ ادامهٔ لیست با اسکرول بی‌نهایت از API واقعی می‌آید.
- * - فیلتر دسته‌بندی با شناسهٔ واقعی زیردسته‌ها انجام می‌شود؛ «همه» دامنهٔ
- *   کل کمپین (۱۳۷) است و زیردسته فقط خودش را می‌فرستد، چون بک‌اند شناسه‌ها
- *   را با زیردسته‌هایشان ادغام می‌کند. مرتب‌سازی همان مقادیر پشتیبانی‌شدهٔ
- *   API است.
- * - «بیشترین تخفیف» تنها گزینه‌ای است که API معادلش را ندارد و در کلاینت
- *   روی همان مجموعه رتبه‌بندی می‌شود.
+ * مجموعهٔ واجد در سرور خوانده و به‌صورت متوازن درهم‌تنیده شده است
+ * (دو محصول ۷۰٪ و دو محصول ۲۰٪ در هر یک از دو ردیف اول) و همان مجموعه به
+ * اینجا می‌رسد؛ پس جستجو و فیلترهای دسته/سایز/رنگ/قیمت روی همان مجموعه،
+ * بدون درخواست تازه و بدون ریلود صفحه، اعمال می‌شوند و با هم ترکیب
+ * می‌شوند. تغییر هر فیلتر یا مرتب‌سازی، بقیه را پاک نمی‌کند.
+ *
+ * مرتب‌سازی پیش‌فرض «ترکیب پیشنهادی» همان ترتیب متوازن سرور است؛ بقیهٔ
+ * گزینه‌ها روی همان مجموعهٔ فیلترشده محاسبه می‌شوند.
  */
-const SORTS = [
+const SORTS: { value: BlackFridaySortValue; label: string }[] = [
+  { value: 'balanced', label: 'ترکیب پیشنهادی' },
   { value: 'discount:desc', label: 'بیشترین تخفیف' },
-  { value: 'sold:desc', label: 'محبوب‌ترین‌ها' },
   { value: 'createdAt:desc', label: 'جدیدترین‌ها' },
   { value: 'price:asc', label: 'ارزان‌ترین' },
   { value: 'price:desc', label: 'گران‌ترین' },
-] as const;
-
-type SortValue = (typeof SORTS)[number]['value'];
-
-function ProductCardSkeleton() {
-  return (
-    <div
-      className="flex h-full min-h-0 flex-col overflow-hidden border border-[#e8e6e3] bg-white"
-      aria-hidden="true"
-    >
-      <Skeleton className="relative aspect-[4/5] w-full rounded-none" />
-      <div className="flex shrink-0 flex-col gap-2 px-3 py-3 sm:px-4">
-        <div className="flex min-h-5 items-start">
-          <Skeleton className="h-4 w-4/5 rounded" />
-        </div>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <Skeleton className="h-4 w-24 rounded" />
-          <Skeleton className="h-3 w-16 rounded" />
-        </div>
-      </div>
-    </div>
-  );
-}
+];
 
 type ProductCollectionProps = {
-  initialItems: ProductsResponse[];
-  initialPagination?: PaginationMeta | null;
-  subcategories: BlackFridaySubcategory[];
-  /** true یعنی خواندن اولیهٔ محصولات در سرور ناموفق بود */
+  /** همهٔ محصولات واجد، به ترتیب متوازن سرور */
+  products: ProductsResponse[];
+  /** دسته‌بندی‌های لازم برای درخت (فقط آن‌هایی که محصول واجد دارد) */
+  categories: CategoriesResponse[];
+  /** true یعنی خواندن محصولات در سرور ناموفق بوده است */
   unavailable?: boolean;
 };
 
+const formatToman = (value: number) =>
+  Math.max(0, Math.round(value)).toLocaleString('fa-IR');
+
 export function ProductCollection({
-  initialItems,
-  initialPagination,
-  subcategories,
+  products,
+  categories,
   unavailable = false,
 }: ProductCollectionProps) {
-  const [sort, setSort] = useState<SortValue>('discount:desc');
-  /** null یعنی «همه»؛ در غیر این صورت شناسهٔ زیردستهٔ انتخاب‌شده */
-  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const router = useRouter();
 
-  const {
-    items,
-    loading,
-    hasMore,
-    failed,
-    sentinelRef,
-    loadMore,
-    reload,
-    updateQuery,
-  } = useInfiniteProducts({
-      initialItems,
-      initialPagination,
-      initialQuery: {
-        categoryIds: [BLACK_FRIDAY_CATEGORY_ID],
-        sort: BLACK_FRIDAY_API_SORT,
-        limit: initialPagination?.limit || BLACK_FRIDAY_PAGE_SIZE,
-      },
+  const [filters, setFilters] = useState<BlackFridayFilters>(
+    EMPTY_BLACK_FRIDAY_FILTERS,
+  );
+  const [sort, setSort] = useState<BlackFridaySortValue>('balanced');
+  const [visibleCount, setVisibleCount] = useState(BLACK_FRIDAY_PAGE_SIZE);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const categoryIndex = useMemo(
+    () => buildCategoryIndex(categories),
+    [categories],
+  );
+
+  const options = useMemo(
+    () => deriveBlackFridayFilterOptions(products, categoryIndex),
+    [products, categoryIndex],
+  );
+
+  const filtered = useMemo(
+    () => filterBlackFridayProducts(products, filters, categoryIndex),
+    [products, filters, categoryIndex],
+  );
+
+  const sorted = useMemo(
+    () => sortBlackFridayProducts(filtered, sort),
+    [filtered, sort],
+  );
+
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+  const hasActiveFilters = hasActiveBlackFridayFilters(filters);
+  const activeFilterCount =
+    (filters.mainCategoryId !== null ? 1 : 0) +
+    (filters.subcategoryId !== null ? 1 : 0) +
+    filters.sizeIds.length +
+    filters.colorIds.length +
+    (filters.priceMin !== undefined || filters.priceMax !== undefined
+      ? 1
+      : 0);
+
+  // با هر تغییر فیلتر/جستجو/مرتب‌سازی، نمایش از اول شروع می‌شود
+  const resetVisible = () => setVisibleCount(BLACK_FRIDAY_PAGE_SIZE);
+
+  const updateFilters = (next: Partial<BlackFridayFilters>) => {
+    setFilters(previous => ({ ...previous, ...next }));
+    resetVisible();
+  };
+
+  const changeSearch = (value: string) => {
+    updateFilters({ search: value });
+  };
+
+  const changeMainCategory = (value: string) => {
+    const mainCategoryId = value ? Number(value) : null;
+    // زیردستهٔ قبلی ممکن است زیر دستهٔ اصلی تازه نباشد؛ ریست می‌شود
+    updateFilters({ mainCategoryId, subcategoryId: null });
+  };
+
+  const changeSubcategory = (value: string) => {
+    updateFilters({ subcategoryId: value ? Number(value) : null });
+  };
+
+  const toggleSize = (id: number) => {
+    updateFilters({
+      sizeIds: filters.sizeIds.includes(id)
+        ? filters.sizeIds.filter(sizeId => sizeId !== id)
+        : [...filters.sizeIds, id],
     });
+  };
 
-  const shown = useMemo(() => {
-    if (sort !== 'discount:desc') return items;
+  const toggleColor = (id: number) => {
+    updateFilters({
+      colorIds: filters.colorIds.includes(id)
+        ? filters.colorIds.filter(colorId => colorId !== id)
+        : [...filters.colorIds, id],
+    });
+  };
 
-    return [...items].sort(
-      (left, right) =>
-        productDiscountPercent(right) - productDiscountPercent(left) ||
-        right.id - left.id,
-    );
-  }, [items, sort]);
+  const changePrice = (key: 'priceMin' | 'priceMax', value: string) => {
+    const trimmed = value.trim();
+    const parsed = trimmed ? Number(trimmed) : undefined;
+    updateFilters({
+      [key]: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+    });
+  };
 
-  const changeSort = (next: SortValue) => {
+  const clearAll = () => {
+    setFilters(EMPTY_BLACK_FRIDAY_FILTERS);
+    resetVisible();
+  };
+
+  const changeSort = (next: BlackFridaySortValue) => {
     setSort(next);
-    // «بیشترین تخفیف» سمت کلاینت رتبه‌بندی می‌شود؛ به API همان ترتیب پایه
-    // داده می‌شود تا صفحه‌بندی پایدار بماند.
-    updateQuery({
-      sort: next === 'discount:desc' ? BLACK_FRIDAY_API_SORT : next,
-    });
+    resetVisible();
   };
 
-  const changeCategory = (next: number | null) => {
-    setCategoryId(next);
-    updateQuery({ categoryIds: blackFridayCategoryFilter(next) });
-  };
+  // اسکرول بی‌نهایت روی همان مجموعهٔ فیلترشده (بدون درخواست شبکه)
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount(previous =>
+            Math.min(previous + BLACK_FRIDAY_PAGE_SIZE, sorted.length),
+          );
+        }
+      },
+      { threshold: 0, rootMargin: '0px 0px 1000px 0px' },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, sorted.length]);
+
+  const subcategoryOptions =
+    filters.mainCategoryId !== null
+      ? (options.subcategoriesByMain.get(filters.mainCategoryId) ?? []).map(
+          sub => ({ ...sub, mainName: '' }),
+        )
+      : options.allSubcategories.map(sub => ({
+          id: sub.id,
+          name: sub.name,
+          mainName:
+            options.mainCategories.find(main => main.id === sub.mainId)
+              ?.name ?? '',
+        }));
 
   return (
     <section
@@ -134,38 +204,54 @@ export function ProductCollection({
         </header>
 
         <div className={styles.toolbar}>
-          <div className={styles.filters} role="group" aria-label="فیلتر دسته‌بندی">
-            <button
-              type="button"
-              className={categoryId === null ? styles.filterActive : styles.filter}
-              aria-pressed={categoryId === null}
-              onClick={() => changeCategory(null)}
-            >
-              همه
-            </button>
-            {subcategories.map(subcategory => (
+          <div className={styles.searchWrap}>
+            <label className={styles.srOnly} htmlFor="bf-search">
+              جستجو در محصولات
+            </label>
+            <input
+              id="bf-search"
+              type="search"
+              value={filters.search}
+              onChange={event => changeSearch(event.target.value)}
+              placeholder="جستجو در محصولات…"
+              className={styles.searchInput}
+              autoComplete="off"
+            />
+            {filters.search && (
               <button
-                key={subcategory.id}
                 type="button"
-                className={
-                  categoryId === subcategory.id
-                    ? styles.filterActive
-                    : styles.filter
-                }
-                aria-pressed={categoryId === subcategory.id}
-                onClick={() => changeCategory(subcategory.id)}
+                className={styles.searchClear}
+                onClick={() => changeSearch('')}
+                aria-label="پاک کردن جستجو"
               >
-                {subcategory.name}
+                ×
               </button>
-            ))}
+            )}
           </div>
+
+          <button
+            type="button"
+            className={styles.filterToggle}
+            aria-expanded={filtersOpen}
+            aria-controls="bf-filters"
+            onClick={() => setFiltersOpen(previous => !previous)}
+          >
+            فیلترها
+            {activeFilterCount > 0 && (
+              <span className={styles.filterBadge}>
+                {activeFilterCount.toLocaleString('fa-IR')}
+              </span>
+            )}
+          </button>
 
           <label className={styles.sortLabel}>
             <span>مرتب‌سازی</span>
             <select
               aria-label="مرتب‌سازی محصولات"
               value={sort}
-              onChange={event => changeSort(event.target.value as SortValue)}
+              onChange={event =>
+                changeSort(event.target.value as BlackFridaySortValue)
+              }
             >
               {SORTS.map(option => (
                 <option key={option.value} value={option.value}>
@@ -176,49 +262,185 @@ export function ProductCollection({
           </label>
         </div>
 
-        {shown.length === 0 && !loading ? (
+        <div
+          id="bf-filters"
+          className={`${styles.panel} ${filtersOpen ? styles.panelOpen : ''}`}
+        >
+          <div className={styles.panelRow}>
+            <label className={styles.field}>
+              <span>دسته‌بندی اصلی</span>
+              <select
+                aria-label="دسته‌بندی اصلی"
+                value={filters.mainCategoryId ?? ''}
+                onChange={event => changeMainCategory(event.target.value)}
+              >
+                <option value="">همه دسته‌ها</option>
+                {options.mainCategories.map(main => (
+                  <option key={main.id} value={main.id}>
+                    {main.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>زیردسته</span>
+              <select
+                aria-label="زیردسته"
+                value={filters.subcategoryId ?? ''}
+                onChange={event => changeSubcategory(event.target.value)}
+              >
+                <option value="">همه زیردسته‌ها</option>
+                {subcategoryOptions.map(sub => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.mainName ? `${sub.mainName} / ${sub.name}` : sub.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className={styles.field}>
+              <span>محدوده قیمت (تومان)</span>
+              <div className={styles.priceRow}>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  placeholder={formatToman(options.minPrice)}
+                  value={filters.priceMin ?? ''}
+                  onChange={event =>
+                    changePrice('priceMin', event.target.value)
+                  }
+                  aria-label="حداقل قیمت"
+                />
+                <span aria-hidden="true">تا</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  placeholder={formatToman(options.maxPrice)}
+                  value={filters.priceMax ?? ''}
+                  onChange={event =>
+                    changePrice('priceMax', event.target.value)
+                  }
+                  aria-label="حداکثر قیمت"
+                />
+              </div>
+            </div>
+          </div>
+
+          {options.sizes.length > 0 && (
+            <div className={styles.panelRow}>
+              <span className={styles.groupLabel}>سایز</span>
+              <div className={styles.chips}>
+                {options.sizes.map(size => {
+                  const active = filters.sizeIds.includes(size.id);
+                  return (
+                    <button
+                      key={size.id}
+                      type="button"
+                      className={active ? styles.chipActive : styles.chip}
+                      aria-pressed={active}
+                      onClick={() => toggleSize(size.id)}
+                    >
+                      {size.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {options.colors.length > 0 && (
+            <div className={styles.panelRow}>
+              <span className={styles.groupLabel}>رنگ</span>
+              <div className={styles.chips}>
+                {options.colors.map(color => {
+                  const active = filters.colorIds.includes(color.id);
+                  return (
+                    <button
+                      key={color.id}
+                      type="button"
+                      className={active ? styles.chipActive : styles.chip}
+                      aria-pressed={active}
+                      onClick={() => toggleColor(color.id)}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={styles.swatch}
+                        style={{ backgroundColor: color.hexCode }}
+                      />
+                      {color.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {hasActiveFilters && (
+            <div className={styles.panelActions}>
+              <button
+                type="button"
+                className={styles.clearAll}
+                onClick={clearAll}
+              >
+                پاک کردن جستجو و همه فیلترها
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p className={styles.resultCount} role="status">
+          {sorted.length.toLocaleString('fa-IR')} محصول
+        </p>
+
+        {sorted.length === 0 ? (
           <div className={styles.empty} role="status">
             <p>
-              {failed || unavailable
+              {unavailable && products.length === 0
                 ? 'دریافت محصولات ناموفق بود. کمی بعد دوباره تلاش کنید.'
-                : 'محصولی در این دسته نیست.'}
+                : 'محصولی با این جستجو و فیلترها پیدا نشد.'}
             </p>
-            {(failed || unavailable) && (
-              <button type="button" className={styles.more} onClick={reload}>
+            {unavailable && products.length === 0 ? (
+              <button
+                type="button"
+                className={styles.more}
+                onClick={() => router.refresh()}
+              >
                 تلاش دوباره
+              </button>
+            ) : (
+              <button type="button" className={styles.more} onClick={clearAll}>
+                پاک کردن جستجو و فیلترها
               </button>
             )}
           </div>
         ) : (
-          <ul className={styles.grid} aria-busy={loading}>
-            {shown.map(product => (
+          <ul className={styles.grid}>
+            {visible.map(product => (
               <li key={product.id}>
                 <ProductCard {...toProductCardData(product)} />
               </li>
             ))}
-            {loading &&
-              Array.from({ length: BLACK_FRIDAY_PAGE_SIZE }).map((_, index) => (
-                <li key={`skeleton-${index}`}>
-                  <ProductCardSkeleton />
-                </li>
-              ))}
           </ul>
         )}
 
-        {/* نقطهٔ تریگر اسکرول بی‌نهایت؛ همان تنظیم‌های لیست محصولات فروشگاه */}
+        {/* نقطهٔ تریگر اسکرول بی‌نهایت روی همان مجموعهٔ فیلترشده */}
         <div ref={sentinelRef} aria-hidden="true" className={styles.sentinel} />
 
-        {hasMore && !loading && (
-          <button type="button" className={styles.more} onClick={loadMore}>
+        {hasMore && sorted.length > 0 && (
+          <button
+            type="button"
+            className={styles.more}
+            onClick={() =>
+              setVisibleCount(previous =>
+                Math.min(previous + BLACK_FRIDAY_PAGE_SIZE, sorted.length),
+              )
+            }
+          >
             محصولات بیشتر
           </button>
-        )}
-
-        {failed && shown.length > 0 && !loading && (
-          <p className={styles.error} role="status">
-            بارگذاری بخشی از محصولات ناموفق بود؛ با «محصولات بیشتر» دوباره
-            تلاش کنید.
-          </p>
         )}
       </div>
     </section>

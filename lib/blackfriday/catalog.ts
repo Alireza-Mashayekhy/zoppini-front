@@ -1,5 +1,8 @@
 import type { ApiListResponse } from '@/services/api/types';
-import { getProducts } from '@/services/features/products/server.api';
+import {
+  getDiscountedProducts,
+  getProducts,
+} from '@/services/features/products/server.api';
 import type { ProductsResponse } from '@/services/features/products/type';
 
 import {
@@ -9,7 +12,7 @@ import {
   BLACK_FRIDAY_PAGE_SIZE,
 } from './campaign';
 import { type NormalizedPagination, normalizePagination } from './pagination';
-import { mergeUniqueProducts } from './products';
+import { isTwentyPercentProduct, mergeUniqueProducts } from './products';
 
 /**
  * خواندن محصولات واقعی کمپین از API فروشگاه.
@@ -82,4 +85,59 @@ export async function loadBlackFridayCatalog(): Promise<BlackFridayCatalog> {
     pagesScanned: pages.length,
     truncated: firstPagination.totalPages > lastPageToScan,
   };
+}
+
+/**
+ * خواندن محصولات واجدِ گروه ۲۰٪ از محصولات تخفیف‌دار فروشگاه.
+ *
+ * منبع، همان اندپوینت محصولات تخفیف‌دار (`/products/discounted`) است؛ از
+ * میان آن‌ها فقط محصولاتی نگه داشته می‌شوند که تخفیف فعالِ واقعی ۲۰٪
+ * دارند (`isTwentyPercentProduct`) و قبلاً در دستهٔ بلک فرایدی نیستند
+ * (`excludeIds`). محصولات با درصدهای دیگر در این لیست نمی‌آیند.
+ *
+ * مثل اسکن دستهٔ کمپین، سقف صفحه‌ها همان `BLACK_FRIDAY_MAX_SCAN_PAGES`
+ * است تا درخواست بی‌پایان نشود؛ اگر خواندن صفحهٔ اول ناموفق باشد، لیست
+ * خالی برمی‌گردد تا صفحه با همان گروه ۷۰٪ ادامه پیدا کند.
+ */
+export async function loadTwentyPercentProducts(
+  excludeIds: Set<number>,
+): Promise<ProductsResponse[]> {
+  const firstPage = await getDiscountedProducts({
+    limit: BLACK_FRIDAY_PAGE_SIZE,
+    page: 1,
+    sort: BLACK_FRIDAY_API_SORT,
+  });
+
+  const firstPagination = normalizePagination(firstPage.pagination, 1);
+  const lastPageToScan = Math.min(
+    firstPagination.totalPages,
+    BLACK_FRIDAY_MAX_SCAN_PAGES,
+  );
+
+  const pages: ApiListResponse<ProductsResponse>[] = [firstPage];
+
+  if (lastPageToScan > 1) {
+    const results = await Promise.allSettled(
+      Array.from({ length: lastPageToScan - 1 }, (_, index) =>
+        getDiscountedProducts({
+          limit: BLACK_FRIDAY_PAGE_SIZE,
+          page: index + 2,
+          sort: BLACK_FRIDAY_API_SORT,
+        }),
+      ),
+    );
+
+    for (const result of results) {
+      if (result.status !== 'fulfilled') break;
+      pages.push(result.value);
+    }
+  }
+
+  const all = mergeUniqueProducts(
+    pages.map(page => (Array.isArray(page.data) ? page.data : [])),
+  );
+
+  return all.filter(
+    product => !excludeIds.has(product.id) && isTwentyPercentProduct(product),
+  );
 }

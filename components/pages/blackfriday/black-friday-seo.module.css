@@ -1,0 +1,77 @@
+/*
+ * بخش محتوای سئوی بلک فرایدی — بعد از فهرست محصولات و قبل از فوتر.
+ * رنگ/فونت هم‌خانوادهٔ بخش محصولات (#efeeec) تا صفحه یکدست بماند.
+ */
+.section {
+  background: #efeeec;
+  color: #080808;
+  padding: 3.25rem 0 3.75rem;
+}
+
+.inner {
+  width: min(880px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.lead {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 2;
+}
+
+.toggle {
+  display: inline-block;
+  margin-top: 1.25rem;
+  min-height: 2.9rem;
+  padding: 0.7rem 1.7rem;
+  border: 1px solid #080808;
+  background: transparent;
+  color: #080808;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.more h3 {
+  margin: 2rem 0 0.9rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.more h4 {
+  margin: 1.5rem 0 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.more p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 2;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toggle:hover {
+    background: #080808;
+    color: #ffffff;
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding: 2rem 0 3rem;
+  }
+
+  .inner {
+    width: min(880px, calc(100% - 1.5rem));
+  }
+}

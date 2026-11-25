@@ -15,8 +15,7 @@ function read(path: string): string {
 
 const page = read('app/landing/blackfriday/page.tsx');
 const pageCss = read('app/landing/blackfriday/blackfriday.module.css');
-const hero = read('components/pages/blackfriday/hero.tsx');
-const heroCss = read('components/pages/blackfriday/hero.module.css');
+const seo = read('components/pages/blackfriday/black-friday-seo.tsx');
 const discountsCss = read(
   'components/pages/blackfriday/biggest-discounts.module.css',
 );
@@ -42,7 +41,7 @@ test('landing renders inside the shared storefront shell', () => {
 });
 
 test('landing does not load its own fonts or global element styles', () => {
-  for (const source of [page, pageCss, hero, heroCss, collectionCss]) {
+  for (const source of [page, pageCss, collectionCss]) {
     assert.doesNotMatch(source, /next\/font|@font-face|--font-persian/);
   }
   // تنها قاعدهٔ سراسری، اسکرول اسنپِ همین صفحه است و با کلاس محدود شده
@@ -51,30 +50,38 @@ test('landing does not load its own fonts or global element styles', () => {
   assert.doesNotMatch(pageCss, /^\s*body\s*\{/m);
 });
 
-test('hero shows the approved campaign poster without extra overlay copy', () => {
-  // همان دو فایل تأییدشدهٔ کمپین؛ نسخهٔ دسکتاپ و موبایل با <picture> جابه‌جا می‌شوند
-  assert.match(hero, /\/campaign\/blackfriday\/hero-banner-desktop\.png/);
-  assert.match(hero, /\/campaign\/blackfriday\/hero-banner-mobile\.png/);
-  assert.match(hero, /<picture/);
-  assert.match(hero, /media="\(max-width: 767px\)"/);
+test('hero banner is removed; page starts with the following content', () => {
+  // بنر بزرگ «BLACK FRIDAY» دیگر رندر نمی‌شود و کامپوننت هیرو هم نیست
+  assert.doesNotMatch(page, /blackfriday\/hero/);
+  assert.doesNotMatch(page, /<Hero/);
+  assert.doesNotMatch(page, /hero-banner/);
 
-  // پوستر خودش تیتر و «۷۰٪ تخفیف» را دارد؛ متن یا پردهٔ اضافه روی آن نمی‌نشیند
-  assert.doesNotMatch(
-    hero,
-    /styles\.(scrim|title|lede|eyebrow|deadline|actions|primaryCta|secondaryCta|perks)/,
-  );
-  // ساختار صفحه و صفحه‌خوان از دست نمی‌رود: h1 واقعی (نامرئی) و میان‌بر به فهرست
-  assert.match(hero, /<h1[^>]*>[^<]+<\/h1>/);
-  assert.match(hero, /styles\.visuallyHidden/);
-  assert.match(hero, /href="#collection"/);
+  // ساختار صفحه و صفحه‌خوان از دست نمی‌رود: h1 واقعی (نامرئی) و میان‌بر
+  // به فهرست محصولات روی خود صفحه است
+  assert.match(page, /<h1[^>]*>[^<]+<\/h1>/);
+  assert.match(page, /styles\.visuallyHidden/);
+  assert.match(page, /href="#collection"/);
 
-  assert.match(heroCss, /object-fit:\s*contain/);
-  assert.doesNotMatch(heroCss, /linear-gradient/);
-  assert.match(heroCss, /scroll-snap-align:\s*start/);
-  assert.match(
-    heroCss,
-    /calc\(100dvh - var\(--zp-header-h\) - var\(--zp-mobile-nav-h\)\)/,
-  );
+  // هدر عادی فروشگاه از layout مسیر می‌آید و دست‌نخورده است
+  assert.doesNotMatch(page, /components\/layout\/public\/header/);
+});
+
+test('SEO article sits after the product listing and before the footer', () => {
+  const collectionIndex = page.indexOf('<ProductCollection');
+  const seoIndex = page.indexOf('<BlackFridaySeo');
+  const footerIndex = page.indexOf('<Footer');
+
+  assert.ok(collectionIndex > -1, 'product collection must be rendered');
+  assert.ok(seoIndex > collectionIndex, 'SEO section must follow products');
+  assert.ok(footerIndex > seoIndex, 'SEO section must precede the footer');
+
+  // متن کامل در HTML است (بدون دریافت جداگانه) و دکمه وضعیت را اعلام می‌کند
+  assert.match(seo, /aria-expanded/);
+  assert.match(seo, /aria-controls="bf-seo-more"/);
+  assert.match(seo, /مشاهده بیشتر/);
+  assert.match(seo, /بستن/);
+  assert.match(seo, /hidden=\{!expanded\}/);
+  assert.match(seo, /سؤالات متداول/);
 });
 
 test('biggest discounts keeps 6 desktop / 4 mobile cards', () => {

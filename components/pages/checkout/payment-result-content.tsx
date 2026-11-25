@@ -11,6 +11,18 @@ export default function PaymentResultContent() {
 
   const status = searchParams.get('status');
   const orderId = searchParams.get('orderId');
+  const transactionId = searchParams.get('transactionId');
+
+  // نمایش شناسهٔ تراکنش دریافتی از درگاه (مستند اسنپ‌پی صفحهٔ ۸ و ۱۵)
+  const TransactionIdBlock = () =>
+    transactionId ? (
+      <p className="mt-2 text-sm text-gray-400">
+        شناسه تراکنش (Transaction ID):{' '}
+        <span className="font-mono font-semibold text-gray-600" dir="ltr">
+          {transactionId}
+        </span>
+      </p>
+    ) : null;
 
   if (!status) {
     return (
@@ -40,6 +52,12 @@ export default function PaymentResultContent() {
         <h1 className="text-2xl font-bold">در حال بررسی پرداخت</h1>
 
         <p className="mt-3 text-gray-500">لطفاً چند لحظه صبر کنید...</p>
+
+        <TransactionIdBlock />
+
+        {orderId && (
+          <p className="mt-2 text-sm text-gray-400">شماره سفارش: {orderId}</p>
+        )}
       </div>
     );
   }
@@ -52,6 +70,8 @@ export default function PaymentResultContent() {
         <h1 className="text-3xl font-bold text-green-600">پرداخت موفق بود</h1>
 
         <p className="mt-3 text-gray-500">سفارش شما با موفقیت ثبت شد.</p>
+
+        <TransactionIdBlock />
 
         {orderId && (
           <p className="mt-2 text-sm text-gray-400">شماره سفارش: {orderId}</p>
@@ -75,6 +95,8 @@ export default function PaymentResultContent() {
       <p className="mt-3 text-gray-500">
         پرداخت انجام نشد یا توسط کاربر لغو شد.
       </p>
+
+      <TransactionIdBlock />
 
       <div className="mt-8 flex justify-center gap-3">
         {orderId && (

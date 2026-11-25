@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+// eslint-disable-next-line unused-imports/no-unused-imports -- TEMP: آیکون Wallet با مخفی‌شدن موقت گزینه کیف پول در تسویه بلااستفاده مانده؛ با فعال‌سازی مجدد برداشته شود
 import { Gift, Wallet } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+// eslint-disable-next-line unused-imports/no-unused-imports -- TEMP: formatPrice فعلاً فقط در بلوک‌های کامنت‌شده کیف پول/باشگاه استفاده می‌شود؛ با فعال‌سازی مجدد برداشته شود
 import { formatPrice } from '@/lib/utils';
 import { useAddresses } from '@/services/features/addresses/hooks';
 import {
@@ -86,6 +88,7 @@ export default function CheckoutForm() {
 
   const { data: walletData } = useWallet();
 
+  // eslint-disable-next-line unused-imports/no-unused-vars -- TEMP: clubLoading فعلاً فقط در بلوک کامنت‌شده باشگاه استفاده می‌شود؛ با فعال‌سازی مجدد برداشته شود
   const { data: clubData, isLoading: clubLoading } = useClubMe();
 
   const walletInfo = walletData?.data ?? null;
@@ -112,8 +115,10 @@ export default function CheckoutForm() {
   const [appliedDiscount, setAppliedDiscount] =
     useState<ApplyDiscountResponse | null>(null);
 
+  // eslint-disable-next-line unused-imports/no-unused-vars -- TEMP: ست‌کننده کیف پول با مخفی‌شدن موقت گزینه در تسویه بلااستفاده مانده؛ با فعال‌سازی مجدد برداشته شود
   const [useWalletPayment, setUseWalletPayment] = useState(false);
 
+  // eslint-disable-next-line unused-imports/no-unused-vars -- TEMP: ست‌کننده باشگاه با مخفی‌شدن موقت گزینه در تسویه بلااستفاده مانده؛ با فعال‌سازی مجدد برداشته شود
   const [useClubCreditPayment, setUseClubCreditPayment] = useState(false);
 
   /**
@@ -1041,6 +1046,18 @@ export default function CheckoutForm() {
       <section>
         <h2 className="text-xl font-light tracking-wide mb-4">روش پرداخت</h2>
 
+        {/*
+          ============================================================
+          غیرفعال‌سازی موقت (TODO: فعال‌سازی مجدد):
+          گزینهٔ «پرداخت از کیف پول» در فرایند تسویه موقتاً مخفی شده است.
+          منطق محاسبه، APIها و سرویس‌های کیف پول دست‌نخورده‌اند و
+          useWalletPayment همیشه false می‌ماند، پس هیچ مبلغی از کیف پول
+          کسر نمی‌شود و کل مبلغ با درگاه پرداخت می‌شود.
+          برای فعال‌سازی مجدد، فقط همین بلوک کامنت‌شده را از حالت کامنت
+          خارج کنید (حذف علامت‌های کامنت دور آن)؛ نیازی به تغییر دیگری نیست.
+          ============================================================
+        */}
+        {/*
         {(walletInfo || clubData?.data) && (
           <div className="space-y-3 mb-3">
             <label
@@ -1099,7 +1116,20 @@ export default function CheckoutForm() {
               )}
           </div>
         )}
+        */}
 
+        {/*
+          ============================================================
+          غیرفعال‌سازی موقت (TODO: فعال‌سازی مجدد):
+          گزینهٔ «اعتبار باشگاه مشتریان» در فرایند تسویه موقتاً مخفی شده
+          است. منطق محاسبه، APIها و سرویس‌های باشگاه دست‌نخورده‌اند و
+          useClubCreditPayment همیشه false می‌ماند، پس هیچ اعتباری از
+          باشگاه کسر نمی‌شود و کل مبلغ با درگاه پرداخت می‌شود.
+          برای فعال‌سازی مجدد، فقط همین بلوک کامنت‌شده را از حالت کامنت
+          خارج کنید (حذف علامت‌های کامنت دور آن)؛ نیازی به تغییر دیگری نیست.
+          ============================================================
+        */}
+        {/*
         {clubData?.data && (
           <div className="mb-3 space-y-2">
             <label
@@ -1140,6 +1170,7 @@ export default function CheckoutForm() {
             )}
           </div>
         )}
+        */}
 
         <div
           className={`space-y-3 ${

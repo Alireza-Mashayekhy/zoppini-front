@@ -3,26 +3,38 @@ import { connection } from 'next/server';
 
 import Footer from '@/components/layout/public/footer';
 import { BiggestDiscounts } from '@/components/pages/blackfriday/biggest-discounts';
+import { BlackFridaySeo } from '@/components/pages/blackfriday/black-friday-seo';
 import { CampaignScroll } from '@/components/pages/blackfriday/campaign-scroll';
 import { CategoryGrid } from '@/components/pages/blackfriday/category-grid';
 import { Countdown } from '@/components/pages/blackfriday/countdown';
-import { Hero } from '@/components/pages/blackfriday/hero';
 import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
 import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
 import CompareBar from '@/components/shared/compare-bar';
 import { resolveBlackFridaySubcategories } from '@/lib/blackfriday/campaign';
-import { loadBlackFridayCatalog } from '@/lib/blackfriday/catalog';
-import { selectBiggestDiscounts } from '@/lib/blackfriday/products';
+import {
+  loadBlackFridayCatalog,
+  loadTwentyPercentProducts,
+} from '@/lib/blackfriday/catalog';
+import {
+  pruneCategoriesForProducts,
+} from '@/lib/blackfriday/filtering';
+import {
+  buildCategoryIndex,
+  interleaveBalancedProducts,
+  mergeUniqueProducts,
+  productInStock,
+  selectBiggestDiscounts,
+} from '@/lib/blackfriday/products';
 import { getAllCategories } from '@/services/features/categories/server.api';
 
 import styles from './blackfriday.module.css';
 
 /**
- * لندینگ بلک فرایدی — نسخهٔ تأییدشدهٔ کمپین، داخل پوستهٔ واقعی فروشگاه.
+ * لندینگ بلک فرایدی — داخل پوستهٔ واقعی فروشگاه.
  *
- * چیدمان و ظاهر از نسخهٔ تأییدشدهٔ کمپین آمده‌اند؛ هدر/فوتر/ناوبری و همهٔ
- * داده‌ها از خود فروشگاه: محصولات از دستهٔ ۱۳۷ خوانده می‌شوند و کارت‌ها همان
- * کارت مشترک محصول هستند.
+ * هدر/فوتر/ناوبری و همهٔ داده‌ها از خود فروشگاه می‌آیند؛ محصولات از دستهٔ
+ * بلک فرایدی (۷۰٪) و محصولات تخفیف‌دار ۲۰٪ خوانده می‌شوند و به‌صورت
+ * متوازن درهم‌تنیده به فهرست می‌روند. کارت‌ها همان کارت مشترک محصول‌اند.
  */
 
 export const metadata: Metadata = {
@@ -71,20 +83,57 @@ export default async function BlackFridayPage() {
     ? selectBiggestDiscounts(catalog.products, 6)
     : [];
 
+  // گروه ۲۰٪: محصولات تخفیف‌دار فروشگاه با تخفیف فعال ۲۰٪ که در دستهٔ
+  // بلک فرایدی نیستند. اگر این خواندن ناموفق باشد، فهرست فقط با گروه ۷۰٪
+  // ادامه پیدا می‌کند.
+  const blackFridayIds = new Set(
+    (catalog?.products ?? []).map(product => product.id),
+  );
+  const twentyPercentProducts = await loadTwentyPercentProducts(
+    blackFridayIds,
+  ).catch(error => {
+    console.error('Black Friday 20% products request failed', error);
+    return [];
+  });
+
+  // فهرست واجدِ نهایی: بدون تکرار، فقط موجود، و درهم‌تنیدهٔ متوازن
+  // (دو محصول ۷۰٪ و دو محصول ۲۰٪ در هر یک از دو ردیف اول).
+  const eligibleProducts = interleaveBalancedProducts(
+    mergeUniqueProducts([catalog?.products ?? [], twentyPercentProducts]).filter(
+      productInStock,
+    ),
+    blackFridayIds,
+    buildCategoryIndex(categoriesResponse?.data),
+  );
+
+  // فقط دسته‌هایی که محصول واجد دارد (به‌همراه والدهایشان) به کلاینت
+  // می‌روند تا درخت دسته‌بندی برای فیلتر کامل باشد ولی payload کوچک بماند.
+  const collectionCategories = pruneCategoriesForProducts(
+    eligibleProducts,
+    categoriesResponse?.data,
+  );
+
   return (
     <div className="flex-1 pb-[var(--zp-mobile-nav-h)] lg:pb-0">
       <main className={styles.campaign} dir="rtl">
         <CampaignScroll />
-        <Hero />
+        {/* h1 نامرئی برای ساختار صفحه/سئو (بنر هیرو حذف شده است) */}
+        <h1 className={styles.visuallyHidden}>
+          بلک‌فرایدی زوپینی؛ تا ۷۰٪ تخفیف پوشاک مردانهٔ کلاسیک
+        </h1>
+        {/* میان‌بر کیبورد برای رفتن مستقیم به فهرست محصولات */}
+        <a className={styles.skipLink} href="#collection">
+          پرش به فهرست محصولات
+        </a>
         <BiggestDiscounts products={biggestDiscounts} />
         <Countdown />
         <CategoryGrid categories={subcategories} />
         <ProductCollection
-          initialItems={catalog?.initialPage ?? []}
-          initialPagination={catalog?.pagination ?? null}
-          subcategories={subcategories}
+          products={eligibleProducts}
+          categories={collectionCategories}
           unavailable={catalog === null}
         />
+        <BlackFridaySeo />
         <ScrollHint />
       </main>
       <Footer />
