@@ -17,7 +17,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
   margin: 0;
   padding: 0;
@@ -39,6 +39,12 @@
   object-fit: cover;
   object-position: center 15%;
   transition: transform 500ms ease;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #262626 0%, #171717 100%);
 }
 
 .name {
@@ -90,7 +96,6 @@
     flex: 1;
     min-height: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: 0.82fr 1fr 1fr;
     gap: 0.65rem;
   }
 

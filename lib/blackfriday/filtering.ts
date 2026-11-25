@@ -8,7 +8,6 @@ import type {
 
 import {
   type CategoryIndex,
-  isCategoryOrDescendant,
   productDiscountPercent,
   productFinalPrice,
   productRootCategoryIds,
@@ -33,10 +32,8 @@ export type BlackFridaySortValue =
 export type BlackFridayFilters = {
   /** متن جستجو روی نام محصول (فارسی) */
   search: string;
-  /** شناسهٔ دستهٔ اصلی؛ null یعنی همه */
-  mainCategoryId: number | null;
-  /** شناسهٔ زیردسته؛ null یعنی همهٔ زیردسته‌های دستهٔ اصلی */
-  subcategoryId: number | null;
+  /** شناسهٔ دسته‌بندی اصلی فروشگاه؛ null یعنی همه */
+  categoryId: number | null;
   sizeIds: number[];
   colorIds: number[];
   /** قیمت نهایی (پس از تخفیف)؛ undefined یعنی بدون محدودیت */
@@ -46,8 +43,7 @@ export type BlackFridayFilters = {
 
 export const EMPTY_BLACK_FRIDAY_FILTERS: BlackFridayFilters = {
   search: '',
-  mainCategoryId: null,
-  subcategoryId: null,
+  categoryId: null,
   sizeIds: [],
   colorIds: [],
   priceMin: undefined,
@@ -60,8 +56,7 @@ export function hasActiveBlackFridayFilters(
 ): boolean {
   return Boolean(
     filters.search.trim() ||
-      filters.mainCategoryId !== null ||
-      filters.subcategoryId !== null ||
+      filters.categoryId !== null ||
       filters.sizeIds.length ||
       filters.colorIds.length ||
       filters.priceMin !== undefined ||
@@ -94,31 +89,15 @@ export function productMatchesSearch(
   return normalizeSearchText(product.title ?? '').includes(term);
 }
 
-/** آیا محصول در دستهٔ اصلی انتخاب‌شده است؟ (با گسترش به زیردسته‌ها) */
-function productMatchesMainCategory(
+/** آیا محصول در دسته‌بندی اصلی انتخاب‌شده (یا زیردسته‌های آن) است؟ */
+function productMatchesCategory(
   product: ProductsResponse,
-  mainCategoryId: number | null,
+  categoryId: number | null,
   index: CategoryIndex,
 ): boolean {
-  if (mainCategoryId === null) return true;
+  if (categoryId === null) return true;
 
-  return productRootCategoryIds(product, index).includes(mainCategoryId);
-}
-
-/** آیا محصول در زیردستهٔ انتخاب‌شده (یا نوادگان آن) است؟ */
-function productMatchesSubcategory(
-  product: ProductsResponse,
-  subcategoryId: number | null,
-  index: CategoryIndex,
-): boolean {
-  if (subcategoryId === null) return true;
-
-  return (product.categories ?? []).some(category => {
-    const id = Number(category?.id);
-    return (
-      Number.isFinite(id) && isCategoryOrDescendant(id, subcategoryId, index)
-    );
-  });
+  return productRootCategoryIds(product, index).includes(categoryId);
 }
 
 /** آیا محصول واریانتی با یکی از سایزهای انتخاب‌شده دارد؟ */
@@ -165,7 +144,8 @@ function productMatchesPrice(
  * اعمال همهٔ فیلترها و جستجو روی مجموعهٔ واجد.
  *
  * ترتیب ورودی حفظ می‌شود (ترتیب متوازن سرور)؛ مرتب‌سازی جداگانه انجام
- * می‌شود تا «ترکیب پیشنهادی» پیش‌فرض دست‌نخورده بماند.
+ * می‌شود تا «ترکیب پیشنهادی» پیش‌فرض دست‌نخورده بماند. دسته‌بندی فیلتر
+ * بر دسته‌های اصلیِ ناوبری فروشگاه (نه دستهٔ کمپین) است.
  */
 export function filterBlackFridayProducts<T extends ProductsResponse>(
   products: T[],
@@ -175,8 +155,7 @@ export function filterBlackFridayProducts<T extends ProductsResponse>(
   return products.filter(
     product =>
       productMatchesSearch(product, filters.search) &&
-      productMatchesMainCategory(product, filters.mainCategoryId, index) &&
-      productMatchesSubcategory(product, filters.subcategoryId, index) &&
+      productMatchesCategory(product, filters.categoryId, index) &&
       productMatchesSizes(product, filters.sizeIds) &&
       productMatchesColors(product, filters.colorIds) &&
       productMatchesPrice(product, filters.priceMin, filters.priceMax),
@@ -235,12 +214,8 @@ export function sortBlackFridayProducts<T extends ProductsResponse>(
 }
 
 export type BlackFridayFilterOptions = {
-  /** دسته‌های اصلی‌ای که در محصولات واجد واقعاً وجود دارند */
-  mainCategories: { id: number; name: string }[];
-  /** زیردسته‌های هر دستهٔ اصلی (فقط آن‌هایی که محصول واجد دارند) */
-  subcategoriesByMain: Map<number, { id: number; name: string }[]>;
-  /** همهٔ زیردسته‌های دارای محصول واجد (برای حالت «بدون دستهٔ اصلی») */
-  allSubcategories: { id: number; name: string; mainId: number }[];
+  /** هشت دسته‌بندی اصلیِ ناوبری فروشگاه (منابع حقیقت) */
+  categories: { id: number; name: string }[];
   sizes: SizeResponse[];
   colors: ColorResponse[];
   /** کمترین/بیشترین قیمت نهایی در محصولات واجد */
@@ -249,18 +224,17 @@ export type BlackFridayFilterOptions = {
 };
 
 /**
- * ساخت گزینه‌های فیلتر از خودِ محصولات واجد و واریانت‌هایشان.
+ * ساخت گزینه‌های فیلتر: دسته‌ها از ناوبری اصلی فروشگاه می‌آیند و
+ * سایز/رنگ/محدودهٔ قیمت از خودِ محصولات واجد و واریانت‌هایشان.
  *
- * دسته‌ها از درخت واقعی فروشگاه (`parentId`) خوانده می‌شوند و فقط آن‌هایی
- * که محصول واجد دارند نمایش داده می‌شوند؛ سایز/رنگ هم فقط از واریانت‌های
- * همین محصولات می‌آیند، نه از لیست سراسری سیستم.
+ * دسته‌ها دقیقاً همان دسته‌های اصلیِ `resolveStoreTopCategories` هستند؛
+ * نه دستهٔ کمپین و نه زیردسته‌ها جزو گزینه‌های فیلتر نمی‌شوند. سایز و رنگ
+ * هم فقط از واریانت‌های همین محصولات می‌آیند، نه از لیست سراسری سیستم.
  */
 export function deriveBlackFridayFilterOptions(
   products: ProductsResponse[],
-  index: CategoryIndex,
+  categories: { id: number; name: string }[],
 ): BlackFridayFilterOptions {
-  const mainIds = new Set<number>();
-  const subByMain = new Map<number, Map<number, string>>();
   const sizeById = new Map<number, SizeResponse>();
   const colorById = new Map<number, ColorResponse>();
 
@@ -268,23 +242,6 @@ export function deriveBlackFridayFilterOptions(
   let maxPrice = 0;
 
   for (const product of products) {
-    const roots = productRootCategoryIds(product, index);
-    for (const root of roots) mainIds.add(root);
-
-    for (const category of product.categories ?? []) {
-      const id = Number(category?.id);
-      if (!Number.isFinite(id)) continue;
-
-      const root = roots.find(candidate =>
-        isCategoryOrDescendant(id, candidate, index),
-      );
-      if (root === undefined) continue;
-
-      const subs = subByMain.get(root) ?? new Map<number, string>();
-      if (!subs.has(id)) subs.set(id, String(category?.name ?? ''));
-      subByMain.set(root, subs);
-    }
-
     for (const variant of product.variants ?? []) {
       const sizeId = Number(variant?.sizeId);
       const colorId = Number(variant?.colorId);
@@ -318,33 +275,8 @@ export function deriveBlackFridayFilterOptions(
     if (price > maxPrice) maxPrice = price;
   }
 
-  const mainCategories = [...mainIds]
-    .map(id => ({ id, name: index.get(id)?.name ?? '' }))
-    .filter(item => item.name)
-    .sort((left, right) => left.id - right.id);
-
-  const subcategoriesByMain = new Map<
-    number,
-    { id: number; name: string }[]
-  >();
-  const allSubcategories: { id: number; name: string; mainId: number }[] = [];
-
-  for (const [mainId, subs] of subByMain) {
-    const list = [...subs.entries()]
-      .map(([id, name]) => ({ id, name }))
-      .filter(item => item.name)
-      .sort((left, right) => left.id - right.id);
-
-    subcategoriesByMain.set(mainId, list);
-    for (const sub of list) allSubcategories.push({ ...sub, mainId });
-  }
-
-  allSubcategories.sort((left, right) => left.id - right.id);
-
   return {
-    mainCategories,
-    subcategoriesByMain,
-    allSubcategories,
+    categories: categories.filter(category => category?.name),
     sizes: sortSizeOptions([...sizeById.values()]),
     colors: [...colorById.values()].sort((left, right) =>
       left.name.localeCompare(right.name, 'fa'),

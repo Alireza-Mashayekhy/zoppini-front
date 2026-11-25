@@ -4,11 +4,14 @@
   padding: 3.25rem 0 3.75rem;
   /* لنگرِ #collection زیر هدر ثابت بایستد */
   scroll-margin-top: var(--zp-header-h);
+  /* overflow صفحه ممنوع است؛ هر کنترل خودش در صورت نیاز SCroll می‌شود */
+  overflow: visible;
 }
 
 .inner {
   width: min(1280px, calc(100% - 3rem));
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .intro h2 {
@@ -24,30 +27,36 @@
   line-height: 1.7;
 }
 
+/* ======================= نوار ابزار (compact) ======================= */
 .toolbar {
   display: flex;
-  align-items: flex-end;
-  gap: 0.75rem 1rem;
-  margin: 1.6rem 0 1rem;
-  padding: 1.1rem 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin: 1.5rem 0 0.9rem;
+  padding: 0.65rem 0;
   border-bottom: 1px solid rgba(8, 8, 8, 0.16);
+  box-sizing: border-box;
 }
 
 .searchWrap {
   position: relative;
-  flex: 1 1 16rem;
+  flex: 1 1 18rem;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .searchInput {
   width: 100%;
+  min-width: 0;
   min-height: 2.7rem;
-  padding: 0.45rem 0.9rem;
+  padding: 0.45rem 2.4rem 0.45rem 0.9rem;
   border: 1px solid #080808;
   border-radius: 0;
   background: #ffffff;
   color: #080808;
   font: inherit;
+  box-sizing: border-box;
 }
 
 .searchInput::placeholder {
@@ -69,8 +78,50 @@
   cursor: pointer;
 }
 
+.sortLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.sortSelectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.sortSelectWrap select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: 0 2rem 0 0.7rem;
+  border: 1px solid #080808;
+  border-radius: 0;
+  background: #efecec;
+  color: #080808;
+  font: inherit;
+  appearance: none;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.sortChevron {
+  position: absolute;
+  inset-inline-end: 0.55rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  pointer-events: none;
+  color: #080808;
+}
+
 .filterToggle {
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   min-height: 2.7rem;
@@ -81,6 +132,7 @@
   font: inherit;
   cursor: pointer;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .filterBadge {
@@ -97,94 +149,136 @@
   font-weight: 700;
 }
 
-.sortLabel {
+/* ======================= ردیف دسته‌بندی اصلی ======================= */
+.categoryRow {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0 0.6rem;
+  margin-bottom: 0.35rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+.categoryRow::-webkit-scrollbar {
+  height: 3px;
+}
+
+.categoryRow::-webkit-scrollbar-thumb {
+  background: rgba(8, 8, 8, 0.25);
+  border-radius: 999px;
+}
+
+.catChip,
+.catChipActive {
   flex-shrink: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.sortLabel select {
-  min-height: 2.6rem;
-  min-width: 11.5rem;
-  padding: 0 0.7rem;
-  border: 1px solid #080808;
-  border-radius: 0;
-  background: #efecec;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid rgba(8, 8, 8, 0.4);
+  background: transparent;
   color: #080808;
+  font: inherit;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: start;
+  box-sizing: border-box;
 }
 
-/*
- * پنل فیلترها: روی دسکتاپ همیشه بالای گرید دیده می‌شود؛ روی موبایل فقط
- * با دکمهٔ «فیلترها» باز می‌شود تا جا اشغال نشود. جستجو همیشه در نوار
- * بالا در دسترس است.
- */
+.catChipActive {
+  background: #080808;
+  border-color: #080808;
+  color: #ffffff;
+}
+
+/* ======================= فعال‌های انتخاب‌شده ======================= */
+.activeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.activeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.2rem;
+  padding: 0.2rem 0.2rem 0.2rem 0.75rem;
+  border: 1px solid rgba(8, 8, 8, 0.45);
+  background: #ffffff;
+  color: #080808;
+  font-size: 0.82rem;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+.activeRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  background: transparent;
+  color: #080808;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clearAll {
+  min-height: 2.2rem;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid #690d28;
+  background: transparent;
+  color: #690d28;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* ======================= پنل فیلتر دسکتاپ ======================= */
 .panel {
   display: none;
   margin: 0 0 1.25rem;
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   border: 1px solid rgba(8, 8, 8, 0.16);
   background: #ffffff;
+  box-sizing: border-box;
 }
 
-.panelOpen {
-  display: block;
-}
+/* پنل فقط روی دسکتاپ و فقط با باز شدن دکمهٔ «فیلترها» دیده می‌شود */
 
-.panelRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.9rem 1.25rem;
-  padding: 0.55rem 0;
-}
-
-.panelRow + .panelRow {
-  border-top: 1px dashed rgba(8, 8, 8, 0.14);
-}
-
-.field {
+/* ======================= کنترل‌های فیلتر ======================= */
+.controls {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.78rem;
-  font-weight: 600;
+  gap: 0.9rem;
 }
 
-.field select,
-.field input {
-  min-height: 2.6rem;
-  padding: 0 0.7rem;
-  border: 1px solid #080808;
-  border-radius: 0;
-  background: #ffffff;
-  color: #080808;
-  font: inherit;
-}
-
-.field select {
-  min-width: 12rem;
-}
-
-.priceRow {
+.controlSection {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.55rem;
 }
 
-.priceRow input {
-  width: 9rem;
+.controlHeading {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3a3836;
 }
 
-.groupLabel {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.chips {
+.controlChips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
@@ -203,6 +297,7 @@
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .chipActive {
@@ -220,23 +315,134 @@
   flex-shrink: 0;
 }
 
+.priceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.priceField {
+  display: flex;
+  min-width: 0;
+}
+
+.priceField input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: 0 0.7rem;
+  border: 1px solid #080808;
+  border-radius: 0;
+  background: #ffffff;
+  color: #080808;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.priceSep {
+  font-size: 0.85rem;
+  color: #6b6762;
+}
+
 .panelActions {
   display: flex;
   justify-content: flex-end;
   padding-top: 0.6rem;
+  border-top: 1px dashed rgba(8, 8, 8, 0.14);
+  margin-top: 0.2rem;
 }
 
-.clearAll {
-  min-height: 2.5rem;
-  padding: 0.4rem 1rem;
-  border: 1px solid #690d28;
+/* ======================= کش‌آپ فیلتر موبایل ======================= */
+.sheetContent {
+  box-sizing: border-box;
+}
+
+.sheetHandle {
+  width: 2.25rem;
+  height: 0.28rem;
+  margin: 0.55rem auto 0;
+  border-radius: 999px;
+  background: rgba(8, 8, 8, 0.2);
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 1.1rem 0.85rem;
+  border-bottom: 1px solid rgba(8, 8, 8, 0.12);
+  flex-shrink: 0;
+}
+
+.sheetHeader .sheetTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sheetClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
   background: transparent;
-  color: #690d28;
-  font: inherit;
-  font-size: 0.85rem;
+  color: #080808;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
+.sheetCloseIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.sheetBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-contain: contain;
+  padding: 1rem 1.1rem;
+}
+
+.sheetFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.1rem calc(0.85rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(8, 8, 8, 0.12);
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.sheetActionSecondary,
+.sheetActionPrimary {
+  min-height: 2.7rem;
+  padding: 0 1.1rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  flex: 1 1 0;
+}
+
+.sheetActionSecondary {
+  border: 1px solid #080808;
+  background: transparent;
+  color: #080808;
+}
+
+.sheetActionPrimary {
+  border: 1px solid #690d28;
+  background: #690d28;
+  color: #ffffff;
+}
+
+/* ======================= نتیجه و گرید ======================= */
 .resultCount {
   margin: 0 0 1rem;
   color: #3a3836;
@@ -294,7 +500,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .chip:hover {
+  .chip:hover,
+  .catChip:hover {
     background: #ffffff;
   }
 
@@ -305,15 +512,8 @@
 }
 
 @media (min-width: 1024px) {
-  .panel {
+  .panelOpen {
     display: block;
-  }
-}
-
-/* زیر دسکتاپ، پنل فقط با دکمهٔ «فیلترها» باز می‌شود */
-@media (max-width: 1023px) {
-  .filterToggle {
-    display: inline-flex;
   }
 }
 
@@ -336,8 +536,8 @@
   }
 
   .toolbar {
-    flex-wrap: wrap;
-    align-items: stretch;
+    gap: 0.5rem 0.75rem;
+    margin-top: 1.1rem;
   }
 
   .searchWrap {
@@ -346,30 +546,47 @@
 
   .sortLabel {
     flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .sortLabel select {
-    width: 100%;
-    min-width: 0;
+  .sortLabel > span:first-child {
+    flex-shrink: 0;
   }
 
-  .field select {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .field {
-    flex: 1 1 100%;
-  }
-
-  .priceRow input {
-    flex: 1 1 0;
-    width: auto;
+  .sortSelectWrap {
+    flex: 1 1 auto;
     min-width: 0;
   }
 
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.15rem 0.65rem;
+  }
+}
+
+/* در عرض‌های بسیار کم، جعبه‌های محدودهٔ قیمت روبروی هم نمی‌آیند */
+@media (max-width: 360px) {
+  .priceRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .priceSep {
+    display: none;
+  }
+
+  .catChip,
+  .catChipActive,
+  .chip,
+  .chipActive {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .categoryRow {
+    scroll-behavior: auto;
   }
 }

@@ -101,8 +101,8 @@ test('product collection keeps the approved grid and infinite scroll marker', ()
   assert.match(collection, /blackFridayCategoryHref|ProductCard/);
 });
 
-test('category tiles keep five editorial columns and real store routes', () => {
-  assert.match(categoriesCss, /grid-template-columns:\s*repeat\(5,/);
+test('category tiles show the eight top-level store categories', () => {
+  assert.match(categoriesCss, /grid-template-columns:\s*repeat\(4,/);
   assert.match(categoriesCss, /aspect-ratio:\s*3 \/ 4/);
   assert.match(categoriesCss, /grid-column:\s*1 \/ -1/);
 });

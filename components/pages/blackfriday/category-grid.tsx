@@ -3,22 +3,23 @@ import Link from 'next/link';
 
 import {
   blackFridayCategoryHref,
-  type BlackFridaySubcategory,
+  type StoreTopCategory,
 } from '@/lib/blackfriday/campaign';
 
 import styles from './category-grid.module.css';
 
 /**
- * بخش چهارم — کاشی‌های دسته‌بندی کمپین.
+ * بخش چهارم — کاشی‌های دسته‌بندی اصلی فروشگاه.
  *
- * تصویرهای ادیتوریال تأییدشده همان‌هایی هستند که با سورس آمده‌اند؛ لینک‌ها
- * اما به مسیر واقعی دسته در فروشگاه می‌روند و اسلاگ/نام از پاسخ زندهٔ
- * `/categories` گرفته می‌شود. هیچ دسته‌ای در این صفحه ساخته نمی‌شود.
+ * این کاشی‌ها همان هشت دسته‌بندی ریشه‌ایِ ناوبری فروشگاه هستند (منبع
+ * حقیقت). تصویرها از خودِ دسته‌بندی‌های فروشگاه می‌آیند و لینک‌ها به
+ * مسیر واقعی آرشیو دسته می‌روند. دستهٔ کمپین و زیردسته‌هایش در این
+ * بخش نمایش داده نمی‌شوند؛ کمپین صرفاً برای شناسایی محصولات ۷۰٪باقی می‌شود.
  */
 export function CategoryGrid({
   categories,
 }: {
-  categories: BlackFridaySubcategory[];
+  categories: StoreTopCategory[];
 }) {
   return (
     <section
@@ -35,13 +36,17 @@ export function CategoryGrid({
                 className={styles.card}
                 href={blackFridayCategoryHref(category.slug)}
               >
-                <Image
-                  className={styles.image}
-                  src={category.image}
-                  alt=""
-                  fill
-                  sizes="(min-width: 768px) 20vw, 50vw"
-                />
+                {category.image ? (
+                  <Image
+                    className={styles.image}
+                    src={category.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 768px) 20vw, 50vw"
+                  />
+                ) : (
+                  <span className={styles.fallback} aria-hidden="true" />
+                )}
                 <span className={styles.name}>{category.name}</span>
               </Link>
             </li>

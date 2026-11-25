@@ -12,6 +12,7 @@ import {
   isBlackFridaySubcategoryId,
   remainingUntilDeadline,
   resolveBlackFridaySubcategories,
+  resolveStoreTopCategories,
 } from '../lib/blackfriday/campaign';
 import type { CategoriesResponse } from '../services/features/categories/types';
 
@@ -169,4 +170,61 @@ test('category filter keeps the campaign scope without breaking subcategory filt
 
   // شناسهٔ بیرون از کمپین هرگز فیلتر نمی‌شود
   assert.deepEqual(blackFridayCategoryFilter(999), [137]);
+});
+
+test('store top categories are the eight active roots without the campaign', () => {
+  const category = (
+    id: number,
+    parentId: number | null,
+    extra: Partial<CategoriesResponse> = {},
+  ): CategoriesResponse =>
+    ({
+      id,
+      name: `دسته ${id}`,
+      slug: `cat-${id}`,
+      image: `images/${id}.jpg`,
+      secondImages: [],
+      description: '',
+      createdAt: '',
+      updatedAt: '',
+      parentId,
+      isInHeroSection: false,
+      isInHome: false,
+      orderInHome: 0,
+      orderInHero: 0,
+      isActive: true,
+      ...extra,
+    }) as CategoriesResponse;
+
+  const live = [
+    // هشت دسته‌بندی اصلیِ ناوبری
+    category(1, null),
+    category(2, null),
+    category(3, null),
+    category(4, null),
+    category(5, null),
+    category(6, null),
+    category(7, null),
+    category(8, null),
+    // دستهٔ کمپین و زیردسته‌هایش — حذف می‌شوند
+    category(137, null, { name: 'زوپینی بلک فرایدی' }),
+    category(138, 137),
+    category(139, 137),
+    // یک دستهٔ غیرفعال — حذف می‌شود
+    category(9, null, { isActive: false }),
+  ];
+
+  const top = resolveStoreTopCategories(live, 'https://img.example/');
+
+  assert.deepEqual(
+    top.map(item => item.id),
+    [1, 2, 3, 4, 5, 6, 7, 8],
+  );
+  assert.deepEqual(
+    top.map(item => item.image),
+    Array.from({ length: 8 }, (_, index) => `https://img.example/images/${index + 1}.jpg`),
+  );
+  assert.ok(top.every(item => item.name.length > 0));
+  // هیچ دستهٔ کمپین یا زیردسته‌ای در فهرست اصلی نیست
+  assert.ok(!top.some(item => item.id === 137 || item.id === 138));
 });

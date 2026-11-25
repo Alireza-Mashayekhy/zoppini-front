@@ -186,6 +186,58 @@ export function blackFridayCategoryHref(slug: string): string {
   return `/product-category/${categorySlugSegment(slug)}`;
 }
 
+export type StoreTopCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  /** مسیر تصویر دسته‌بندی فروشگاه (کاملِ URL با پیش‌وند NEXT_PUBLIC_IMAGE_URL) */
+  image: string;
+};
+
+/**
+ * دستهٔ اصلیِ ناوبری فروشگاه (منبع حقیقت).
+ *
+ * همان دسته‌های ریسپانسیو منو: ریشه‌های درخت دسته‌بندی (`parentId` خالی)
+ * که فعال هستند. دستهٔ کمپین «زوپینی بلک فرایدی» (۱۳۷) و زیردسته‌هایش
+ * از این فهرست حذف می‌شوند؛ کمپین صرفاً برای شناسایی محصولات ۷۰٪بقى
+ * برنامه است و جزو دسته‌های قابل‌فیلترِ ناوبری نیست.
+ *
+ * ترتیب از `orderInHome` (تبلیغات/منو) و در نبود آن از شناسه می‌آید تا
+ *وقوع‌های پیاپی پایدار و هم‌تراز با ناوبری باشد.
+ */
+export function resolveStoreTopCategories(
+  liveCategories?: CategoriesResponse[] | null,
+  imageBaseUrl = process.env.NEXT_PUBLIC_IMAGE_URL ?? '',
+): StoreTopCategory[] {
+  const byId = new Map(
+    (liveCategories ?? []).map(category => [category.id, category]),
+  );
+
+  const roots = (liveCategories ?? []).filter(category => {
+    if (!category?.isActive) return false;
+    if (category.id === BLACK_FRIDAY_CATEGORY_ID) return false;
+
+    const parentId =
+      category.parentId == null ? null : Number(category.parentId);
+    // ریشه یعنی والدخالی باشد یا والد در فهرست وجود نداشته باشد
+    const isRoot = parentId === null || !byId.has(parentId);
+    return isRoot;
+  });
+
+  return roots
+    .sort((left, right) => {
+      const leftOrder = Number.isFinite(left.orderInHome) ? left.orderInHome : Number.MAX_SAFE_INTEGER;
+      const rightOrder = Number.isFinite(right.orderInHome) ? right.orderInHome : Number.MAX_SAFE_INTEGER;
+      return leftOrder - rightOrder || left.id - right.id;
+    })
+    .map(category => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      image: `${imageBaseUrl}${category.image ?? ''}`,
+    }));
+}
+
 export type RemainingTime = {
   days: number;
   hours: number;

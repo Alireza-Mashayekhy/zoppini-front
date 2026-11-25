@@ -10,7 +10,7 @@ import { Countdown } from '@/components/pages/blackfriday/countdown';
 import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
 import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
 import CompareBar from '@/components/shared/compare-bar';
-import { resolveBlackFridaySubcategories } from '@/lib/blackfriday/campaign';
+import { resolveStoreTopCategories } from '@/lib/blackfriday/campaign';
 import {
   loadBlackFridayCatalog,
   loadTwentyPercentProducts,
@@ -74,9 +74,7 @@ export default async function BlackFridayPage() {
     getAllCategories().catch(() => null),
   ]);
 
-  const subcategories = resolveBlackFridaySubcategories(
-    categoriesResponse?.data,
-  );
+  const topCategories = resolveStoreTopCategories(categoriesResponse?.data);
   // شش محصول با بالاترین تخفیف واقعیِ کل دسته؛ انتخاب در هر درخواست تازه
   // می‌تواند عوض شود ولی HTMLِ سرور و hydration کلاینت یکی است.
   const biggestDiscounts = catalog
@@ -108,6 +106,8 @@ export default async function BlackFridayPage() {
 
   // فقط دسته‌هایی که محصول واجد دارد (به‌همراه والدهایشان) به کلاینت
   // می‌روند تا درخت دسته‌بندی برای فیلتر کامل باشد ولی payload کوچک بماند.
+  // هشت دسته‌بندی اصلیِ ناوبری مستقیم از همان پاسخ کامل می‌آیند و به
+  // ProductCollection همان‌ها می‌رسند.
   const collectionCategories = pruneCategoriesForProducts(
     eligibleProducts,
     categoriesResponse?.data,
@@ -127,10 +127,11 @@ export default async function BlackFridayPage() {
         </a>
         <BiggestDiscounts products={biggestDiscounts} />
         <Countdown />
-        <CategoryGrid categories={subcategories} />
+        <CategoryGrid categories={topCategories} />
         <ProductCollection
           products={eligibleProducts}
           categories={collectionCategories}
+          topCategories={topCategories}
           unavailable={catalog === null}
         />
         <BlackFridaySeo />

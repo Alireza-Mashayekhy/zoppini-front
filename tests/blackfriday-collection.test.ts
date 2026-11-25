@@ -349,17 +349,17 @@ test('category, size, color and price filters combine on final price', () => {
   assert.deepEqual(
     filterBlackFridayProducts(
       products,
-      { ...EMPTY_BLACK_FRIDAY_FILTERS, mainCategoryId: 1 },
+      { ...EMPTY_BLACK_FRIDAY_FILTERS, categoryId: 1 },
       index,
     ).map(product => product.id),
     [1],
   );
 
-  // فیلتر زیردستهٔ ۲۱
+  // فیلتر دستهٔ اصلی ۲: فقط محصول ۲ (زیردستهٔ ۲۱ زیر دستهٔ ۲ است)
   assert.deepEqual(
     filterBlackFridayProducts(
       products,
-      { ...EMPTY_BLACK_FRIDAY_FILTERS, subcategoryId: 21 },
+      { ...EMPTY_BLACK_FRIDAY_FILTERS, categoryId: 2 },
       index,
     ).map(product => product.id),
     [2],
@@ -433,7 +433,6 @@ test('sorting keeps the balanced order by default and sorts the rest', () => {
 
 test('filter options come from eligible products and their variants', () => {
   const categories = makeCategories();
-  const index = buildCategoryIndex(categories);
 
   const products = [
     makeProduct(
@@ -460,20 +459,17 @@ test('filter options come from eligible products and their variants', () => {
     ),
   ];
 
-  const options = deriveBlackFridayFilterOptions(products, index);
+  // هشت دسته‌بندی اصلیِ ناوبری فروشگاه (ریشه‌ها، بدون دستهٔ کمپین ۱۳۷)
+  const categoryOptions = categories
+    .filter(category => category.parentId === null && category.id !== 137)
+    .map(category => ({ id: category.id, name: category.name }));
 
-  // دسته‌های اصلی فقط آن‌هایی که محصول واجد دارند (۱ و ۱۳۷)
+  const options = deriveBlackFridayFilterOptions(products, categoryOptions);
+
+  // دسته‌ها دقیقاً همان دسته‌های اصلیِ ناوبری هستند
   assert.deepEqual(
-    options.mainCategories.map(main => main.id),
-    [1, 137],
-  );
-  assert.deepEqual(
-    options.subcategoriesByMain.get(1)?.map(sub => sub.id),
-    [11],
-  );
-  assert.deepEqual(
-    options.subcategoriesByMain.get(137)?.map(sub => sub.id),
-    [138],
+    options.categories.map(category => category.id),
+    categoryOptions.map(category => category.id),
   );
   assert.deepEqual(
     options.sizes.map(size => size.id),
