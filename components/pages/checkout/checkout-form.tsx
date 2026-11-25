@@ -159,6 +159,13 @@ export default function CheckoutForm() {
     name: 'shippingMethod',
   });
 
+  // هر دو چیدمان موبایل و دسکتاپ mount هستند؛ مقدار باید مشترک و کنترل‌شده
+  // باشد تا ref فیلد مخفی، کد واردشده در فیلد قابل‌مشاهده را خالی نکند.
+  const discountCode = useWatch({
+    control: methods.control,
+    name: 'discountCode',
+  });
+
   const isPickup = getDeliveryType(selectedShipping) === 'pickup';
 
   /**
@@ -1000,7 +1007,13 @@ export default function CheckoutForm() {
         ) : (
           <div className="flex gap-2">
             <Input
-              {...register('discountCode')}
+              name="discountCode"
+              value={discountCode ?? ''}
+              onChange={event =>
+                setValue('discountCode', event.target.value, {
+                  shouldDirty: true,
+                })
+              }
               placeholder="کد تخفیف را وارد کنید"
               dir="ltr"
               className="flex-1"
