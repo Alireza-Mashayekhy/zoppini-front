@@ -126,8 +126,8 @@ export function ProductCollection({
 
   const selectedCategory =
     filters.categoryId !== null
-      ? categoryOptions.find(category => category.id === filters.categoryId) ??
-        null
+      ? (categoryOptions.find(category => category.id === filters.categoryId) ??
+        null)
       : null;
 
   // تایپرایتر placeholder: متوقف می‌شود هنگام فوکوس یا تایپ، و از نو شروع
@@ -177,7 +177,8 @@ export function ProductCollection({
     const trimmed = value.trim();
     const parsed = trimmed ? Number(trimmed) : undefined;
     updateFilters({
-      [key]: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+      [key]:
+        parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
     });
   };
 
@@ -200,6 +201,17 @@ export function ProductCollection({
     desktop.addEventListener('change', closeOnDesktop);
     return () => desktop.removeEventListener('change', closeOnDesktop);
   }, []);
+
+  // بستن پنل/کش‌آپ فیلتر با کلید Escape (فقط وقتی باز است). کلیک/تایپ/اسکرول
+  // داخل پنل آن را نمی‌بندد؛ فقط Escape، کلیک روی backdrop، یا دکمهٔ بستن.
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setFiltersOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [filtersOpen]);
 
   // اسکرول بی‌نهایت روی همان مجموعهٔ فیلترشده (بدون درخواست شبکه)
   useEffect(() => {
@@ -305,7 +317,9 @@ export function ProductCollection({
           <button
             type="button"
             className={
-              filters.categoryId === null ? styles.catChipActive : styles.catChip
+              filters.categoryId === null
+                ? styles.catChipActive
+                : styles.catChip
             }
             aria-pressed={filters.categoryId === null}
             onClick={() => changeCategory(null)}
@@ -320,9 +334,7 @@ export function ProductCollection({
                 type="button"
                 className={active ? styles.catChipActive : styles.catChip}
                 aria-pressed={active}
-                onClick={() =>
-                  changeCategory(active ? null : category.id)
-                }
+                onClick={() => changeCategory(active ? null : category.id)}
               >
                 {category.name}
               </button>
@@ -593,7 +605,10 @@ function FilterControls({
   return (
     <div className={styles.controls}>
       {showCategories && (
-        <section className={styles.controlSection} aria-labelledby="filter-cat">
+        <section
+          className={`${styles.controlSection} ${styles.controlSectionCat}`}
+          aria-labelledby="filter-cat"
+        >
           <h3 id="filter-cat" className={styles.controlHeading}>
             دسته‌بندی
           </h3>
@@ -687,10 +702,7 @@ function FilterControls({
         </section>
       )}
 
-      <section
-        className={styles.controlSection}
-        aria-labelledby="filter-price"
-      >
+      <section className={styles.controlSection} aria-labelledby="filter-price">
         <h3 id="filter-price" className={styles.controlHeading}>
           محدوده قیمت (تومان)
         </h3>

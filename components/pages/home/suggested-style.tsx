@@ -59,7 +59,11 @@ export const suggestedStyleMobileSwipePlugin: KeenSliderPlugin = slider => {
   });
 
   slider.on('dragged', () => {
-    if (!isSingleSlidePerView(slider) || dragStartIdx === null || !slider.track.details) {
+    if (
+      !isSingleSlidePerView(slider) ||
+      dragStartIdx === null ||
+      !slider.track.details
+    ) {
       return;
     }
 
@@ -75,7 +79,11 @@ export const suggestedStyleMobileSwipePlugin: KeenSliderPlugin = slider => {
   });
 
   slider.on('dragEnded', () => {
-    if (!isSingleSlidePerView(slider) || dragStartIdx === null || !slider.track.details) {
+    if (
+      !isSingleSlidePerView(slider) ||
+      dragStartIdx === null ||
+      !slider.track.details
+    ) {
       dragStartIdx = null;
       dragStartPos = null;
       return;
@@ -144,6 +152,23 @@ export default function SuggestedStyle({
   const totalSlides = products.length;
   const canSlide = totalSlides > 1;
 
+  // روی دسکتاپ سه کارت هم‌زمان در دید هستند؛ هر کلیک فلش یک «ست» (۳ کارت)
+  // جابه‌جا می‌کند تا همیشه سه کارت در دید بمانند و در یک ست تکراری نباشند.
+  // در موبایل (یک کارت) قدم = ۱ می‌ماند. تصویر مدل/ادیتوریال دست‌نخورده است.
+  const isDesktopView = () =>
+    typeof window !== 'undefined' &&
+    window.matchMedia('(min-width: 1024px)').matches;
+
+  const desktopStep = Math.min(3, totalSlides);
+
+  const advance = (direction: 1 | -1) => {
+    const slider = instanceRef.current;
+    if (!slider) return;
+    const step = isDesktopView() ? desktopStep : 1;
+    const current = slider.track.details?.abs ?? 0;
+    slider.moveToIdx(current + direction * step, true);
+  };
+
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>(
     {
       loop: canSlide,
@@ -163,6 +188,11 @@ export default function SuggestedStyle({
       breakpoints: {
         '(min-width: 640px)': {
           slides: { perView: 'auto', spacing: 2, origin: 'auto' },
+        },
+        // دسکتاپ: همان چیدمان خودکار (perView: 'auto') ولی با فاصلهٔ بزرگ‌تر؛
+        // عرض واقعی کارت‌ها توسط قانون CSS دسکتاپ (calc) روی سه‌تا تنظیم می‌شود.
+        '(min-width: 1024px)': {
+          slides: { perView: 'auto', spacing: 8, origin: 'auto' },
         },
       },
       created() {
@@ -274,7 +304,7 @@ export default function SuggestedStyle({
         {/* پنل کاروسل محصولات — در موبایل مربع ۱:۱ و پایین ویدیو */}
         <div
           ref={resizeRef}
-          className="home-style-panel home-style-slider keen-slider h-full"
+          className="home-style-panel home-style-slider keen-slider h-full lg:flex-1"
           dir="rtl"
           role="region"
           aria-roledescription="carousel"
@@ -291,7 +321,7 @@ export default function SuggestedStyle({
               <Link
                 href={`/product/${product.product.slug}`}
                 key={product.id}
-                className="home-style-slide keen-slider__slide h-full! w-full shrink-0 min-w-0! sm:w-auto sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+                className="home-style-slide keen-slider__slide h-full! w-full shrink-0 min-w-0! sm:w-auto sm:min-w-[45vw]! flex flex-col"
                 aria-label={`${product.product.title} — محصول ${index + 1} از ${products.length}`}
               >
                 <div className="home-style-slide-image relative min-h-0 flex-1">
@@ -319,7 +349,7 @@ export default function SuggestedStyle({
           <>
             <button
               type="button"
-              onClick={() => instanceRef.current?.prev()}
+              onClick={() => advance(-1)}
               className="absolute left-1.5 top-1/2 home-style-control z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:left-5 lg:opacity-0 lg:group-hover:opacity-100"
               aria-label="اسلاید قبلی"
             >
@@ -328,7 +358,7 @@ export default function SuggestedStyle({
 
             <button
               type="button"
-              onClick={() => instanceRef.current?.next()}
+              onClick={() => advance(1)}
               className="absolute right-1.5 top-1/2 home-style-control z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:right-5 lg:opacity-0 lg:group-hover:opacity-100"
               aria-label="اسلاید بعدی"
             >

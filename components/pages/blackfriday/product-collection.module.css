@@ -79,11 +79,11 @@
 }
 
 .sortLabel {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   flex-shrink: 0;
+  margin: 0;
   font-size: 0.72rem;
   font-weight: 600;
 }
@@ -92,15 +92,17 @@
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
-  min-width: 0;
+  /* حداقل عرض برای خوانایی کنترل مرتب‌سازی؛ نوار ابزار در صورت نیاز wrap می‌شود */
+  min-width: 9rem;
 }
 
 .sortSelectWrap select {
   width: 100%;
   min-width: 0;
-  min-height: 2.6rem;
-  padding: 0 2rem 0 0.7rem;
+  min-height: 2.7rem;
+  /* فضای ایمن برای چورون در سمت inline-end (چپ در RTL) تا روی متن نیفتد */
+  padding-inline-start: 0.7rem;
+  padding-inline-end: 2.1rem;
   border: 1px solid #080808;
   border-radius: 0;
   background: #efecec;
@@ -124,6 +126,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  /* هم‌ارتفاع با کنترل مرتب‌سازی برای هم‌ترازی در یک ردیف */
   min-height: 2.7rem;
   padding: 0.45rem 0.95rem;
   border: 1px solid #080808;
@@ -563,6 +566,25 @@
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.15rem 0.65rem;
+  }
+
+  /* ردیف افقیِ دسته‌ها در موبایل حذف می‌شود؛ هشت دسته در کش‌آپ فیلتر
+     (شبکهٔ دوستونه) قرار می‌گیرند تا هیچ گزینه‌ای در لبهٔ صفحه کلیپ نشود. */
+  .categoryRow {
+    display: none;
+  }
+
+  /* دسته‌بندی در کش‌آپ موبایل: شبکهٔ دوستونه، همهٔ هشت دسته در دسترس */
+  .controlSectionCat .controlChips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .controlSectionCat .catChip,
+  .controlSectionCat .catChipActive {
+    width: 100%;
+    justify-content: center;
   }
 }
 

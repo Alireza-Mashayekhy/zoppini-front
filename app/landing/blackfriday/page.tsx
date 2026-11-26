@@ -10,14 +10,15 @@ import { Countdown } from '@/components/pages/blackfriday/countdown';
 import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
 import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
 import CompareBar from '@/components/shared/compare-bar';
-import { resolveStoreTopCategories } from '@/lib/blackfriday/campaign';
+import {
+  resolveBlackFridayShopCategories,
+  resolveStoreTopCategories,
+} from '@/lib/blackfriday/campaign';
 import {
   loadBlackFridayCatalog,
   loadTwentyPercentProducts,
 } from '@/lib/blackfriday/catalog';
-import {
-  pruneCategoriesForProducts,
-} from '@/lib/blackfriday/filtering';
+import { pruneCategoriesForProducts } from '@/lib/blackfriday/filtering';
 import {
   buildCategoryIndex,
   interleaveBalancedProducts,
@@ -75,6 +76,12 @@ export default async function BlackFridayPage() {
   ]);
 
   const topCategories = resolveStoreTopCategories(categoriesResponse?.data);
+  // بخش «خرید بر اساس دسته‌بندی»: فقط پنج زیردستهٔ کمپین، به ترتیبِ بصریِ
+  // تاییدشده (پالتو، کت تک، شلوار، پیراهن کژوال، پیراهن کلاسیک). نگاشت
+  // تصویر→دسته و لینک به همان زیردستهٔ زیر «بلک‌فرایدی» حفظ می‌شود.
+  const shopCategories = resolveBlackFridayShopCategories(
+    categoriesResponse?.data,
+  );
   // شش محصول با بالاترین تخفیف واقعیِ کل دسته؛ انتخاب در هر درخواست تازه
   // می‌تواند عوض شود ولی HTMLِ سرور و hydration کلاینت یکی است.
   const biggestDiscounts = catalog
@@ -97,9 +104,10 @@ export default async function BlackFridayPage() {
   // فهرست واجدِ نهایی: بدون تکرار، فقط موجود، و درهم‌تنیدهٔ متوازن
   // (دو محصول ۷۰٪ و دو محصول ۲۰٪ در هر یک از دو ردیف اول).
   const eligibleProducts = interleaveBalancedProducts(
-    mergeUniqueProducts([catalog?.products ?? [], twentyPercentProducts]).filter(
-      productInStock,
-    ),
+    mergeUniqueProducts([
+      catalog?.products ?? [],
+      twentyPercentProducts,
+    ]).filter(productInStock),
     blackFridayIds,
     buildCategoryIndex(categoriesResponse?.data),
   );
@@ -127,7 +135,7 @@ export default async function BlackFridayPage() {
         </a>
         <BiggestDiscounts products={biggestDiscounts} />
         <Countdown />
-        <CategoryGrid categories={topCategories} />
+        <CategoryGrid categories={shopCategories} />
         <ProductCollection
           products={eligibleProducts}
           categories={collectionCategories}

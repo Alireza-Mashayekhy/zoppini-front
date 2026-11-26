@@ -152,6 +152,47 @@ export function resolveBlackFridaySubcategories(
 }
 
 /**
+ * ترتیبِ بصریِ تاییدشدهٔ بخش «خرید بر اساس دسته‌بندی» در لندینگ بلک‌فرایدی.
+ *
+ * فقط پنج زیردستهٔ کمپین، به همین ترتیبِ دقیق از راست به چپ (اولین ایtem در
+ * گریدِ RTL در بالا‑راست می‌نشیند): پالتو، کت تک، شلوار، پیراهن کژوال،
+ * پیراهن کلاسیک. شناسه‌ها (نه اسلاگ) مرجع هستند تا با تغییر اسلاگ در پنل،
+ * ترتیبِ بصری پابرجا بماند. این بخش مستقل از فیلترهای محصول است.
+ */
+export const BLACK_FRIDAY_SHOP_CATEGORY_ORDER: number[] = [
+  142, // پالتو → mens--coats
+  141, // کت تک → mens-blazers
+  140, // شلوار → mens-trousers
+  139, // پیراهن کژوال → mens-casual-shirts
+  138, // پیراهن کلاسیک → mens-classic-shirts
+];
+
+/**
+ * پنج کارتِ «خرید بر اساس دسته‌بندی» به ترتیبِ بصریِ تاییدشده.
+ *
+ * همان پنج زیردستهٔ کمپین با نام/اسلاگ/تصویرِ زنده؛ فقط ترتیب خروجی بر اساس
+ * `BLACK_FRIDAY_SHOP_CATEGORY_ORDER` تنظیم می‌شود. تصویرها و نگاشت
+ * تصویر→دسته دست‌نخورده می‌مانند و هر کارت به صفحهٔ همان زیردسته زیر
+ * دستهٔ «بلک‌فرایدی» اشاره می‌کند (نه به دسته‌ای هم‌نام در سطح بالای فروشگاه).
+ */
+export function resolveBlackFridayShopCategories(
+  liveCategories?: CategoriesResponse[] | null,
+): BlackFridaySubcategory[] {
+  const resolved = resolveBlackFridaySubcategories(liveCategories);
+  const byId = new Map(
+    resolved.map(subcategory => [subcategory.id, subcategory]),
+  );
+
+  const ordered: BlackFridaySubcategory[] = [];
+  for (const id of BLACK_FRIDAY_SHOP_CATEGORY_ORDER) {
+    const subcategory = byId.get(id);
+    if (subcategory) ordered.push(subcategory);
+  }
+
+  return ordered;
+}
+
+/**
  * فیلتر دسته‌بندی برای درخواست محصولات.
  *
  * «همه» → خودِ دستهٔ کمپین (۱۳۷)؛ بک‌اند این شناسه را به پنج زیردسته‌اش
@@ -226,8 +267,12 @@ export function resolveStoreTopCategories(
 
   return roots
     .sort((left, right) => {
-      const leftOrder = Number.isFinite(left.orderInHome) ? left.orderInHome : Number.MAX_SAFE_INTEGER;
-      const rightOrder = Number.isFinite(right.orderInHome) ? right.orderInHome : Number.MAX_SAFE_INTEGER;
+      const leftOrder = Number.isFinite(left.orderInHome)
+        ? left.orderInHome
+        : Number.MAX_SAFE_INTEGER;
+      const rightOrder = Number.isFinite(right.orderInHome)
+        ? right.orderInHome
+        : Number.MAX_SAFE_INTEGER;
       return leftOrder - rightOrder || left.id - right.id;
     })
     .map(category => ({
