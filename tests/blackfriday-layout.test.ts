@@ -124,3 +124,31 @@ test('scroll hint sits above the mobile bottom navigation', () => {
     /bottom:\s*calc\(var\(--zp-mobile-nav-h\) \+ 0\.75rem\)/,
   );
 });
+
+test('desktop filters panel stays sharp above a non-blurring backdrop while mobile sheet stays untouched', () => {
+  // شیت موبایل فقط در عرض‌های غیردسکتاپ باز می‌شود تا SheetOverlay (که
+  // backdrop-blur دارد و lg:hidden ندارد) روی دسکتاپ صفحه و پنل را تار نکند
+  assert.match(collection, /<Sheet\s+open=\{!isDesktop && filtersOpen\}/);
+  assert.match(collection, /matchMedia\('\(min-width: 1024px\)'\)/);
+
+  // پنل دسکتاپ: بستن صریح، اعمال فیلترها، جلوگیری از انتشار رویداد به backdrop
+  assert.match(collection, /id="bf-filters"/);
+  assert.match(collection, /aria-label="بستن فیلترها"/);
+  assert.match(collection, /اعمال فیلترها/);
+  assert.match(collection, /event\.stopPropagation\(\)/);
+
+  // لایه‌بندی دسکتاپ: backdrop بدون blur در z-index: 35 و پنل بالاتر از آن در z-index: 36
+  assert.match(
+    collectionCss,
+    /@media \(min-width: 1024px\)[\s\S]*?\.panelBackdrop\s*\{[^}]*z-index:\s*35/,
+  );
+  assert.match(
+    collectionCss,
+    /@media \(min-width: 1024px\)[\s\S]*?\.panelOpen\s*\{[^}]*z-index:\s*36[\s\S]*?pointer-events:\s*auto/,
+  );
+  assert.doesNotMatch(collectionCss, /backdrop-filter|filter:\s*blur/);
+
+  // نسخهٔ موبایل دست‌نخورده باقی مانده است
+  assert.match(collection, /side="bottom"/);
+  assert.match(collection, /lg:hidden/);
+});

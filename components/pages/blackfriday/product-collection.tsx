@@ -88,6 +88,14 @@ export function ProductCollection({
   const [sort, setSort] = useState<BlackFridaySortValue>('balanced');
   const [visibleCount, setVisibleCount] = useState(BLACK_FRIDAY_PAGE_SIZE);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // دسکتاپ = عرض ≥ ۱۰۲۴px (هم‌راستا با `.panelOpen` و `lg:hidden`). فقط روی
+  // دسکتاپ پنل فیلترِ inline نمایش داده می‌شود؛ شیتِ موبایل فقط در عرض‌های
+  // پایین‌تر باز می‌شود تا overlayِ تارکنندهٔ آن روی دسکتاپ رندر نشود.
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(min-width: 1024px)').matches
+      : true,
+  );
   const [searchFocused, setSearchFocused] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -238,15 +246,50 @@ export function ProductCollection({
     resetVisible();
   };
 
-  // در دسکتاپ کش‌آپ فیلتر پنهان است؛ هنگام تغییر به دسکتاپ آن را ببند.
+  // هم‌گام‌سازی وضعیت دسکتاپ با مدیاکوئری (min-width: 1024px) و بستن پنل/کش‌آپ
+  // هنگام عبور از مرز ریسپانسیو تا شیتِ موبایل هرگز روی دسکتاپ باز نماند.
   useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
     const desktop = window.matchMedia('(min-width: 1024px)');
-    const closeOnDesktop = (event: MediaQueryListEvent) => {
-      if (event.matches) setFiltersOpen(false);
+    const sync = () => setIsDesktop(desktop.matches);
+    const closeOnBreakpointChange = () => {
+      setIsDesktop(desktop.matches);
+      setFiltersOpen(false);
     };
-    desktop.addEventListener('change', closeOnDesktop);
-    return () => desktop.removeEventListener('change', closeOnDesktop);
+    sync();
+    desktop.addEventListener('change', closeOnBreakpointChange);
+    return () => {
+      desktop.removeEventListener('change', closeOnBreakpointChange);
+    };
   }, []);
+
+  // بستن پنل دسکتاپ با کلیک/پوینتر خارج از سطح فیلتر (پنل، دکمهٔ فیلترها،
+  // ردیف دسته‌بندی و چیپ‌های فعال). استفاده از `composedPath` روی `pointerdown`
+  // تضمین می‌کند حتی وقتی دکمه‌ای (مثل «پاک کردن همه» یا حذف چیپ) هم‌زمان با
+  // کلیک از DOM حذف می‌شود یا کاربر متنِ فیلد قیمت را به بیرون می‌کشد، پنل
+  // به‌اشتباه بسته نشود. این اثر فقط روی دسکتاپ فعال است.
+  useEffect(() => {
+    if (!filtersOpen || !isDesktop) return;
+    const onOutsidePointerDown = (event: PointerEvent) => {
+      const path =
+        typeof event.composedPath === 'function' ? event.composedPath() : [];
+      const insideSurface =
+        path.length > 0
+          ? path.some(
+              node =>
+                node instanceof Element &&
+                node.hasAttribute('data-filters-surface'),
+            )
+          : event.target instanceof Element &&
+            Boolean(event.target.closest('[data-filters-surface]'));
+      if (!insideSurface) {
+        setFiltersOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onOutsidePointerDown);
+    return () =>
+      document.removeEventListener('pointerdown', onOutsidePointerDown);
+  }, [filtersOpen, isDesktop]);
 
   // بستن پنل/کش‌آپ فیلتر با کلید Escape (فقط وقتی باز است). کلیک/تایپ/اسکرول
   // داخل پنل آن را نمی‌بندد؛ فقط Escape، کلیک روی backdrop، یا دکمهٔ بستن.
@@ -285,6 +328,14 @@ export function ProductCollection({
       id="collection"
       aria-labelledby="collection-heading"
     >
+      {isDesktop && filtersOpen && (
+        <div
+          className={styles.panelBackdrop}
+          aria-hidden="true"
+          onClick={() => setFiltersOpen(false)}
+        />
+      )}
+
       <div className={styles.inner}>
         <header className={styles.intro}>
           <h2 id="collection-heading">تمام محصولات بلک‌فرایدی</h2>
@@ -341,7 +392,10 @@ export function ProductCollection({
 
           <button
             type="button"
-            className={styles.filterToggle}
+            data-filters-surface
+            className={`${styles.filterToggle} ${
+              filtersOpen ? styles.filterToggleOpen : ''
+            }`}
             aria-expanded={filtersOpen}
             aria-controls="bf-filters"
             onClick={() => setFiltersOpen(previous => !previous)}
@@ -356,9 +410,14 @@ export function ProductCollection({
         </div>
 
         <div
-          className={styles.categoryRow}
+          className={`${styles.categoryRow} ${
+            filtersOpen ? styles.categoryRowOpen : ''
+          }`}
           role="group"
           aria-label="فیلتر دسته‌بندی"
+          data-filters-surface
+          onClick={event => event.stopPropagation()}
+          onPointerDown={event => event.stopPropagation()}
         >
           <button
             type="button"
@@ -393,7 +452,15 @@ export function ProductCollection({
           filters.colorIds.length > 0 ||
           filters.priceMin !== undefined ||
           filters.priceMax !== undefined) && (
-          <div className={styles.activeRow} aria-label="فعال‌های انتخاب‌شده">
+          <div
+            className={`${styles.activeRow} ${
+              filtersOpen ? styles.activeRowOpen : ''
+            }`}
+            aria-label="فعال‌های انتخاب‌شده"
+            data-filters-surface
+            onClick={event => event.stopPropagation()}
+            onPointerDown={event => event.stopPropagation()}
+          >
             {selectedCategory && (
               <span className={styles.activeChip}>
                 {selectedCategory.name}
@@ -483,8 +550,24 @@ export function ProductCollection({
         {/* پنل فیلتر دسکتاپ: سایز/رنگ/قیمت (دسته‌ها در ردیف چیپ‌ها هستند) */}
         <div
           id="bf-filters"
+          role="region"
+          aria-label="فیلترها"
+          data-filters-surface
           className={`${styles.panel} ${filtersOpen ? styles.panelOpen : ''}`}
+          onClick={event => event.stopPropagation()}
+          onPointerDown={event => event.stopPropagation()}
         >
+          <div className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>فیلترها</h2>
+            <button
+              type="button"
+              className={styles.panelClose}
+              onClick={() => setFiltersOpen(false)}
+              aria-label="بستن فیلترها"
+            >
+              <X className={styles.panelCloseIcon} aria-hidden="true" />
+            </button>
+          </div>
           <FilterControls
             options={options}
             filters={filters}
@@ -496,8 +579,8 @@ export function ProductCollection({
             onToggleColor={toggleColor}
             onChangePrice={changePrice}
           />
-          {hasActiveFilters && (
-            <div className={styles.panelActions}>
+          <div className={styles.panelActions}>
+            {hasActiveFilters && (
               <button
                 type="button"
                 className={styles.clearAll}
@@ -505,8 +588,15 @@ export function ProductCollection({
               >
                 پاک کردن همه
               </button>
-            </div>
-          )}
+            )}
+            <button
+              type="button"
+              className={styles.applyFilters}
+              onClick={() => setFiltersOpen(false)}
+            >
+              اعمال فیلترها
+            </button>
+          </div>
         </div>
 
         <p className={styles.resultCount} role="status">
@@ -562,8 +652,11 @@ export function ProductCollection({
         )}
       </div>
 
-      {/* کش‌آپ فیلتر موبایل: تک‌ستون، actions موقت، scrowlock و safe-area */}
-      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+      {/* کش‌آپ فیلتر موبایل: تک‌ستون، actions موقت، scrowlock و safe-area.
+          فقط روی عرض‌های موبایل/تبلت باز می‌شود؛ روی دسکتاپ عمداً بسته
+          می‌ماند تا backdrop (backdrop-blur) آن کل صفحه و پنلِ دسکتاپ را
+          تار نکند. رفتار موبایل کاملاً دست‌نخورده باقی می‌ماند. */}
+      <Sheet open={!isDesktop && filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent
           side="bottom"
           showCloseButton={false}
