@@ -6,6 +6,7 @@ import GoogleAnalytics from '@/components/analytics/google-analytics';
 import YektanetAnalytics from '@/components/analytics/yektanet';
 import ConsentManager from '@/components/consent/manager';
 import { iranSans } from '@/components/font';
+import NavigationScrollManager from '@/components/navigation/navigation-scroll-manager';
 import { SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 import AuthProvider from '@/providers/auth.provider';
@@ -57,6 +58,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-full flex flex-col">
+        <NavigationScrollManager />
         <Providers>
           <AuthProvider initialUser={null}>{children}</AuthProvider>
         </Providers>

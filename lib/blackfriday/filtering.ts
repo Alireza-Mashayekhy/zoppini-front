@@ -6,8 +6,10 @@ import type {
   SizeResponse,
 } from '@/services/features/products/type';
 
+import { BLACK_FRIDAY_DISCOUNT_PERCENT } from './campaign';
 import {
   type CategoryIndex,
+  interleaveBalancedProducts,
   productDiscountPercent,
   productFinalPrice,
   productRootCategoryIds,
@@ -16,10 +18,10 @@ import {
 /**
  * جستجو و فیلتر سمت کلاینتِ لیست بلک فرایدی.
  *
- * لیست واجد (دستهٔ بلک فرایدی + محصولات ۲۰٪) یک‌بار در سرور خوانده و
- * درهم‌تنیده می‌شود و همان مجموعه به کلاینت می‌رود؛ پس جستجو و فیلترها
+ * لیست کامل واجد یک‌بار در سرور خوانده می‌شود؛ پس جستجو و فیلترها
  * روی همان مجموعه، بدون درخواست تازه و بدون ریلود صفحه، اعمال می‌شوند و
- * با هم ترکیب می‌شوند. همهٔ توابع اینجا خالص‌اند تا تست‌پذیر بمانند.
+ * پیش از نمایش تدریجی، ترکیب پیشنهادی دوباره محاسبه می‌شود. همهٔ توابع
+ * اینجا خالص‌اند تا تست‌پذیر بمانند.
  */
 
 export type BlackFridaySortValue =
@@ -143,9 +145,8 @@ function productMatchesPrice(
 /**
  * اعمال همهٔ فیلترها و جستجو روی مجموعهٔ واجد.
  *
- * ترتیب ورودی حفظ می‌شود (ترتیب متوازن سرور)؛ مرتب‌سازی جداگانه انجام
- * می‌شود تا «ترکیب پیشنهادی» پیش‌فرض دست‌نخورده بماند. دسته‌بندی فیلتر
- * بر دسته‌های اصلیِ ناوبری فروشگاه (نه دستهٔ کمپین) است.
+ * ترتیب ورودی حفظ می‌شود؛ ترکیب پیشنهادی پس از فیلتر دوباره محاسبه می‌شود.
+ * دسته‌بندی فیلتر بر دسته‌های اصلیِ ناوبری فروشگاه (نه دستهٔ کمپین) است.
  */
 export function filterBlackFridayProducts<T extends ProductsResponse>(
   products: T[],
@@ -165,15 +166,25 @@ export function filterBlackFridayProducts<T extends ProductsResponse>(
 /**
  * مرتب‌سازی لیست پس از فیلتر.
  *
- * - `balanced`: همان ترتیب متوازن سرور (پیش‌فرض).
+ * - `balanced`: ترکیب متوازن کل نتیجهٔ فیلترشده (پیش‌فرض).
  * - بقیه همان گزینه‌های موجود فروشگاه‌اند و سمت کلاینت روی همان مجموعه
  *   محاسبه می‌شوند؛ قیمت، قیمت نهایی پس از تخفیف است.
  */
 export function sortBlackFridayProducts<T extends ProductsResponse>(
   products: T[],
   sort: BlackFridaySortValue,
+  index: CategoryIndex = new Map(),
 ): T[] {
-  if (sort === 'balanced') return products;
+  if (sort === 'balanced') {
+    const group70 = new Set(
+      products
+        .filter(
+          product => productDiscountPercent(product) === BLACK_FRIDAY_DISCOUNT_PERCENT,
+        )
+        .map(product => product.id),
+    );
+    return interleaveBalancedProducts(products, group70, index);
+  }
 
   const sorted = [...products];
 

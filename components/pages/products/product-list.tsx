@@ -4,7 +4,13 @@
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import ProductCard from '@/components/shared/product-card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +24,11 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
+import {
+  getPendingListingState,
+  markListingReady,
+  registerListingSnapshot,
+} from '@/lib/navigation/restoration';
 import {
   buildNextPageQuery,
   buildProductListQuery,
@@ -55,6 +66,18 @@ interface ProductListProps {
   filterMinPrice?: number;
   filterMaxPrice?: number;
 }
+
+type ProductListSnapshot = {
+  items: ProductsResponse[];
+  page: number;
+  hasMore: boolean;
+  sort: string;
+  colorIds: number[];
+  sizeIds: number[];
+  priceMin?: number;
+  priceMax?: number;
+  rows: number;
+};
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -178,10 +201,77 @@ export default function ProductList({
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement | null>(null);
 
+  const restoredRef = useRef<ProductListSnapshot | null>(null);
+  const skipInitialReset = useRef(false);
+  const originalData = useRef(initialData);
+  const requestVersion = useRef(0);
+  useLayoutEffect(() => {
+    requestVersion.current += 1;
+    return () => {
+      requestVersion.current += 1;
+    };
+  }, [
+    initialData,
+    initialParams.search,
+    initialParams.categoryIds,
+    sort,
+    colorIds,
+    sizeIds,
+    priceMin,
+    priceMax,
+    discounted,
+  ]);
+
+  useLayoutEffect(() => {
+    const saved = getPendingListingState<ProductListSnapshot>('product-list');
+    if (!saved || !Array.isArray(saved.items)) return;
+    restoredRef.current = saved;
+    skipInitialReset.current = true;
+    // Restore a browser-history snapshot before paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setItems(saved.items);
+    setPage(saved.page);
+    setHasMore(saved.hasMore);
+    setSort(saved.sort);
+    setColorIds(saved.colorIds);
+    setSizeIds(saved.sizeIds);
+    setPriceMin(saved.priceMin);
+    setPriceMax(saved.priceMax);
+    setRows(saved.rows);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (restoredRef.current && items === restoredRef.current.items) {
+      restoredRef.current = null;
+      markListingReady('product-list');
+    }
+  }, [items]);
+
+  useLayoutEffect(
+    () =>
+      registerListingSnapshot(
+        'product-list',
+        () =>
+          ({
+            items,
+            page,
+            hasMore,
+            sort,
+            colorIds,
+            sizeIds,
+            priceMin,
+            priceMax,
+            rows,
+          }) satisfies ProductListSnapshot,
+      ),
+    [items, page, hasMore, sort, colorIds, sizeIds, priceMin, priceMax, rows],
+  );
+
   // تابع بارگذاری صفحه بعدی
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
+    const version = requestVersion.current;
 
     try {
       const nextPage = page + 1;
@@ -224,6 +314,7 @@ export default function ProductList({
       );
       const data = (await response.json()) as ApiListResponse<ProductsResponse>;
 
+      if (version !== requestVersion.current) return;
       setItems(prev => [...prev, ...data.data]);
       setPage(nextPage);
       setHasMore(
@@ -234,7 +325,7 @@ export default function ProductList({
     } catch (error) {
       console.error('Error loading more products:', error);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   }, [
     page,
@@ -273,7 +364,12 @@ export default function ProductList({
 
   // ریست کردن لیست وقتی فیلترها یا مرتب‌سازی تغییر می‌کنند
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialReset.current && originalData.current === initialData)
+      return;
+    skipInitialReset.current = false;
+    originalData.current = initialData;
+    setLoading(false);
+
     setItems(initialData.data || []);
     setPage(initialParams.page || 1);
     setHasMore(
@@ -297,6 +393,7 @@ export default function ProductList({
     newSizeIds: number[],
     price?: { min: number; max: number },
   ) => {
+    skipInitialReset.current = false;
     setColorIds(newColorIds);
     setSizeIds(newSizeIds);
     setPriceMin(price?.min);
@@ -306,6 +403,7 @@ export default function ProductList({
   };
 
   const handleClearFilters = () => {
+    skipInitialReset.current = false;
     setColorIds([]);
     setSizeIds([]);
     setPriceMin(undefined);
@@ -389,7 +487,13 @@ export default function ProductList({
 
           <div className="flex gap-1 items-center">
             <span className="text-xs">مرتب‌سازی:</span>
-            <Select value={sort} onValueChange={setSort}>
+            <Select
+              value={sort}
+              onValueChange={value => {
+                skipInitialReset.current = false;
+                setSort(value);
+              }}
+            >
               <SelectTrigger
                 noIcon
                 aria-label="مرتب‌سازی محصولات"

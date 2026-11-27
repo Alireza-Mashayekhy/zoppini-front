@@ -35,7 +35,7 @@ export default function PanelLayout({ children }: { children: ReactNode }) {
         <Sidebar />
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-6 md:pb-24 lg:pb-6">
+          <main data-navigation-scroll-root className="flex-1 overflow-y-auto p-4 pb-24 md:p-6 md:pb-24 lg:pb-6">
             {children}
           </main>
         </div>

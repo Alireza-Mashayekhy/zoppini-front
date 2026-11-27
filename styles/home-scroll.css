@@ -574,21 +574,75 @@ html.home-scroll {
   }
 }
 
-/* ── دسکتاپ: سه کارت محصول در کنار هم در پنل کاروسل ─────────────────────── */
-/*
- * فقط از ۶۴rem به بالا. عرض هر کارت بر اساس خودِ پنل کاروسل (نه vw) محاسبه
- * می‌شود تا با هر عرضی دقیقاً سه کارت هم‌اندازه در یک ردیف جا شوند و کلیپ
- * یا هم‌پوشانی رخ ندهد. `!important` برای غلبه بر کلاس‌های Tailwind با
- * اولویت (مثل `min-w-0!` و `sm:min-w-[45vw]!`) لازم است؛ فقط در دسکتاپ اعمال
- * می‌شود و نسخهٔ موبایل (یک کارت) دست‌نخورده می‌ماند. فاصلهٔ ۱۶px معادل
- * دو فاصلهٔ ۸px بین سه کارت در بریک‌پوینت ۱۰۲۴px است.
- */
+/* Desktop: the slider is constrained to the space beside the portrait video.
+ * Keen uses two whole slides per view, with the same 16px gutter as below. */
 @media (min-width: 64rem) {
-  #home-style .home-style-slider .home-style-slide {
-    flex: 0 0 auto !important;
-    width: calc((100% - 16px) / 3) !important;
-    min-width: calc((100% - 16px) / 3) !important;
-    max-width: calc((100% - 16px) / 3) !important;
+  #home-style .home-style-stage {
+    gap: 1rem;
+    padding: 0 clamp(1.5rem, 3vw, 3rem) 1.5rem;
+  }
+
+  #home-style .home-style-video-panel {
+    flex: 0 0 38%;
+    min-width: 0;
+  }
+
+  #home-style .home-style-video-panel video {
+    object-fit: contain;
+  }
+
+  #home-style .home-style-slider {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  #home-style .home-style-slide {
+    width: calc((100% - 16px) / 2);
+  }
+
+  #home-style .home-style-slide:only-child {
+    width: 100%;
+  }
+
+  #home-style .home-style-slide-label {
+    gap: 0.125rem;
+    background: white;
+    color: #1a1a1a;
+    padding: 0.75rem 0.5rem;
+  }
+
+  #home-style .home-style-product-title {
+    font-weight: 600;
+  }
+
+  #home-style .home-style-price {
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-weight: 600;
+  }
+
+  #home-style .home-style-price del {
+    color: #777;
+    font-weight: 400;
+  }
+
+  #home-style .home-style-control--right {
+    right: calc(
+      clamp(1.5rem, 3vw, 3rem) + (100% - 2 * clamp(1.5rem, 3vw, 3rem) - 1rem) *
+        0.38 + 1rem + 0.5rem
+    );
+  }
+
+  #home-style .home-style-control--left {
+    left: calc(clamp(1.5rem, 3vw, 3rem) + 0.5rem);
+  }
+
+  #home-style .home-style-control:focus-visible {
+    opacity: 1;
   }
 }
 

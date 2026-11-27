@@ -76,14 +76,7 @@ export default function BlogTableOfContents({
             >
               <a
                 href={`#${heading.id}`}
-                onClick={event => {
-                  event.preventDefault();
-
-                  document
-                    .getElementById(heading.id)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  setActiveId(heading.id);
-                }}
+                onClick={() => setActiveId(heading.id)}
                 className={cn(
                   'block border-e-2 pe-3 text-sm leading-6 text-gray-600 transition-colors hover:text-[#B8895A]',
                   isActive
