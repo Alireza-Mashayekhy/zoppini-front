@@ -4,6 +4,7 @@ import type { ProductsResponse } from '@/services/features/products/type';
 
 import {
   BLACK_FRIDAY_CATEGORY_ID,
+  BLACK_FRIDAY_DISCOUNT_PERCENT,
   isBlackFridaySubcategoryId,
   STANDARD_DISCOUNT_PERCENT,
 } from './campaign';
@@ -284,7 +285,7 @@ export function selectBiggestDiscounts<T extends ProductsResponse>(
 }
 
 /**
- * آیا محصول خارج از دستهٔ بلک فرایدی، تخفیف فعالِ استاندارد (۲۰٪) دارد؟
+ * آیا محصول تخفیف فعالِ استاندارد (۲۰٪) دارد؟
  *
  * واجدیت گروه ۲۰٪ دقیقاً همین است: تخفیف واقعی (`productHasDiscount`) و
  * درصد مؤثر برابر ۲۰. محصولات با درصدهای دیگر در لیست بلک فرایدی
@@ -294,6 +295,21 @@ export function isTwentyPercentProduct(product: ProductsResponse): boolean {
   return (
     productHasDiscount(product) &&
     productDiscountPercent(product) === STANDARD_DISCOUNT_PERCENT
+  );
+}
+
+/** Select only the two campaign groups from the complete active-sale catalog. */
+export function selectBlackFridayEligibleProducts<T extends ProductsResponse>(
+  discountedProducts: T[],
+  campaignIds: Set<number>,
+): T[] {
+  return discountedProducts.filter(
+    product =>
+      productInStock(product) &&
+      (isTwentyPercentProduct(product) ||
+        (campaignIds.has(product.id) &&
+          productHasDiscount(product) &&
+          productDiscountPercent(product) === BLACK_FRIDAY_DISCOUNT_PERCENT)),
   );
 }
 
@@ -480,11 +496,11 @@ function orderByCategoryVariety<T extends ProductsResponse>(
 /**
  * درهم‌تنیدگی متوازن دو گروه تخفیف برای لیست بلک فرایدی.
  *
- * - گروه ۷۰٪: محصولات دستهٔ «زوپینی بلک فرایدی» (`blackFridayIds`).
+ * - گروه ۷۰٪: شناسه‌های محصولات واجد ۷۰٪ (`blackFridayIds`).
  * - گروه ۲۰٪: بقیهٔ محصولات واجد (تخفیف فعال ۲۰٪).
  *
  * خروجی به‌صورت ۷۰، ۲۰، ۷۰، ۲۰… چیده می‌شود؛ پس در چیدمان چهارستونه، هر
- * یک از دو ردیف اول دقیقاً دو محصول ۷۰٪ و دو محصول ۲۰٪ دارد. وقتی یک
+ * ردیف تا زمان موجود بودن هر دو گروه دو محصول از هر گروه دارد. وقتی یک
  * گروه تمام شود، بقیهٔ گروه دیگر پشت سر هم می‌آید. درون هر گروه هم تنوع
  * دسته‌بندی رعایت می‌شود. هیچ محصولی تکرار نمی‌شود و ترتیب قطعی است.
  */

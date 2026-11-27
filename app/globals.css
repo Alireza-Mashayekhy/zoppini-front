@@ -178,3 +178,9 @@ body {
 .rmdp-container {
   width: 100% !important;
 }
+
+/* Temporarily suspend route-specific snapping while a history entry is restored. */
+html[data-zp-scroll-restoring] {
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+}

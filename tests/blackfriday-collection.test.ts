@@ -15,6 +15,7 @@ import {
   isTwentyPercentProduct,
   productDiscountPercent,
   productPrimaryRootId,
+  selectBlackFridayEligibleProducts,
 } from '../lib/blackfriday/products';
 import type { CategoriesResponse } from '../services/features/categories/types';
 import {
@@ -411,7 +412,7 @@ test('sorting keeps the balanced order by default and sorts the rest', () => {
 
   assert.deepEqual(
     sortBlackFridayProducts(products, 'balanced').map(product => product.id),
-    [1, 2],
+    [2, 1],
   );
   assert.deepEqual(
     sortBlackFridayProducts(products, 'discount:desc').map(product => product.id),
@@ -498,4 +499,59 @@ test('active-filter detection drives the clear-all control', () => {
     true,
   );
   assert.equal(productDiscountPercent(makeProduct({ id: 9, percent: 20 }, makeCategories())), 20);
+});
+
+
+test('complete eligible collection is mixed across five batches and after filters', () => {
+  const categories = makeCategories();
+  const index = buildCategoryIndex(categories);
+  const campaign = Array.from({ length: 130 }, (_, i) => makeProduct({
+    id: 1000 + i, percent: 70, categoryIds: [138 + (i % 5), 11 + (i % 8) * 10],
+    sizeId: i % 2 + 1, colorId: i % 2 + 1,
+  }, categories));
+  const twenty = Array.from({ length: 130 }, (_, i) => makeProduct({
+    id: 2000 + i, percent: 20, categoryIds: [11 + (i % 8) * 10],
+    sizeId: i % 2 + 1, colorId: i % 2 + 1,
+  }, categories));
+  // A 20% product in the campaign still qualifies, and an unrelated 70% does not.
+  const campaignTwenty = makeProduct({ id: 999, percent: 20, categoryIds: [138, 11] }, categories);
+  const outOfScope = makeProduct({ id: 998, percent: 70, categoryIds: [11] }, categories);
+  const noStock = makeProduct({ id: 997, percent: 20, stock: 0 }, categories);
+  const campaignIds = new Set([...campaign.map(p => p.id), campaignTwenty.id]);
+  const eligible = selectBlackFridayEligibleProducts(
+    [...campaign, ...twenty, campaignTwenty, outOfScope, noStock], campaignIds,
+  );
+  assert.equal(eligible.length, 261);
+  assert.ok(eligible.some(p => p.id === 999));
+  assert.ok(!eligible.some(p => p.id === 998 || p.id === 997));
+  const sorted = sortBlackFridayProducts(eligible, 'balanced', index);
+  assert.equal(new Set(sorted.map(p => p.id)).size, eligible.length);
+  assert.deepEqual(new Set(sorted.map(p => p.id)), new Set(eligible.map(p => p.id)));
+  assert.deepEqual(sorted.map(p => p.id), sortBlackFridayProducts(eligible, 'balanced', index).map(p => p.id));
+  // Actual collection reveals 24 at a time; also inspect consecutive groups of eight.
+  for (let batch = 0; batch < 5; batch++) {
+    const page = sorted.slice(batch * 24, (batch + 1) * 24);
+    assert.equal(page.length, 24);
+    for (let row = 0; row < 3; row++) {
+      assert.deepEqual(page.slice(row * 8, row * 8 + 8).map(productDiscountPercent), [70, 20, 70, 20, 70, 20, 70, 20]);
+    }
+    const previous = sorted.slice(0, batch * 24).map(p => p.id);
+    assert.deepEqual(sorted.slice(0, (batch + 1) * 24).slice(0, previous.length).map(p => p.id), previous);
+  }
+  for (const percent of [20, 70]) {
+    const roots = sorted.filter(p => productDiscountPercent(p) === percent).slice(0, 24)
+      .map(p => productPrimaryRootId(p, index));
+    for (let i = 1; i < roots.length; i++) assert.notEqual(roots[i], roots[i - 1]);
+  }
+  const filtered = filterBlackFridayProducts(eligible,
+    { ...EMPTY_BLACK_FRIDAY_FILTERS, categoryId: 1, sizeIds: [1], colorIds: [1] }, index);
+  const remixed = sortBlackFridayProducts(filtered, 'balanced', index);
+  assert.ok(remixed.some(p => productDiscountPercent(p) === 20));
+  assert.ok(remixed.some(p => productDiscountPercent(p) === 70));
+  assert.deepEqual(remixed.slice(0, 8).map(productDiscountPercent), [70, 20, 70, 20, 70, 20, 70, 20]);
+  const oneGroup = filterBlackFridayProducts(eligible,
+    { ...EMPTY_BLACK_FRIDAY_FILTERS, search: 'محصول 2000' }, index);
+  assert.deepEqual(sortBlackFridayProducts(oneGroup, 'balanced', index), oneGroup);
+  const discountSort = sortBlackFridayProducts(eligible, 'discount:desc', index);
+  assert.ok(discountSort.slice(0, campaign.length).every(p => productDiscountPercent(p) === 70));
 });

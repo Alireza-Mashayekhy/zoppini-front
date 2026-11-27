@@ -3,23 +3,19 @@ import Link from 'next/link';
 
 import {
   blackFridayCategoryHref,
+  type BlackFridaySubcategory,
   type StoreTopCategory,
 } from '@/lib/blackfriday/campaign';
 
 import styles from './category-grid.module.css';
 
-/**
- * بخش چهارم — کاشی‌های دسته‌بندی اصلی فروشگاه.
- *
- * این کاشی‌ها همان هشت دسته‌بندی ریشه‌ایِ ناوبری فروشگاه هستند (منبع
- * حقیقت). تصویرها از خودِ دسته‌بندی‌های فروشگاه می‌آیند و لینک‌ها به
- * مسیر واقعی آرشیو دسته می‌روند. دستهٔ کمپین و زیردسته‌هایش در این
- * بخش نمایش داده نمی‌شوند؛ کمپین صرفاً برای شناسایی محصولات ۷۰٪باقی می‌شود.
- */
+/** Desktop uses the five curated campaign tiles; mobile retains its existing list. */
 export function CategoryGrid({
   categories,
+  desktopCategories,
 }: {
   categories: StoreTopCategory[];
+  desktopCategories: BlackFridaySubcategory[];
 }) {
   return (
     <section
@@ -29,7 +25,7 @@ export function CategoryGrid({
     >
       <div className={styles.inner}>
         <h2 id="categories-heading">خرید بر اساس دسته‌بندی</h2>
-        <ul className={styles.grid}>
+        <ul className={`${styles.grid} ${styles.mobileGrid}`}>
           {categories.map(category => (
             <li key={category.id}>
               <Link
@@ -47,6 +43,25 @@ export function CategoryGrid({
                 ) : (
                   <span className={styles.fallback} aria-hidden="true" />
                 )}
+                <span className={styles.name}>{category.name}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <ul className={`${styles.grid} ${styles.desktopGrid}`}>
+          {desktopCategories.map(category => (
+            <li key={category.id}>
+              <Link
+                className={styles.card}
+                href={blackFridayCategoryHref(category.slug)}
+              >
+                <Image
+                  className={styles.image}
+                  src={category.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 20vw, 50vw"
+                />
                 <span className={styles.name}>{category.name}</span>
               </Link>
             </li>

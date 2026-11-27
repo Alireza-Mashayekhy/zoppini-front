@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface HeaderScrollProps {
@@ -25,26 +26,11 @@ interface HeaderScrollProps {
  */
 export default function HeaderScroll({ children }: HeaderScrollProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [forceVisible, setForceVisible] = useState(false);
+  const pathname = usePathname();
+  const forceVisible = pathname === '/' || pathname === '';
 
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
-
-  useEffect(() => {
-    /*
-     * هدر در همه‌ی مسیرها به‌صورت `fixed` است؛ فقط همین صفحه‌ی اصلی است که
-     * رفتار «همیشه چسبان» دارد.
-     */
-    const syncPinned = () => {
-      const pathname = window.location.pathname;
-      setForceVisible(pathname === '/' || pathname === '');
-    };
-
-    syncPinned();
-    window.addEventListener('popstate', syncPinned);
-
-    return () => window.removeEventListener('popstate', syncPinned);
-  }, []);
 
   useEffect(() => {
     lastScrollY.current = window.scrollY;

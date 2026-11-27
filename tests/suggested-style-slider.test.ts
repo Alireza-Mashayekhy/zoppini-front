@@ -660,3 +660,43 @@ test('Swipe عمودی صفحه با Swipe افقی اسلایدر تداخل ن
 
   slider.destroy();
 });
+
+test('desktop carousel keeps two whole slides in view and navigates at requested widths', () => {
+  assert.match(styleSrc, /'\(min-width: 1024px\)'[\s\S]*?perView:\s*totalSlides === 1 \? 1 : 2,\s*spacing:\s*16/);
+  assert.match(styleSrc, /loop:\s*totalSlides > 2/);
+  assert.match(styleSrc, /lg:object-contain/);
+
+  for (const width of [1366, 1440, 1600, 1920]) {
+    const { createSliderDom } = setupBrowserEnv(width, 900);
+    const { container } = createSliderDom(4);
+    const slider = new KeenSlider(container as unknown as HTMLElement, {
+      loop: true,
+      rtl: true,
+      slides: { perView: 2, spacing: 16, origin: 'auto' },
+    });
+    const portions = () => slider.track.details.slides.map(slide => slide.portion);
+    assert.deepEqual(portions().map(p => Math.round(p)), [1, 1, 0, 0], `${width}px initial`);
+    slider.next();
+    assert.equal(slider.animator.targetIdx, 1);
+    slider.animator.stop();
+    slider.track.add(slider.track.idxToDist(1, true)!);
+    assert.deepEqual(portions().map(p => Math.round(p)), [0, 1, 1, 0], `${width}px next`);
+    slider.prev();
+    assert.equal(slider.animator.targetIdx, 0);
+    slider.destroy();
+  }
+});
+
+test('desktop style layout and pricing are scoped without changing the mobile card', () => {
+  const css = readFileSync(resolve(__dirname, '..', 'styles/home-scroll.css'), 'utf8');
+  const desktop = css.slice(css.indexOf('/* Desktop: the slider'));
+  assert.match(desktop, /@media \(min-width: 64rem\)/);
+  assert.match(desktop, /\.home-style-video-panel\s*\{[^}]*flex:\s*0 0 38%/);
+  assert.match(desktop, /\.home-style-slider\s*\{[^}]*min-width:\s*0;[^}]*overflow:\s*hidden/);
+  assert.match(desktop, /\.home-style-slide\s*\{[^}]*width:\s*calc\(\(100% - 16px\) \/ 2\)/);
+  assert.match(desktop, /\.home-style-video-panel video\s*\{[^}]*object-fit:\s*contain/);
+  assert.match(styleSrc, /home-style-price hidden lg:flex/);
+  assert.match(styleSrc, /discount\?\.originalPrice \?\? variant\?\.price/);
+  assert.match(styleSrc, /discount\.finalPrice/);
+  assert.match(styleSrc, /discountPercent\.toLocaleString/);
+});

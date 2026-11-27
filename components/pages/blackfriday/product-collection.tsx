@@ -2,7 +2,7 @@
 
 import { ChevronDown, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import ProductCard from '@/components/shared/product-card';
 import {
@@ -27,6 +27,11 @@ import {
   buildCategoryIndex,
   toProductCardData,
 } from '@/lib/blackfriday/products';
+import {
+  getPendingListingState,
+  markListingReady,
+  registerListingSnapshot,
+} from '@/lib/navigation/restoration';
 import type { CategoriesResponse } from '@/services/features/categories/types';
 import type { ProductsResponse } from '@/services/features/products/type';
 
@@ -35,9 +40,9 @@ import styles from './product-collection.module.css';
 /**
  * بخش پنجم — همهٔ محصولات واجد بلک فرایدی (۷۰٪ + ۲۰٪).
  *
- * مجموعهٔ واجد در سرور خوانده و به‌صورت متوازن درهم‌تنیده شده است
- * (دو محصول ۷۰٪ و دو محصول ۲۰٪ در هر یک از دو ردیف اول) و همان مجموعه به
- * اینجا می‌رسد؛ پس جستجو و فیلترهای دسته/سایز/رنگ/قیمت روی همان مجموعه،
+ * مجموعهٔ کامل واجد در سرور خوانده شده و پس از فیلتر، پیش از نمایش
+ * تدریجی، به‌صورت متوازن درهم‌تنیده می‌شود؛ پس جستجو و فیلترهای
+ * دسته/سایز/رنگ/قیمت روی همان مجموعه،
  * بدون درخواست تازه و بدون ریلود صفحه، اعمال می‌شوند و با هم ترکیب
  * می‌شوند. تغییر هر فیلتر یا مرتب‌سازی، بقیه را پاک نمی‌کند.
  *
@@ -45,7 +50,7 @@ import styles from './product-collection.module.css';
  * «فیلترها» همیشه در دسترس‌اند؛ دسته‌های اصلی فروشگاه در یک ردیف
  * افقی-اسکرول‌پذیر نمایش داده می‌شوند و سایز/رنگ/قیمت داخل پنل فیلتر
  * (دسکتاپ) یا کش‌آپِ موبایل هستند. مرتب‌سازی پیش‌فرض «ترکیب پیشنهادی»
- * همان ترتیب متوازن سرور است.
+ * ترکیب متوازن مجموعهٔ فیلترشده است.
  */
 const SORTS: { value: BlackFridaySortValue; label: string }[] = [
   { value: 'balanced', label: 'ترکیب پیشنهادی' },
@@ -56,7 +61,7 @@ const SORTS: { value: BlackFridaySortValue; label: string }[] = [
 ];
 
 type ProductCollectionProps = {
-  /** همهٔ محصولات واجد، به ترتیب متوازن سرور */
+  /** همهٔ محصولات واجد، پیش از فیلتر و مرتب‌سازی */
   products: ProductsResponse[];
   /** دسته‌بندی‌های لازم برای درخت فیلترِ کلاینت */
   categories: CategoriesResponse[];
@@ -86,6 +91,47 @@ export function ProductCollection({
   const [searchFocused, setSearchFocused] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
+  const restoredRef = useRef<{
+    filters: BlackFridayFilters;
+    sort: BlackFridaySortValue;
+    visibleCount: number;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const saved = getPendingListingState<
+      NonNullable<typeof restoredRef.current>
+    >('blackfriday-collection');
+    if (!saved) return;
+    restoredRef.current = saved;
+    // Restore a browser-history snapshot before paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFilters(saved.filters);
+    setSort(saved.sort);
+    setVisibleCount(saved.visibleCount);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (
+      restoredRef.current &&
+      filters === restoredRef.current.filters &&
+      sort === restoredRef.current.sort &&
+      visibleCount === restoredRef.current.visibleCount
+    ) {
+      restoredRef.current = null;
+      markListingReady('blackfriday-collection');
+    }
+  }, [filters, sort, visibleCount]);
+
+  useLayoutEffect(
+    () =>
+      registerListingSnapshot('blackfriday-collection', () => ({
+        filters,
+        sort,
+        visibleCount,
+      })),
+    [filters, sort, visibleCount],
+  );
+
   const categoryIndex = useMemo(
     () => buildCategoryIndex(categories),
     [categories],
@@ -111,8 +157,8 @@ export function ProductCollection({
   );
 
   const sorted = useMemo(
-    () => sortBlackFridayProducts(filtered, sort),
-    [filtered, sort],
+    () => sortBlackFridayProducts(filtered, sort, categoryIndex),
+    [filtered, sort, categoryIndex],
   );
 
   const visible = sorted.slice(0, visibleCount);
@@ -126,8 +172,8 @@ export function ProductCollection({
 
   const selectedCategory =
     filters.categoryId !== null
-      ? categoryOptions.find(category => category.id === filters.categoryId) ??
-        null
+      ? (categoryOptions.find(category => category.id === filters.categoryId) ??
+        null)
       : null;
 
   // تایپرایتر placeholder: متوقف می‌شود هنگام فوکوس یا تایپ، و از نو شروع
@@ -177,7 +223,8 @@ export function ProductCollection({
     const trimmed = value.trim();
     const parsed = trimmed ? Number(trimmed) : undefined;
     updateFilters({
-      [key]: parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+      [key]:
+        parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
     });
   };
 
@@ -305,7 +352,9 @@ export function ProductCollection({
           <button
             type="button"
             className={
-              filters.categoryId === null ? styles.catChipActive : styles.catChip
+              filters.categoryId === null
+                ? styles.catChipActive
+                : styles.catChip
             }
             aria-pressed={filters.categoryId === null}
             onClick={() => changeCategory(null)}
@@ -320,9 +369,7 @@ export function ProductCollection({
                 type="button"
                 className={active ? styles.catChipActive : styles.catChip}
                 aria-pressed={active}
-                onClick={() =>
-                  changeCategory(active ? null : category.id)
-                }
+                onClick={() => changeCategory(active ? null : category.id)}
               >
                 {category.name}
               </button>
@@ -687,10 +734,7 @@ function FilterControls({
         </section>
       )}
 
-      <section
-        className={styles.controlSection}
-        aria-labelledby="filter-price"
-      >
+      <section className={styles.controlSection} aria-labelledby="filter-price">
         <h3 id="filter-price" className={styles.controlHeading}>
           محدوده قیمت (تومان)
         </h3>

@@ -574,6 +574,75 @@ html.home-scroll {
   }
 }
 
+/* Desktop: the slider is constrained to the space beside the portrait video.
+ * Keen uses two whole slides per view, with the same 16px gutter as below. */
+@media (min-width: 64rem) {
+  #home-style .home-style-stage {
+    gap: 1rem;
+    padding: 0 clamp(1.5rem, 3vw, 3rem) 1.5rem;
+  }
+
+  #home-style .home-style-video-panel {
+    flex: 0 0 38%;
+    min-width: 0;
+  }
+
+  #home-style .home-style-video-panel video {
+    object-fit: contain;
+  }
+
+  #home-style .home-style-slider {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  #home-style .home-style-slide {
+    width: calc((100% - 16px) / 2);
+  }
+
+  #home-style .home-style-slide:only-child {
+    width: 100%;
+  }
+
+  #home-style .home-style-slide-label {
+    gap: 0.125rem;
+    background: white;
+    color: #1a1a1a;
+    padding: 0.75rem 0.5rem;
+  }
+
+  #home-style .home-style-product-title {
+    font-weight: 600;
+  }
+
+  #home-style .home-style-price {
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-weight: 600;
+  }
+
+  #home-style .home-style-price del {
+    color: #777;
+    font-weight: 400;
+  }
+
+  #home-style .home-style-control--right {
+    right: calc(clamp(1.5rem, 3vw, 3rem) + (100% - 2 * clamp(1.5rem, 3vw, 3rem) - 1rem) * 0.38 + 1rem + 0.5rem);
+  }
+
+  #home-style .home-style-control--left {
+    left: calc(clamp(1.5rem, 3vw, 3rem) + 0.5rem);
+  }
+
+  #home-style .home-style-control:focus-visible {
+    opacity: 1;
+  }
+}
+
 /* ── فوتر در موبایل صفحه‌ی اصلی ─────────────────────────────────────────── */
 
 /*

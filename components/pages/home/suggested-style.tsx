@@ -38,7 +38,7 @@ function isSingleSlidePerView(slider: KeenSliderInstance): boolean {
  * • پس از رها شدن انگشت، مقصد نهایی دقیقاً یکی از `{startIdx - 1, startIdx,
  *   startIdx + 1}` (محدود به `minIdx..maxIdx`) انتخاب و روی ابتدای کارت اسنپ
  *   می‌شود؛ هیچ پرش چندتایی یا توقف بین دو اسلاید رخ نمی‌دهد.
- * • هنگام گذار از موبایل به تبلت/دسکتاپ (`perView: 'auto'`)، پس از پاک شدن
+ * • هنگام گذار از موبایل به تبلت (`perView: 'auto'`)، پس از پاک شدن
  *   عرض‌های اینلاین قبلی یک بار `slider.update()` اجرا می‌شود تا عرض واقعی
  *   کارت‌های دسکتاپ بدون خطا محاسبه شود.
  */
@@ -153,8 +153,8 @@ export default function SuggestedStyle({
       slides: {
         /*
          * موبایل (پیش‌فرض): دقیقاً یک کارت کامل مربعی در هر نما، بدون فاصله و
-         * بدون سرکِ کارت بعدی. از ۶۴۰px به بالا همان چیدمان قبلی
-         * (`perView: 'auto'`) با فاصلهٔ ۲px برمی‌گردد تا دسکتاپ عوض نشود.
+         * بدون سرکِ کارت بعدی. تبلت چیدمان قبلی را حفظ می‌کند؛ در دسکتاپ
+         * دو کارت کامل با فاصلهٔ ۱۶px نمایش داده می‌شوند.
          */
         perView: 1,
         spacing: 0,
@@ -163,6 +163,15 @@ export default function SuggestedStyle({
       breakpoints: {
         '(min-width: 640px)': {
           slides: { perView: 'auto', spacing: 2, origin: 'auto' },
+        },
+        '(min-width: 1024px)': {
+          loop: totalSlides > 2,
+          drag: totalSlides > 2,
+          slides: {
+            perView: totalSlides === 1 ? 1 : 2,
+            spacing: 16,
+            origin: 'auto',
+          },
         },
       },
       created() {
@@ -186,7 +195,14 @@ export default function SuggestedStyle({
         function nextTimeout() {
           clearNextTimeout();
 
-          if (slider.slides.length <= 1) return;
+          const slides = slider.options.slides;
+          const visibleSlides =
+            typeof slides === 'object' &&
+            slides !== null &&
+            typeof slides.perView === 'number'
+              ? slides.perView
+              : 1;
+          if (slider.slides.length <= visibleSlides) return;
           if (hovered || held || reducedMotion()) return;
 
           timeout = setTimeout(() => {
@@ -286,12 +302,31 @@ export default function SuggestedStyle({
             );
 
             const image = colorImage?.url || '';
+            const variant = product.product.variants?.find(
+              variant => variant?.colorId === product.colorId,
+            );
+            const discount = product.product.discount ?? undefined;
+            const price = discount?.originalPrice ?? variant?.price ?? 0;
+            // Match the existing ProductCard sale presentation.
+            const hasDiscount =
+              !!discount &&
+              price > 0 &&
+              discount.finalPrice > 0 &&
+              discount.finalPrice < price;
+            const discountPercent = hasDiscount
+              ? Math.round(
+                  discount.effectivePercent != null &&
+                  Number.isFinite(discount.effectivePercent)
+                    ? discount.effectivePercent
+                    : ((price - discount.finalPrice) / price) * 100,
+                )
+              : 0;
 
             return (
               <Link
                 href={`/product/${product.product.slug}`}
                 key={product.id}
-                className="home-style-slide keen-slider__slide h-full! w-full shrink-0 min-w-0! sm:w-auto sm:min-w-[45vw]! lg:min-w-[32vw]! flex flex-col"
+                className="home-style-slide keen-slider__slide h-full! w-full shrink-0 min-w-0! sm:w-auto sm:min-w-[45vw]! lg:min-w-0! flex flex-col"
                 aria-label={`${product.product.title} — محصول ${index + 1} از ${products.length}`}
               >
                 <div className="home-style-slide-image relative min-h-0 flex-1">
@@ -299,7 +334,7 @@ export default function SuggestedStyle({
                     src={process.env.NEXT_PUBLIC_IMAGE_URL + image}
                     fill
                     alt={product.product.title}
-                    className="object-cover"
+                    className="object-cover lg:object-contain"
                     sizes="(min-width: 1024px) 32vw, (min-width: 640px) 45vw, 80vw"
                     loading="lazy"
                   />
@@ -308,6 +343,29 @@ export default function SuggestedStyle({
                 <div className="home-style-slide-label flex w-full shrink-0 flex-col items-center bg-primary px-4 py-2 text-center text-sm text-white">
                   <span>{product.enTitle.toUpperCase()}</span>
                   <span>{product.faTitle}</span>
+                  <span className="home-style-product-title hidden lg:block">
+                    {product.product.title}
+                  </span>
+                  {price > 0 && (
+                    <span className="home-style-price hidden lg:flex" dir="rtl">
+                      <span>
+                        <bdi>
+                          {Math.trunc(hasDiscount ? discount.finalPrice : price).toLocaleString('fa-IR')}
+                        </bdi>{' '}
+                        تومان
+                      </span>
+                      {hasDiscount && (
+                        <>
+                          <del aria-label={`قیمت قبلی ${Math.trunc(price).toLocaleString('fa-IR')} تومان`}>
+                            <bdi>{Math.trunc(price).toLocaleString('fa-IR')}</bdi>
+                          </del>
+                          <span aria-label={`${discountPercent.toLocaleString('fa-IR')} درصد تخفیف`}>
+                            {discountPercent.toLocaleString('fa-IR')}٪
+                          </span>
+                        </>
+                      )}
+                    </span>
+                  )}
                 </div>
               </Link>
             );
@@ -320,7 +378,7 @@ export default function SuggestedStyle({
             <button
               type="button"
               onClick={() => instanceRef.current?.prev()}
-              className="absolute left-1.5 top-1/2 home-style-control z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:left-5 lg:opacity-0 lg:group-hover:opacity-100"
+              className={`absolute left-1.5 top-1/2 home-style-control home-style-control--left z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:left-5 lg:opacity-0 lg:group-hover:opacity-100 ${totalSlides <= 2 ? 'lg:hidden' : ''}`}
               aria-label="اسلاید قبلی"
             >
               <ChevronLeft className="size-6" aria-hidden="true" />
@@ -329,7 +387,7 @@ export default function SuggestedStyle({
             <button
               type="button"
               onClick={() => instanceRef.current?.next()}
-              className="absolute right-1.5 top-1/2 home-style-control z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:right-5 lg:opacity-0 lg:group-hover:opacity-100"
+              className={`absolute right-1.5 top-1/2 home-style-control home-style-control--right z-10 flex size-11 -translate-y-1/2 lg:size-10 items-center justify-center rounded-full bg-white/80 shadow-md backdrop-blur transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-900 lg:right-5 lg:opacity-0 lg:group-hover:opacity-100 ${totalSlides <= 2 ? 'lg:hidden' : ''}`}
               aria-label="اسلاید بعدی"
             >
               <ChevronRight className="size-6" aria-hidden="true" />

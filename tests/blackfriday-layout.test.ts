@@ -101,8 +101,11 @@ test('product collection keeps the approved grid and infinite scroll marker', ()
   assert.match(collection, /blackFridayCategoryHref|ProductCard/);
 });
 
-test('category tiles show the eight top-level store categories', () => {
+test('desktop uses five curated tiles while mobile keeps its existing grid', () => {
   assert.match(categoriesCss, /grid-template-columns:\s*repeat\(4,/);
+  assert.match(categoriesCss, /@media \(min-width: 768px\)[\s\S]*?\.desktopGrid\s*\{[^}]*grid-template-columns:\s*repeat\(5,/);
+  assert.match(page, /desktopCategories=\{resolveBlackFridaySubcategories/);
+  assert.match(page, /topCategories=\{topCategories\}/);
   assert.match(categoriesCss, /aspect-ratio:\s*3 \/ 4/);
   assert.match(categoriesCss, /grid-column:\s*1 \/ -1/);
 });

@@ -10,20 +10,18 @@ import { Countdown } from '@/components/pages/blackfriday/countdown';
 import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
 import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
 import CompareBar from '@/components/shared/compare-bar';
-import { resolveStoreTopCategories } from '@/lib/blackfriday/campaign';
+import {
+  resolveBlackFridaySubcategories,
+  resolveStoreTopCategories,
+} from '@/lib/blackfriday/campaign';
 import {
   loadBlackFridayCatalog,
-  loadTwentyPercentProducts,
+  loadDiscountedProducts,
 } from '@/lib/blackfriday/catalog';
+import { pruneCategoriesForProducts } from '@/lib/blackfriday/filtering';
 import {
-  pruneCategoriesForProducts,
-} from '@/lib/blackfriday/filtering';
-import {
-  buildCategoryIndex,
-  interleaveBalancedProducts,
-  mergeUniqueProducts,
-  productInStock,
   selectBiggestDiscounts,
+  selectBlackFridayEligibleProducts,
 } from '@/lib/blackfriday/products';
 import { getAllCategories } from '@/services/features/categories/server.api';
 
@@ -66,9 +64,13 @@ export default async function BlackFridayPage() {
    */
   await connection();
 
-  const [catalog, categoriesResponse] = await Promise.all([
+  const [catalog, discountedProducts, categoriesResponse] = await Promise.all([
     loadBlackFridayCatalog().catch(error => {
       console.error('Black Friday catalog request failed', error);
+      return null;
+    }),
+    loadDiscountedProducts().catch(error => {
+      console.error('Black Friday discounted products request failed', error);
       return null;
     }),
     getAllCategories().catch(() => null),
@@ -81,28 +83,16 @@ export default async function BlackFridayPage() {
     ? selectBiggestDiscounts(catalog.products, 6)
     : [];
 
-  // گروه ۲۰٪: محصولات تخفیف‌دار فروشگاه با تخفیف فعال ۲۰٪ که در دستهٔ
-  // بلک فرایدی نیستند. اگر این خواندن ناموفق باشد، فهرست فقط با گروه ۷۰٪
-  // ادامه پیدا می‌کند.
-  const blackFridayIds = new Set(
+  // Membership comes from the campaign query; product details come from the
+  // store-wide sale query, which retains all category assignments. A campaign
+  // member with a real 20% sale belongs to the 20% group, not the 70% group.
+  const campaignIds = new Set(
     (catalog?.products ?? []).map(product => product.id),
   );
-  const twentyPercentProducts = await loadTwentyPercentProducts(
-    blackFridayIds,
-  ).catch(error => {
-    console.error('Black Friday 20% products request failed', error);
-    return [];
-  });
-
-  // فهرست واجدِ نهایی: بدون تکرار، فقط موجود، و درهم‌تنیدهٔ متوازن
-  // (دو محصول ۷۰٪ و دو محصول ۲۰٪ در هر یک از دو ردیف اول).
-  const eligibleProducts = interleaveBalancedProducts(
-    mergeUniqueProducts([catalog?.products ?? [], twentyPercentProducts]).filter(
-      productInStock,
-    ),
-    blackFridayIds,
-    buildCategoryIndex(categoriesResponse?.data),
-  );
+  const eligibleProducts =
+    catalog && discountedProducts
+      ? selectBlackFridayEligibleProducts(discountedProducts, campaignIds)
+      : [];
 
   // فقط دسته‌هایی که محصول واجد دارد (به‌همراه والدهایشان) به کلاینت
   // می‌روند تا درخت دسته‌بندی برای فیلتر کامل باشد ولی payload کوچک بماند.
@@ -127,12 +117,17 @@ export default async function BlackFridayPage() {
         </a>
         <BiggestDiscounts products={biggestDiscounts} />
         <Countdown />
-        <CategoryGrid categories={topCategories} />
+        <CategoryGrid
+          categories={topCategories}
+          desktopCategories={resolveBlackFridaySubcategories(
+            categoriesResponse?.data,
+          )}
+        />
         <ProductCollection
           products={eligibleProducts}
           categories={collectionCategories}
           topCategories={topCategories}
-          unavailable={catalog === null}
+          unavailable={catalog === null || discountedProducts === null}
         />
         <BlackFridaySeo />
         <ScrollHint />

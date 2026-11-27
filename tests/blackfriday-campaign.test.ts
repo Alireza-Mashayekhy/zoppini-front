@@ -4,7 +4,6 @@ import { test } from 'node:test';
 import {
   BLACK_FRIDAY_CATEGORY_ID,
   BLACK_FRIDAY_DEADLINE_UTC_MS,
-  BLACK_FRIDAY_MAX_SCAN_PAGES,
   BLACK_FRIDAY_PAGE_SIZE,
   blackFridayCategoryFilter,
   blackFridayCategoryHref,
@@ -99,7 +98,6 @@ test('countdown units are two digits in Persian numerals', () => {
 test('campaign reads the real category with the real page size', () => {
   assert.equal(BLACK_FRIDAY_CATEGORY_ID, 137);
   assert.equal(BLACK_FRIDAY_PAGE_SIZE, 24);
-  assert.ok(BLACK_FRIDAY_MAX_SCAN_PAGES >= 2);
 });
 
 test('five real subcategories keep their production slugs', () => {
