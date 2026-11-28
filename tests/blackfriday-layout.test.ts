@@ -26,6 +26,7 @@ const collection = read('components/pages/blackfriday/product-collection.tsx');
 const categoriesCss = read(
   'components/pages/blackfriday/category-grid.module.css',
 );
+const grid = read('components/pages/blackfriday/category-grid.tsx');
 const countdownCss = read('components/pages/blackfriday/countdown.module.css');
 const scrollHintCss = read(
   'components/pages/blackfriday/scroll-hint.module.css',
@@ -108,6 +109,35 @@ test('desktop uses five curated tiles while mobile keeps its existing grid', () 
   assert.match(page, /topCategories=\{topCategories\}/);
   assert.match(categoriesCss, /aspect-ratio:\s*3 \/ 4/);
   assert.match(categoriesCss, /grid-column:\s*1 \/ -1/);
+});
+
+test('mobile category tiles keep a fixed ratio instead of stretching with the viewport height', () => {
+  const mobile = categoriesCss.slice(
+    categoriesCss.indexOf('@media (max-width: 767px)'),
+  );
+  const desktop = categoriesCss.slice(
+    categoriesCss.indexOf('@media (min-width: 768px)'),
+    categoriesCss.indexOf('@media (max-width: 767px)'),
+  );
+
+  // کارت‌های نیم‌عرض مربع‌اند (تصاویر CMS دسته‌ها ۱:۱ آپلود می‌شوند)
+  assert.match(mobile, /\.card\s*\{[^}]*aspect-ratio:\s*1 \/ 1/);
+  // بخش دیگر ارتفاع ثابت 100dvh ندارد که کارت‌ها را کش بدهد
+  assert.match(
+    mobile,
+    /min-height:\s*calc\(100dvh - var\(--zp-header-h\) - var\(--zp-mobile-nav-h\)\)/,
+  );
+  assert.doesNotMatch(mobile, /(^|[^-])height:\s*calc\(100dvh/m);
+  assert.doesNotMatch(mobile, /\.grid li,\s*\.card\s*\{[^}]*height:\s*100%/);
+  // کارت تمام‌عرض: تصویر کامل (contain) و کف ارتفاع وابسته به عرض
+  assert.match(mobile, /\.imageFeatured\s*\{[^}]*object-fit:\s*contain/);
+  assert.match(mobile, /grid-template-rows:\s*minmax\(max\(8\.5rem, calc\(\(100vw - 1\.5rem\) \/ 2\.4\)\), 1fr\)/);
+
+  // دسکتاپ دست‌نخورده می‌ماند
+  assert.doesNotMatch(desktop, /aspect-ratio|imageFeatured|backdrop/);
+  assert.match(grid, /<ul className=\{`\$\{styles\.grid\} \$\{styles\.desktopGrid\}`\}>[\s\S]*sizes="\(min-width: 768px\) 20vw, 50vw"/);
+  // کارت اول موبایل تمام‌عرض است و تصویر با کیفیت کافی برایش انتخاب می‌شود
+  assert.match(grid, /featured \? '100vw' : '50vw'/);
 });
 
 test('countdown keeps four units and the mobile full-height layout', () => {

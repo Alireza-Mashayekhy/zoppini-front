@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { readStockError, StockErrorInfo } from '@/lib/stock-error';
 // eslint-disable-next-line unused-imports/no-unused-imports -- TEMP: formatPrice فعلاً فقط در بلوک‌های کامنت‌شده کیف پول/باشگاه استفاده می‌شود؛ با فعال‌سازی مجدد برداشته شود
 import { formatPrice } from '@/lib/utils';
 import { useAddresses } from '@/services/features/addresses/hooks';
@@ -62,8 +63,11 @@ import OrderSummary, {
 import { resolvePromotionTotals } from './promotion-totals';
 import {
   calculateCheckoutShipping,
+  isFixedShippingMethod,
   POST_SHIPPING_COST_TOMAN,
+  TIPAX_SHIPPING_COST_TOMAN,
 } from './shipping';
+import StockShortageAlert from './stock-shortage-alert';
 
 export default function CheckoutForm() {
   const router = useRouter();
@@ -114,6 +118,9 @@ export default function CheckoutForm() {
 
   const [appliedDiscount, setAppliedDiscount] =
     useState<ApplyDiscountResponse | null>(null);
+
+  // کمبود موجودی که در بررسی دوبارهٔ راهکاران (ثبت سفارش/شروع پرداخت) پیدا شد
+  const [stockError, setStockError] = useState<StockErrorInfo | null>(null);
 
   // eslint-disable-next-line unused-imports/no-unused-vars -- TEMP: ست‌کننده کیف پول با مخفی‌شدن موقت گزینه در تسویه بلااستفاده مانده؛ با فعال‌سازی مجدد برداشته شود
   const [useWalletPayment, setUseWalletPayment] = useState(false);
@@ -186,8 +193,9 @@ export default function CheckoutForm() {
     !!selectedAddressId,
   );
 
+  // پروموشن ارسال رایگان فقط هزینهٔ ثابت (پست/تیپاکس) را حذف می‌کند
   const isFreeShipping =
-    selectedShipping === ShippingMethod.POST &&
+    isFixedShippingMethod(selectedShipping) &&
     (checkoutPreviewData?.data?.totals.freeShipping ??
       cartData?.data?.pricing?.freeShipping ??
       false);
@@ -515,6 +523,8 @@ export default function CheckoutForm() {
        * ساخت سفارش
        */
 
+      setStockError(null);
+
       const orderResponse = await createOrder.mutateAsync(orderData);
 
       const order = orderResponse.data;
@@ -599,16 +609,27 @@ export default function CheckoutForm() {
             window.location.href = payment.payUrl;
           },
 
-          onError: (error: any) => {
-            toast.error(
-              error?.response?.data?.message ||
-                error?.message ||
-                'خطا در شروع پرداخت',
-            );
+          onError: (error: unknown) => {
+            // toast را خود useStartPayment نشان می‌دهد؛ اینجا فقط فهرست اقلام
+            const stock = readStockError(error);
+            if (stock?.items.length) setStockError(stock);
           },
         },
       );
     } catch (error: any) {
+      /**
+       * کمبود موجودی / عدم دسترسی به راهکاران: سفارشی ساخته نشده است.
+       * پیام فارسی سرور + فهرست «کالا / تنوع / تعداد موجود» نشان داده می‌شود
+       * و کد تخفیف دست نمی‌خورد (مشکل از تخفیف نیست).
+       */
+      const stock = readStockError(error);
+      if (stock) {
+        if (stock.items.length) setStockError(stock);
+        toast.error(stock.message);
+
+        return;
+      }
+
       /**
        * ممکن است کد تخفیف در فاصله بین
        * Apply و Create Order نامعتبر شده باشد.
@@ -905,7 +926,11 @@ export default function CheckoutForm() {
                   <div>
                     <div className="font-medium">تیباکس</div>
 
-                    <div className="text-xs text-green-600">هزینه با مشتری</div>
+                    <div className="text-xs text-gray-500">
+                      {promotionTotals.freeShipping
+                        ? 'رایگان'
+                        : `${TIPAX_SHIPPING_COST_TOMAN.toLocaleString('fa-IR')} تومان`}
+                    </div>
                   </div>
                 </label>
               )}
@@ -1283,7 +1308,7 @@ export default function CheckoutForm() {
         promotionDiscount={promotionTotals.promotionDiscount}
         freeItemTotal={promotionTotals.freeItemValue}
         freeShippingFromPromotion={
-          selectedShipping === ShippingMethod.POST &&
+          isFixedShippingMethod(selectedShipping) &&
           promotionTotals.freeShipping
         }
         promotionNotices={promotionTotals.notices}
@@ -1343,7 +1368,7 @@ export default function CheckoutForm() {
           promotionDiscount={promotionTotals.promotionDiscount}
           freeItemTotal={promotionTotals.freeItemValue}
           freeShippingFromPromotion={
-            selectedShipping === ShippingMethod.POST &&
+            isFixedShippingMethod(selectedShipping) &&
             promotionTotals.freeShipping
           }
           promotionNotices={promotionTotals.notices}
@@ -1373,6 +1398,10 @@ export default function CheckoutForm() {
             {deliveryContent}
             {giftContent}
             {paymentContent}
+            <StockShortageAlert
+              error={stockError}
+              onDismiss={() => setStockError(null)}
+            />
             {submitButton}
           </div>
         </div>
@@ -1402,6 +1431,14 @@ export default function CheckoutForm() {
       {/* موبایل: ویزارد سه‌مرحله‌ای (فقط زیر lg) */}
       {/* ===================================== */}
       <div className="lg:hidden">
+        {stockError && (
+          <div className="mb-4">
+            <StockShortageAlert
+              error={stockError}
+              onDismiss={() => setStockError(null)}
+            />
+          </div>
+        )}
         <CheckoutWizardShell
           step={wizardStep}
           onStepChange={goToWizardStep}

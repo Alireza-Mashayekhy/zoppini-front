@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import { apiErrorMessage, readStockError } from '@/lib/stock-error';
+
 import {
   cancelSnappayPayment,
   getSnappayEligibility,
@@ -78,9 +80,13 @@ export function useStartPayment() {
       orderId: number;
       gateway: PaymentGateway;
     }) => startPayment(orderId, gateway),
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast.error(error?.response?.data?.message || 'خطا در شروع پرداخت');
+      if (readStockError(error)) {
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+      }
+      // تنها toast این خطا؛ فراخوان‌ها فقط کار تکمیلی (مثل نمایش فهرست) می‌کنند
+      toast.error(apiErrorMessage(error, 'خطا در شروع پرداخت'));
     },
   });
 }

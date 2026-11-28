@@ -10,6 +10,8 @@ interface ServerRequestOptions {
   headers?: HeadersInit;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
+  /** اختیاری؛ برای timeout/لغو درخواست (مثلاً `AbortSignal.timeout`). */
+  signal?: AbortSignal;
 }
 
 export class ApiError extends Error {
@@ -88,6 +90,7 @@ export async function publicFetch<T>(
       ? { next: options.next }
       : { cache: options.cache ?? 'no-store' }),
     ...(options.cache && options.next ? { cache: options.cache } : {}),
+    ...(options.signal ? { signal: options.signal } : {}),
   };
 
   const res = await fetch(`${BASE_URL}${url}`, fetchInit);

@@ -219,9 +219,35 @@ export type StoreTopCategory = {
   id: number;
   name: string;
   slug: string;
-  /** مسیر تصویر دسته‌بندی فروشگاه (کاملِ URL با پیش‌وند NEXT_PUBLIC_IMAGE_URL) */
-  image: string;
+  /**
+   * مسیر تصویر دسته‌بندی فروشگاه (کاملِ URL با پیش‌وند NEXT_PUBLIC_IMAGE_URL).
+   * اگر دسته در CMS تصویری نداشته باشد `null` است تا کارت حالت جایگزین
+   * (گرادیان) را نشان دهد، نه یک `<img>` شکسته با آدرسِ خالیِ پوشه.
+   */
+  image: string | null;
 };
+
+/**
+ * نام فایل تصویر دسته را به URL کامل تبدیل می‌کند؛ مقدار خالی/فاصله → `null`.
+ *
+ * قبلاً `${base}${image ?? ''}` ساخته می‌شد که برای دستهٔ بدون تصویر خودِ
+ * `NEXT_PUBLIC_IMAGE_URL` (مثلاً `https://zoppinico.com/uploads/`) می‌شد؛ این
+ * رشته truthy است، پس به‌جای حالت جایگزین یک تصویر شکسته رندر می‌شد.
+ */
+export function resolveCategoryImageUrl(
+  category: Pick<CategoriesResponse, 'image' | 'secondImages'>,
+  imageBaseUrl: string,
+): string | null {
+  const candidates = [category.image, ...(category.secondImages ?? [])];
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string') continue;
+    const file = candidate.trim();
+    if (!file) continue;
+    if (/^(https?:)?\/\//i.test(file)) return file;
+    return `${imageBaseUrl}${file}`;
+  }
+  return null;
+}
 
 /**
  * دستهٔ اصلیِ ناوبری فروشگاه (منبع حقیقت).
@@ -267,7 +293,7 @@ export function resolveStoreTopCategories(
       id: category.id,
       name: category.name,
       slug: category.slug,
-      image: `${imageBaseUrl}${category.image ?? ''}`,
+      image: resolveCategoryImageUrl(category, imageBaseUrl),
     }));
 }
 

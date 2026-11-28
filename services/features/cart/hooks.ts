@@ -5,6 +5,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import { readStockError } from '@/lib/stock-error';
+
 import {
   addToCart,
   cartList,
@@ -47,6 +49,10 @@ export function useAddToCart() {
     onSuccess: () => {
       invalidateCartDependents(queryClient);
     },
+    onError: (error: unknown) => {
+      // موجودی سایت در سرور از راهکاران به‌روز شده؛ سبد هم تازه شود
+      if (readStockError(error)) invalidateCartDependents(queryClient);
+    },
   });
 }
 
@@ -57,6 +63,9 @@ export function useUpdateCartItem() {
       updateCartItem(id, data),
     onSuccess: () => {
       invalidateCartDependents(queryClient);
+    },
+    onError: (error: unknown) => {
+      if (readStockError(error)) invalidateCartDependents(queryClient);
     },
   });
 }

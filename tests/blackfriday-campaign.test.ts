@@ -11,6 +11,7 @@ import {
   isBlackFridaySubcategoryId,
   remainingUntilDeadline,
   resolveBlackFridaySubcategories,
+  resolveCategoryImageUrl,
   resolveStoreTopCategories,
 } from '../lib/blackfriday/campaign';
 import type { CategoriesResponse } from '../services/features/categories/types';
@@ -225,4 +226,69 @@ test('store top categories are the eight active roots without the campaign', () 
   assert.ok(top.every(item => item.name.length > 0));
   // هیچ دستهٔ کمپین یا زیردسته‌ای در فهرست اصلی نیست
   assert.ok(!top.some(item => item.id === 137 || item.id === 138));
+});
+
+test('a store category without an image resolves to null, never the bare upload folder', () => {
+  const base = 'https://zoppinico.com/uploads/';
+  const category = (
+    id: number,
+    image: unknown,
+    secondImages: unknown[] = [],
+  ): CategoriesResponse =>
+    ({
+      id,
+      name: `دسته ${id}`,
+      slug: `cat-${id}`,
+      image,
+      secondImages,
+      description: '',
+      createdAt: '',
+      updatedAt: '',
+      parentId: null,
+      isInHeroSection: false,
+      isInHome: false,
+      orderInHome: id,
+      orderInHero: 0,
+      isActive: true,
+    }) as unknown as CategoriesResponse;
+
+  const top = resolveStoreTopCategories(
+    [
+      category(1, 'a.webp'),
+      // «محصولات زمستانه/پاییزه» در CMS تصویری ندارد
+      category(2, ''),
+      category(3, null),
+      category(4, undefined),
+      category(5, '   '),
+      // تصویر اصلی خالی ولی تصویر دوم دارد
+      category(6, '', ['', 'b.jpg']),
+    ],
+    base,
+  );
+
+  assert.deepEqual(
+    top.map(item => item.image),
+    [`${base}a.webp`, null, null, null, null, `${base}b.jpg`],
+  );
+  // هیچ کارتی به خودِ پوشهٔ آپلود (تصویر شکسته) اشاره نمی‌کند
+  assert.ok(!top.some(item => item.image === base));
+});
+
+test('category image urls are trimmed and absolute urls are kept as-is', () => {
+  const base = 'https://img.example/';
+  assert.equal(
+    resolveCategoryImageUrl({ image: ' x.webp ', secondImages: [] }, base),
+    `${base}x.webp`,
+  );
+  assert.equal(
+    resolveCategoryImageUrl(
+      { image: 'https://cdn.example/y.webp', secondImages: [] },
+      base,
+    ),
+    'https://cdn.example/y.webp',
+  );
+  assert.equal(
+    resolveCategoryImageUrl({ image: '', secondImages: [] }, base),
+    null,
+  );
 });

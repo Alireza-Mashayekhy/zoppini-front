@@ -80,13 +80,7 @@ export default function PaymentSelectionContent() {
           window.location.href = payment.payUrl;
         },
 
-        onError: (error: any) => {
-          toast.error(
-            error?.response?.data?.message ||
-              error?.message ||
-              'خطا در شروع پرداخت',
-          );
-        },
+        // پیام خطا (از جمله کمبود موجودی) را خود useStartPayment نشان می‌دهد
       },
     );
   };

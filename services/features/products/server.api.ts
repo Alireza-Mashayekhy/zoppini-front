@@ -42,7 +42,15 @@ interface GetProductsParams {
   priceMax?: number;
 }
 
-export async function getProducts(params: GetProductsParams = {}) {
+/** گزینه‌های اختیاری درخواست؛ فعلاً فقط `signal` برای timeout/لغو. */
+interface ProductRequestOptions {
+  signal?: AbortSignal;
+}
+
+export async function getProducts(
+  params: GetProductsParams = {},
+  requestOptions: ProductRequestOptions = {},
+) {
   const searchParams = new URLSearchParams();
 
   if (params.page) searchParams.append('page', String(params.page));
@@ -67,7 +75,7 @@ export async function getProducts(params: GetProductsParams = {}) {
   }
 
   const url = `products?${searchParams.toString()}`;
-  return publicFetch<ApiListResponse<ProductsResponse>>(url);
+  return publicFetch<ApiListResponse<ProductsResponse>>(url, requestOptions);
 }
 
 export interface CategoryFiltersResponse {
@@ -133,7 +141,10 @@ export async function getStyleProducts() {
   });
 }
 
-export async function getDiscountedProducts(params: GetProductsParams = {}) {
+export async function getDiscountedProducts(
+  params: GetProductsParams = {},
+  requestOptions: ProductRequestOptions = {},
+) {
   const searchParams = new URLSearchParams();
 
   if (params.page) searchParams.append('page', String(params.page));
@@ -157,5 +168,5 @@ export async function getDiscountedProducts(params: GetProductsParams = {}) {
   }
 
   const url = `products/discounted?${searchParams.toString()}`;
-  return publicFetch<ApiListResponse<ProductsResponse>>(url);
+  return publicFetch<ApiListResponse<ProductsResponse>>(url, requestOptions);
 }

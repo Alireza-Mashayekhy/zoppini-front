@@ -1,7 +1,6 @@
 'use client';
 
 import { ChevronDown, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import ProductCard from '@/components/shared/product-card';
@@ -11,6 +10,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { useBlackFridayRecovery } from '@/hooks/use-blackfriday-recovery';
 import { useTypewriterPlaceholder } from '@/hooks/use-typewriter-placeholder';
 import type { StoreTopCategory } from '@/lib/blackfriday/campaign';
 import { BLACK_FRIDAY_PAGE_SIZE } from '@/lib/blackfriday/campaign';
@@ -75,12 +75,31 @@ const formatToman = (value: number) =>
   Math.max(0, Math.round(value)).toLocaleString('fa-IR');
 
 export function ProductCollection({
-  products,
-  categories,
+  products: serverProducts,
+  categories: serverCategories,
   topCategories,
   unavailable = false,
 }: ProductCollectionProps) {
-  const router = useRouter();
+  /**
+   * اگر رندر سرور نتوانسته محصولات واجد را بسازد، کلاینت با backoff از
+   * `/landing/blackfriday/products` دوباره می‌خواند (بدون ریلود کل صفحه).
+   * دادهٔ سالمِ سرور هرگز با پاسخ خالی/ناموفق جایگزین نمی‌شود.
+   */
+  const recovery = useBlackFridayRecovery({
+    needed: unavailable && serverProducts.length === 0,
+    products: serverProducts,
+  });
+  const useRecovered =
+    recovery.recovered !== null && serverProducts.length === 0;
+  const products = useRecovered
+    ? recovery.recovered!.products
+    : serverProducts;
+  const categories = useRecovered
+    ? recovery.recovered!.categories
+    : serverCategories;
+  const collectionUnavailable =
+    unavailable && !useRecovered && products.length === 0;
+  const recovering = collectionUnavailable && recovery.status === 'loading';
 
   const [filters, setFilters] = useState<BlackFridayFilters>(
     EMPTY_BLACK_FRIDAY_FILTERS,
@@ -600,21 +619,29 @@ export function ProductCollection({
         </div>
 
         <p className={styles.resultCount} role="status">
-          {sorted.length.toLocaleString('fa-IR')} محصول
+          {recovering
+            ? 'در حال دریافت محصولات…'
+            : `${sorted.length.toLocaleString('fa-IR')} محصول`}
         </p>
 
         {sorted.length === 0 ? (
-          <div className={styles.empty} role="status">
+          <div
+            className={styles.empty}
+            role="status"
+            aria-busy={recovering || undefined}
+          >
             <p>
-              {unavailable && products.length === 0
-                ? 'دریافت محصولات ناموفق بود. کمی بعد دوباره تلاش کنید.'
-                : 'محصولی با این جستجو و فیلترها پیدا نشد.'}
+              {recovering
+                ? 'در حال دریافت محصولات بلک فرایدی…'
+                : collectionUnavailable
+                  ? 'دریافت محصولات ناموفق بود. کمی بعد دوباره تلاش کنید.'
+                  : 'محصولی با این جستجو و فیلترها پیدا نشد.'}
             </p>
-            {unavailable && products.length === 0 ? (
+            {recovering ? null : collectionUnavailable ? (
               <button
                 type="button"
                 className={styles.more}
-                onClick={() => router.refresh()}
+                onClick={recovery.retry}
               >
                 تلاش دوباره
               </button>

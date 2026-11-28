@@ -2,6 +2,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import { readStockError } from '@/lib/stock-error';
+
 import {
   cancelOrder,
   confirmOrderFromWallet,
@@ -68,8 +70,16 @@ export const useCreateOrder = () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
-    onError: (error: any) => {
-      toast.error(error?.message || 'خطا در ثبت سفارش');
+    onError: (error: unknown) => {
+      /*
+       * پیام خطا را فرم چک‌اوت نشان می‌دهد (با فهرست اقلام ناموجود)؛ اینجا
+       * toast نمی‌زنیم تا پیام دوبار نمایش داده نشود. اگر موجودی از راهکاران
+       * به‌روز شده باشد، سبد تازه شود تا تعداد موجود جدید دیده شود.
+       */
+      if (readStockError(error)) {
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+        queryClient.invalidateQueries({ queryKey: ['checkout-preview'] });
+      }
     },
   });
 };

@@ -84,12 +84,18 @@
 }
 
 @media (max-width: 767px) {
+  /*
+   * بخش هنوز دست‌کم یک صفحه ارتفاع دارد و نقطهٔ snap است، اما ارتفاعش ثابت
+   * نیست (min-height): قبلاً کارت‌ها با `height: 100%` داخل یک بخشِ 100dvh
+   * کش می‌آمدند و نسبتشان با ارتفاع گوشی عوض می‌شد (۰٫۸۴ تا ۱٫۴ و برای کارت
+   * اول ۱٫۷ تا ۲٫۸)، پس تصاویر مربعیِ CMS بالا/پایین یا کناره‌ها بریده می‌شدند.
+   */
   .section {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: calc(100vh - var(--zp-header-h) - var(--zp-mobile-nav-h));
-    height: calc(100dvh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    min-height: calc(100vh - var(--zp-header-h) - var(--zp-mobile-nav-h));
+    min-height: calc(100dvh - var(--zp-header-h) - var(--zp-mobile-nav-h));
     padding: 1.25rem 0;
     scroll-snap-align: start;
     scroll-snap-stop: always;
@@ -100,32 +106,50 @@
     flex: 1;
     flex-direction: column;
     width: min(1280px, calc(100% - 1.5rem));
-    min-height: 0;
   }
 
   .section h2 {
     flex-shrink: 0;
   }
 
+  /*
+   * ردیف اول (کارت تمام‌عرض) فضای باقی‌ماندهٔ صفحه را می‌گیرد؛ بقیه مربع‌اند.
+   * کف ارتفاعش به عرض بسته است (نسبت حداکثر ۲٫۴:۱) تا در گوشی‌های کوتاه یا
+   * عرض‌های نزدیک ۷۶۷px به نوار باریک تبدیل نشود.
+   */
   .grid {
     flex: 1;
-    min-height: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(max(8.5rem, calc((100vw - 1.5rem) / 2.4)), 1fr);
+    grid-auto-rows: auto;
     gap: 0.65rem;
   }
 
-  .grid li,
   .card {
-    min-height: 0;
-    height: 100%;
-  }
-
-  .card {
-    aspect-ratio: auto;
+    aspect-ratio: 1 / 1;
   }
 
   .grid li:first-child {
     grid-column: 1 / -1;
+    min-height: 0;
+  }
+
+  .grid li:first-child .card {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  /* کارت اول: تصویر کامل دیده می‌شود (بدون برش) روی نسخهٔ محوِ خودش */
+  .imageFeatured {
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .backdrop {
+    object-fit: cover;
+    object-position: center;
+    filter: blur(18px) brightness(0.55);
+    transform: scale(1.2);
   }
 
   .name {

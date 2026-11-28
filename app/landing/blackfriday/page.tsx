@@ -10,20 +10,9 @@ import { Countdown } from '@/components/pages/blackfriday/countdown';
 import { ProductCollection } from '@/components/pages/blackfriday/product-collection';
 import { ScrollHint } from '@/components/pages/blackfriday/scroll-hint';
 import CompareBar from '@/components/shared/compare-bar';
-import {
-  resolveBlackFridaySubcategories,
-  resolveStoreTopCategories,
-} from '@/lib/blackfriday/campaign';
-import {
-  loadBlackFridayCatalog,
-  loadDiscountedProducts,
-} from '@/lib/blackfriday/catalog';
-import { pruneCategoriesForProducts } from '@/lib/blackfriday/filtering';
-import {
-  selectBiggestDiscounts,
-  selectBlackFridayEligibleProducts,
-} from '@/lib/blackfriday/products';
-import { getAllCategories } from '@/services/features/categories/server.api';
+import { resolveBlackFridaySubcategories } from '@/lib/blackfriday/campaign';
+import { getBlackFridayCollectionData } from '@/lib/blackfriday/collection-source';
+import { selectBiggestDiscounts } from '@/lib/blackfriday/products';
 
 import styles from './blackfriday.module.css';
 
@@ -64,43 +53,20 @@ export default async function BlackFridayPage() {
    */
   await connection();
 
-  const [catalog, discountedProducts, categoriesResponse] = await Promise.all([
-    loadBlackFridayCatalog().catch(error => {
-      console.error('Black Friday catalog request failed', error);
-      return null;
-    }),
-    loadDiscountedProducts().catch(error => {
-      console.error('Black Friday discounted products request failed', error);
-      return null;
-    }),
-    getAllCategories().catch(() => null),
-  ]);
+  /**
+   * داده‌ها از snapshotِ مشترکِ سرور خوانده می‌شوند (`collection-source`):
+   * درخواست‌های هم‌زمان یک اسکن مشترک دارند، snapshot تا ۶۰ ثانیه تازه
+   * است و اگر بازخوانی ناموفق باشد آخرین دادهٔ سالم جایگزینِ «۰ محصول»
+   * می‌شود. قواعد واجدیت (۷۰٪ عضو دسته + ۲۰٪ کل فروشگاه) دست‌نخورده‌اند.
+   */
+  const collection = await getBlackFridayCollectionData();
 
-  const topCategories = resolveStoreTopCategories(categoriesResponse?.data);
+  const topCategories = collection.topCategories;
   // شش محصول با بالاترین تخفیف واقعیِ کل دسته؛ انتخاب در هر درخواست تازه
   // می‌تواند عوض شود ولی HTMLِ سرور و hydration کلاینت یکی است.
-  const biggestDiscounts = catalog
-    ? selectBiggestDiscounts(catalog.products, 6)
-    : [];
-
-  // Membership comes from the campaign query; product details come from the
-  // store-wide sale query, which retains all category assignments. A campaign
-  // member with a real 20% sale belongs to the 20% group, not the 70% group.
-  const campaignIds = new Set(
-    (catalog?.products ?? []).map(product => product.id),
-  );
-  const eligibleProducts =
-    catalog && discountedProducts
-      ? selectBlackFridayEligibleProducts(discountedProducts, campaignIds)
-      : [];
-
-  // فقط دسته‌هایی که محصول واجد دارد (به‌همراه والدهایشان) به کلاینت
-  // می‌روند تا درخت دسته‌بندی برای فیلتر کامل باشد ولی payload کوچک بماند.
-  // هشت دسته‌بندی اصلیِ ناوبری مستقیم از همان پاسخ کامل می‌آیند و به
-  // ProductCollection همان‌ها می‌رسند.
-  const collectionCategories = pruneCategoriesForProducts(
-    eligibleProducts,
-    categoriesResponse?.data,
+  const biggestDiscounts = selectBiggestDiscounts(
+    collection.campaignProducts,
+    6,
   );
 
   return (
@@ -120,14 +86,14 @@ export default async function BlackFridayPage() {
         <CategoryGrid
           categories={topCategories}
           desktopCategories={resolveBlackFridaySubcategories(
-            categoriesResponse?.data,
+            collection.categories,
           )}
         />
         <ProductCollection
-          products={eligibleProducts}
-          categories={collectionCategories}
+          products={collection.eligibleProducts}
+          categories={collection.collectionCategories}
           topCategories={topCategories}
-          unavailable={catalog === null || discountedProducts === null}
+          unavailable={collection.unavailable}
         />
         <BlackFridaySeo />
         <ScrollHint />

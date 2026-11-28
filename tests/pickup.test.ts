@@ -62,8 +62,9 @@ test('postal cost is fixed across cart changes and only applies after address se
     calculateCheckoutShipping([], ShippingMethod.POST, true).shippingCost,
     0,
   );
+  // تیپاکس از پس‌کرایه به هزینهٔ ثابت ۲۵۰ هزار تومان تغییر کرد
   assert.equal(
     calculateCheckoutShipping(items, ShippingMethod.TIBAX, true).shippingCost,
-    0,
+    250_000,
   );
 });
